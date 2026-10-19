@@ -1,0 +1,18 @@
+# Credentials, private inputs, outputs, and development artifacts are never published.
+.env*
+*.key
+*.log
+*.hwp
+*.hwpx
+*.pdf
+*.hml
+!assets/template.hml
+inputs/
+results/
+verification/
+work/
+build/
+dist/
+__pycache__/
+*.spec
+*.zip
