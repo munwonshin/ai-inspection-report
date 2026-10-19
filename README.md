@@ -55,5 +55,3 @@ python -m unittest discover -s tests -v
 - [OpenAI 데이터 정책](https://developers.openai.com/api/docs/guides/your-data)
 - [OpenAI API 요금](https://developers.openai.com/api/docs/pricing)
 - [한컴 자동화 등록 안내](https://forum.developer.hancom.com/t/topic/973)
-
-약 3시간인 업무를 검수 포함 약 10분으로 줄이는 것은 목표입니다. 실제 업무시간을 측정하기 전에는 달성 성과로 표현하지 않습니다.
