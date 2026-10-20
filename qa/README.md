@@ -11,3 +11,5 @@ Windows 소스 실행 의존성을 설치한 후 이 폴더의 스크립트를 �
 - pdf_drop_checks.py: 실제 TkDND 로드, PDF 파일명/드롭 입력 검증, 실패 시 기존 첨부 보존과 버튼 호환성을 확인합니다. 가상 PDF만 임시 생성하며 API/HWP는 호출하지 않습니다.
 
 - pdf_drop_checks.py: 실제 TkDND 파일 첨부, × 해제, 메모리 제거, 재첨부, 원본/초안 보존을 검사합니다. 가상 자료만 쓰며 API/HWP는 호출하지 않습니다.
+
+- pdf_speed_benchmark.py: 기본 가상 PDF 또는 --pdf 경로를 로컬로 비교합니다. API 호출/문서 출력 없이 시간·보존 결과만 표시합니다. pdf_visual_verify.py는 메모리에서 원본과 부분 PDF의 모든 선택 페이지 글자·렌더링을 대조합니다. pdf_baseline.py는 개선 전 대조 함수입니다.

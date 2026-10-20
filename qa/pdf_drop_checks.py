@@ -59,5 +59,12 @@ with tempfile.TemporaryDirectory(prefix='inspection-pdf-drop-') as tmp:
         assert app.pdf_drop(event(str(p)))=='copy';settle()
         assert app.pdf_path==str(p) and app.remove_pdf_button.winfo_ismapped()
 result={'native_tkdnd_loaded':True,'all_pdf_card_children_registered':True,'unicode_spaces_braces_uppercase_pdf':True,'multiple_non_pdf_invalid_data_rejected':True,'busy_drop_blocked':True,'corrupt_pdf_preserves_previous':True,'button_same_reader':True,'remove_clears_all_pdf_payloads':True,'remove_preserves_minutes_draft_and_original_file':True,'remove_blocked_while_busy':True,'reattach_after_remove':True,'no_generation_without_attachment':True,'api_calls':0,'hwp_saves':0}
+app.lock(True)
+for i in range(101):app.pdf_progress.put((i,100))
+app.poll()
+assert app.busy and '100/100쪽' in app.status.get()
+assert app.remove_pdf_button.instate(['disabled'])
+app.lock(False)
+result['progress_queue_drained_without_unlocking']=True
 Path(__file__).with_suffix('.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
 root.destroy();print('PDF_DROP_CHECKS_OK',flush=True)

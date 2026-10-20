@@ -13,3 +13,5 @@ This application bundles Python and libraries through PyInstaller. It requires a
 - OpenSSL: Apache-2.0, https://www.openssl.org/source/license.html
 
 The original template's document structure is reused at the user's request. Example business PDF, meeting notes, API keys and real work products are excluded from the source package.
+
+- pypdfium2 5.14.0: Apache-2.0 OR BSD-3-Clause; PDFium 및 번들 구성요소 라이선스는 licenses/pdfium/에 포함. https://github.com/pypdfium2-team/pypdfium2

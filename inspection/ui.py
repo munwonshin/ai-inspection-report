@@ -21,7 +21,7 @@ class App:
         self.root=root
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         self.busy=False;self.connected=False;self.last_saved=None;self.saved_current=False
-        self.mailbox=queue.Queue();self.edits=[];self.buttons=[];self.entries=[]
+        self.mailbox=queue.Queue();self.pdf_progress=queue.SimpleQueue();self.edits=[];self.buttons=[];self.entries=[]
         self.general_expanded=False
         self.editor_open=False;self.messages=[];self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
@@ -31,7 +31,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3.2')
+        root.title('AI 현장점검 결과서 · 0.3.3')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -402,6 +402,12 @@ class App:
         threading.Thread(target=execute,daemon=False).start()
 
     def poll(self):
+        latest=None
+        try:
+            while True:latest=self.pdf_progress.get_nowait()
+        except queue.Empty:pass
+        if latest is not None and self.busy:
+            self.status.set(f'PDF 읽기 · {latest[0]}/{latest[1]}쪽 분석 중 · 외부 전송 없음')
         try:
             done,ok,result=self.mailbox.get_nowait()
             self.lock(False)
@@ -477,7 +483,7 @@ class App:
             if len(name)>32:name=Path(p).stem[:27]+'…'+Path(p).suffix
             self.pdf_label.set(f'{name}\n{result.page_count}쪽 · 첨부 완료')
             self.status.set('PDF를 읽었습니다. 회의록을 입력한 뒤 초안을 작성하세요.')
-        self.background(lambda:prepare_pdf(p),done,'PDF의 모든 쪽과 시각 자료를 읽고 있습니다. 지금은 외부 전송하지 않습니다.')
+        self.background(lambda:prepare_pdf(p,progress=lambda current,total:self.pdf_progress.put((current,total))),done,'PDF의 모든 쪽과 시각 자료를 읽고 있습니다. 지금은 외부 전송하지 않습니다.')
 
     def ready(self):
         if not self.connected:
