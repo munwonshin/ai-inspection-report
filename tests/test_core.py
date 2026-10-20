@@ -73,16 +73,16 @@ class CoreTests(unittest.TestCase):
             self.assertFalse(payload['store'])
             self.assertNotIn('tools',payload)
             self.assertIn('직접 편집 보존',payload['input'][1]['content'])
-            self.assertIn('source_plan_local_quote_check_text',payload['input'][1]['content'])
+            self.assertIn('가상 계획',payload['input'][0]['content'][0]['text'])
 
     def test_full_pdf_in_request_without_files_upload(self):
         response={'findings':'가상 수정','actions':'근거 없음','checks':'','general':{}}
         with patch('inspection.api.request',return_value=(json.dumps(response),{})) as request:
             api.generate('TEST_KEY','가상 계획','가상 회의록',fixture().as_dict(),'가상 요청',pdf_bytes=b'%PDF-FAKE-TEST')
-            parts=request.call_args.args[1]['input'][1]['content']
+            parts=request.call_args.args[1]['input'][0]['content']
             self.assertEqual(parts[0]['type'],'input_file')
             self.assertTrue(parts[0]['file_data'].startswith('data:application/pdf;base64,'))
-            self.assertIn('직접 편집 보존',parts[1]['text'])
+            self.assertIn('직접 편집 보존',request.call_args.args[1]['input'][1]['content'])
 
     def test_api_errors_do_not_return_provider_payload(self):
         import urllib.error
