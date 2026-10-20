@@ -34,15 +34,28 @@ def estimate_cost(usage,model=None):
     if model in {'gpt-6-luna','gpt-5.6-luna','gpt-5.6-terra'} and inputs>272000:price*=2;cp*=2;op*=1.5
     return (max(0,inputs-cached-writes)*price+cached*cp+writes*price*1.25+usage.get('output_tokens',0)*op)/1e6
 
-def request(key,payload):
+def request(key,payload,on_delta=None):
+    if on_delta is not None:payload={**payload,'stream':True}
     req=urllib.request.Request(ENDPOINT,data=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode('utf-8'),headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'})
     started=time.monotonic()
     try:
-        with urllib.request.urlopen(req,timeout=150) as response:data=json.load(response)
+        with urllib.request.urlopen(req,timeout=150) as response:
+            if on_delta is None:data=json.load(response)
+            else:
+                from .streaming import events
+                data=None
+                for event in events(response):
+                    kind=event.get('type')
+                    if kind=='response.output_text.delta':on_delta(event.get('delta',''))
+                    elif kind=='response.completed':data=event.get('response');break
+                    elif kind in {'response.failed','response.incomplete','error','response.refusal.delta'}:
+                        raise ApiFailure('AI 응답을 완료하지 못했습니다. 이전 초안은 유지됩니다. 다시 시도해 주세요.')
+                if data is None:raise ApiFailure('AI 응답 수신이 중단됐습니다. 이전 초안은 유지됩니다. 다시 시도해 주세요.')
     except urllib.error.HTTPError as e:
         messages={401:'API 키가 유효하지 않습니다.',403:'이 키로 해당 모델에 접근할 수 없습니다.',404:'설정된 모델을 사용할 수 없습니다.',429:'사용 한도·잔액 또는 요청 속도를 확인해 주세요.',400:'API 요청을 처리하지 못했습니다. 모델 지원 상태를 확인해 주세요.',413:'전송 자료가 너무 큽니다.'}
         raise ApiFailure(messages.get(e.code,f'API 서버 오류({e.code}). 잠시 후 다시 시도해 주세요.')) from None
     except (urllib.error.URLError,TimeoutError,OSError):raise ApiFailure('API 연결이 끊겼거나 응답 시간이 초과됐습니다. 입력은 유지됩니다.') from None
+    except (ValueError,UnicodeError):raise ApiFailure('AI 응답을 읽지 못했습니다. 입력은 유지됩니다.') from None
     if data.get('status')!='completed':raise ApiFailure('초안 응답이 완성되지 않았습니다. 입력은 유지됩니다. 다시 시도해 주세요.')
     texts=[]
     for item in data.get('output',[]):
@@ -78,8 +91,9 @@ def build_payload(plan,minutes,current,instruction,pdf_bytes=None,*,model=None,r
     if model!='gpt-4.1-mini':p['reasoning']={'effort':'none'}
     return p
 
-def generate(key,plan,minutes,current,instruction,pdf_bytes=None,*,model=None,revision=False):
-    text,usage=request(key,build_payload(plan,minutes,current,instruction,pdf_bytes,model=model,revision=revision))
+def generate(key,plan,minutes,current,instruction,pdf_bytes=None,*,model=None,revision=False,on_delta=None):
+    payload=build_payload(plan,minutes,current,instruction,pdf_bytes,model=model,revision=revision)
+    text,usage=request(key,payload,on_delta=on_delta) if on_delta is not None else request(key,payload)
     try:
         result=json.loads(text)
         if not all(isinstance(result[k],str) for k in ['findings','actions','checks']):raise ValueError()

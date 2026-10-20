@@ -37,9 +37,9 @@ def filename(value):
         raise ValueError('파일명 앞뒤 공백·마침표를 제거해 주세요.')
     if value.lower().endswith('.hwp'):
         value = value[:-4]
-    if (not value or len(value)>120 or re.search(r'[<>:"/\\|?*\x00-\x1f]', value)
+    if (not value or len(value)>120 or any(c in '<>:"/\\|?*' or ord(c)<32 for c in value)
             or value.endswith(('.', ' '))):
-        raise ValueError('파일명에는 경로·특수문자를 넣을 수 없습니다. 120자 이하로 입력해 주세요.')
+        raise ValueError('제목은 120자 이하로 입력하고 < > : " / \\ | ? * 및 제어문자를 제외해 주세요. 밑줄(_)·괄호·하이픈은 사용할 수 있습니다.')
     if value.split('.')[0].upper() in {'CON','PRN','AUX','NUL',*(f'COM{i}' for i in '0123456789¹²³'),*(f'LPT{i}' for i in '0123456789¹²³')}:
         raise ValueError('Windows 예약 파일명은 사용할 수 없습니다.')
     return value+'.hwp'

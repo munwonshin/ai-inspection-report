@@ -1,6 +1,8 @@
 import os
 import queue
 import threading
+import time
+from .streaming import preview
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
@@ -25,13 +27,14 @@ class App:
         self.general_expanded=False
         self.editor_open=False;self.messages=[];self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
-        self.name=tk.StringVar();self.folder=tk.StringVar()
+        self.name=self.title;self.folder=tk.StringVar()
+        self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible=""
         self.general={k:tk.StringVar() for k in GENERAL}
         self.status=tk.StringVar(value='PDF와 회의록을 입력한 뒤 초안을 작성하세요.')
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3.3')
+        root.title('AI 현장점검 결과서 · 0.3.4')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -158,17 +161,17 @@ class App:
         self.state_badge=tk.Label(save_header,text='작성 전',bg='#EFF2F7',fg=MUTED,font=('맑은 고딕',9,'bold'),padx=9,pady=3)
         self.state_badge.pack(side='right')
         fields=ttk.Frame(save,style='Card.TFrame');fields.grid(row=1,column=0,sticky='ew')
-        for col,weight,size in [(0,2,140),(1,2,140),(2,4,240)]:fields.columnconfigure(col,weight=weight,minsize=size)
-        for col,label,var in [(0,'결과서 제목',self.title),(1,'파일명 · .hwp',self.name)]:
+        for col,weight,size in [(0,3,240),(1,4,300)]:fields.columnconfigure(col,weight=weight,minsize=size)
+        for col,label,var in [(0,'결과서 제목 · 저장 파일명으로 사용',self.title)]:
             group=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,12,0));group.grid(row=0,column=col,sticky='ew');group.columnconfigure(0,weight=1)
             ttk.Label(group,text=label,style='Hint.TLabel').grid(row=0,column=0,sticky='w',pady=(0,4))
             self.entry(group,var).grid(row=1,column=0,sticky='ew')
-        location=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,14,0));location.grid(row=0,column=2,sticky='ew');location.columnconfigure(0,weight=1)
+        location=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,14,0));location.grid(row=0,column=1,sticky='ew');location.columnconfigure(0,weight=1)
         ttk.Label(location,text='저장 위치 · 로컬 / NAS',style='Hint.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,4))
         self.entry(location,self.folder).grid(row=1,column=0,sticky='ew',padx=(0,6))
         self.button(location,'폴더 선택',self.choose_folder,style='Quiet.TButton').grid(row=1,column=1)
         self.approve_button=self.button(fields,'승인 및 한글 저장',self.approve,primary=True)
-        self.approve_button.grid(row=0,column=3,sticky='se')
+        self.approve_button.grid(row=0,column=2,sticky='se')
         progress_track=tk.Frame(save,height=3,bg='#EDF1F7');progress_track.grid(row=2,column=0,sticky='ew',pady=(10,8));progress_track.pack_propagate(False)
         self.progress=ttk.Progressbar(progress_track,style='Thin.Horizontal.TProgressbar',mode='determinate',maximum=100)
         self.progress.pack(fill='both',expand=True)
@@ -181,7 +184,7 @@ class App:
         self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
         ttk.Label(outer,text='PDF·회의록·현재 초안·수정 요청을 OpenAI로 전송합니다. API 사용량별 과금 · ChatGPT 구독과 별도 · 승인 전 파일 생성 없음',style='Legal.TLabel',wraplength=1250).grid(row=3,column=0,sticky='w',pady=(7,0))
 
-        for v in [self.title,self.name,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
+        for v in [self.title,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
         for text in self.edits:text.bind('<<Modified>>',lambda e:self.text_changed(e.widget))
         self.status.trace_add('write',lambda *a:self.refresh_state())
         root.protocol('WM_DELETE_WINDOW',self.close)
@@ -354,7 +357,11 @@ class App:
             if message['kind']=='user':
                 self.conversation.insert('end','나의 요청\n','user_head')
                 self.conversation.insert('end',message['text']+'\n','user')
-                if message.get('status')=='pending':self.conversation.insert('end','AI가 작성하고 있습니다…\n','hint')
+                if message.get('status')=='pending':
+                    self.conversation.mark_set('stream_start','end-1c');self.conversation.mark_gravity('stream_start','left')
+                    self.conversation.insert('end',self.stream_header(),'hint')
+                    if self.stream_visible:self.conversation.insert('end',self.stream_visible+' ▍\n','body')
+                    self.conversation.mark_set('stream_end','end-1c');self.conversation.mark_gravity('stream_end','right')
                 elif message.get('status')=='failed':self.conversation.insert('end','요청을 처리하지 못했습니다. 이전 초안과 입력 내용은 유지됩니다.\n','error')
             elif message['kind']=='report':
                 current=message is latest
@@ -366,6 +373,23 @@ class App:
             report_card(self.snapshot().as_dict(),'직접 편집한 최신 초안 · 승인 시 저장 대상',True)
         self.conversation.configure(state='disabled')
         if follow or at_bottom:self.conversation.see('end')
+        else:self.conversation.yview_moveto(view[0])
+
+    def stream_header(self):
+        elapsed=int(time.monotonic()-self.ai_started) if self.ai_started is not None else 0
+        dots='·'*(1+(elapsed%3))
+        return f'AI 작성 중 {dots}  {elapsed}초 경과 · 완료 후 검수 가능\n'
+
+    def render_stream(self):
+        if 'stream_start' not in self.conversation.mark_names():
+            self.render_conversation();return
+        view=self.conversation.yview();follow=not view or view[1]>.97
+        self.conversation.configure(state='normal')
+        self.conversation.delete('stream_start','stream_end')
+        self.conversation.insert('stream_end',self.stream_header(),'hint')
+        if self.stream_visible:self.conversation.insert('stream_end',self.stream_visible+' ▍\n','body')
+        self.conversation.configure(state='disabled')
+        if follow:self.conversation.see('end')
         else:self.conversation.yview_moveto(view[0])
 
     def text_changed(self,t):
@@ -402,6 +426,17 @@ class App:
         threading.Thread(target=execute,daemon=False).start()
 
     def poll(self):
+        if self.ai_started is not None and self.pending_request is not None:
+            try:
+                while True:self.stream_json+=self.stream_queue.get_nowait()
+            except queue.Empty:pass
+            target=preview(self.stream_json)
+            # Short paced batches follow actual network data; never invent text.
+            gap=len(target)-len(self.stream_visible)
+            self.stream_visible=target[:len(self.stream_visible)+max(1,min(500,gap//4))]
+            elapsed=int(time.monotonic()-self.ai_started)
+            self.status.set(f'AI 작성 중 · {elapsed}초 경과 · '+('본문 수신 중' if target else '응답을 기다리는 중'))
+            self.render_stream()
         latest=None
         try:
             while True:latest=self.pdf_progress.get_nowait()
@@ -410,15 +445,21 @@ class App:
             self.status.set(f'PDF 읽기 · {latest[0]}/{latest[1]}쪽 분석 중 · 외부 전송 없음')
         try:
             done,ok,result=self.mailbox.get_nowait()
-            self.lock(False)
-            if ok:done(result)
+            if ok and self.ai_started is not None and self.stream_visible!=preview(self.stream_json):
+                # Keep the approval gate closed while the last received characters
+                # drain, avoiding a final jump from a partial to the entire report.
+                self.mailbox.put((done,ok,result))
             else:
-                if self.pending_request is not None:
-                    self.pending_request['status']='failed';self.pending_request=None;self.render_conversation(follow=True)
-                self.status.set('처리에 실패했습니다. 입력·편집 내용은 유지됩니다.')
-                messagebox.showerror('처리 실패',self.safe_error(result),parent=self.root)
+                self.ai_started=None
+                self.lock(False)
+                if ok:done(result)
+                else:
+                    if self.pending_request is not None:
+                        self.pending_request['status']='failed';self.pending_request=None;self.render_conversation(follow=True)
+                    self.status.set('처리에 실패했습니다. 입력·편집 내용은 유지됩니다.')
+                    messagebox.showerror('처리 실패',self.safe_error(result),parent=self.root)
         except queue.Empty:pass
-        self.root.after(120,self.poll)
+        self.root.after(40 if self.ai_started is not None else 120,self.poll)
 
     def safe_error(self,e):
         if isinstance(e,(ValueError,RuntimeError,api.ApiFailure,PermissionError)):return str(e)
@@ -507,6 +548,8 @@ class App:
     def ai(self,instruction,is_chat,from_chat=False):
         if self.busy:return
         self.sync_latest_report()
+        self.ai_started=time.monotonic();self.stream_json="";self.stream_visible=""
+        self.stream_queue=queue.SimpleQueue()
         self.pending_request={'kind':'user','text':instruction,'status':'pending'}
         self.messages.append(self.pending_request)
         if self.editor_open:self.toggle_editor()
@@ -516,7 +559,7 @@ class App:
         def task():
             key=vault.read()
             if not key:raise ValueError('저장된 API 키가 없습니다.')
-            return api.generate(key,api_plan,minutes,current,instruction,pdf_bytes=self.pdf_bytes,revision=is_chat)
+            return api.generate(key,api_plan,minutes,current,instruction,pdf_bytes=self.pdf_bytes,revision=is_chat,on_delta=self.stream_queue.put)
         def done(data):
             result,usage=data
             for t,k in [(self.findings,'findings'),(self.actions,'actions'),(self.checks,'checks')]:
