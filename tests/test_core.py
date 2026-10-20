@@ -21,7 +21,7 @@ class CoreTests(unittest.TestCase):
             tmp.assert_not_called();template.assert_not_called()
 
     def test_invalid_names(self):
-        for s in ['../a','a/b','a\\b','CON','nul.txt','COM¹','LPT9','a:stream','a?b','a.',' a','a ','','x\nname']:
+        for s in ['../a','a/b','a\\b','CON','nul.txt','COM¹','LPT9','a:stream','a?b','','x\nname']:
             with self.subTest(s=s),self.assertRaises(ValueError):filename(s)
 
     def test_valid_names_and_no_double_extension(self):

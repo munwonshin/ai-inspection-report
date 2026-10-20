@@ -33,14 +33,15 @@ class Report:
                     actions=self.actions, checks=self.checks)
 
 def filename(value):
-    if value != value.strip() or not value or value.endswith(('.', ' ')):
-        raise ValueError('파일명 앞뒤 공백·마침표를 제거해 주세요.')
+    # Normalize the filesystem name only; preserve the approved report title.
+    value=re.sub(r'[.\s]+$','',value.strip())
     if value.lower().endswith('.hwp'):
-        value = value[:-4]
-    if (not value or len(value)>120 or any(c in '<>:"/\\|?*' or ord(c)<32 for c in value)
-            or value.endswith(('.', ' '))):
+        value=re.sub(r'[.\s]+$','',value[:-4].strip())
+    if not value:
+        raise ValueError('저장할 제목을 입력해 주세요. 공백·마침표·확장자만으로는 저장할 수 없습니다.')
+    if len(value)>120 or any(c in '<>:"/\\|?*' or ord(c)<32 for c in value):
         raise ValueError('제목은 120자 이하로 입력하고 < > : " / \\ | ? * 및 제어문자를 제외해 주세요. 밑줄(_)·괄호·하이픈은 사용할 수 있습니다.')
-    if value.split('.')[0].upper() in {'CON','PRN','AUX','NUL',*(f'COM{i}' for i in '0123456789¹²³'),*(f'LPT{i}' for i in '0123456789¹²³')}:
+    if value.split('.')[0].rstrip().upper() in {'CON','PRN','AUX','NUL',*(f'COM{i}' for i in '0123456789¹²³'),*(f'LPT{i}' for i in '0123456789¹²³')}:
         raise ValueError('Windows 예약 파일명은 사용할 수 없습니다.')
     return value+'.hwp'
 

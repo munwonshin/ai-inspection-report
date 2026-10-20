@@ -34,7 +34,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3.4')
+        root.title('AI 현장점검 결과서 · 0.3.5')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -166,6 +166,10 @@ class App:
             group=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,12,0));group.grid(row=0,column=col,sticky='ew');group.columnconfigure(0,weight=1)
             ttk.Label(group,text=label,style='Hint.TLabel').grid(row=0,column=0,sticky='w',pady=(0,4))
             self.entry(group,var).grid(row=1,column=0,sticky='ew')
+            self.filename_hint=tk.StringVar()
+            hint=ttk.Label(group,textvariable=self.filename_hint,style='Hint.TLabel',width=1,wraplength=280)
+            hint.grid(row=2,column=0,sticky='ew',pady=(3,0))
+            hint.bind('<Configure>',lambda e:e.widget.configure(wraplength=max(160,e.width)))
         location=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,14,0));location.grid(row=0,column=1,sticky='ew');location.columnconfigure(0,weight=1)
         ttk.Label(location,text='저장 위치 · 로컬 / NAS',style='Hint.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,4))
         self.entry(location,self.folder).grid(row=1,column=0,sticky='ew',padx=(0,6))
@@ -294,6 +298,9 @@ class App:
             self.general_canvas.yview_moveto(max(0,y-6)/max(1,self.general_body.winfo_height()))
 
     def refresh_state(self):
+        if hasattr(self,'filename_hint'):
+            try:self.filename_hint.set('저장 이름: '+filename(self.title.get()))
+            except ValueError:self.filename_hint.set('저장 이름 확인 필요 · 제목 또는 금지 문자 확인')
         if self.pdf_path:self.remove_pdf_button.grid()
         else:self.remove_pdf_button.grid_remove()
         self.remove_pdf_button.configure(state='disabled' if self.busy else 'normal')
