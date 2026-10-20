@@ -15,7 +15,12 @@ rows=[]
 for scaling in [None,2.0]:
     root=tk.Tk();root.attributes('-alpha',0)
     if scaling:root.tk.call('tk','scaling',scaling)
-    app=App(root);pump(root)
+    app=App(root)
+    # Check the attachment-present layout, including its conditional × button.
+    # The empty/hidden and cleared states are covered by pdf_drop_checks.py.
+    app.pdf_path=r'C:\가상 화면배치 시험.pdf'
+    app.pdf_label.set('가상 화면배치 시험.pdf\n1쪽 · 첨부 완료')
+    app.refresh_state();pump(root)
     for width,height in [(1320,880),(1060,720)]:
         root.geometry(f'{width}x{height}');pump(root)
         for general in [False,True]:

@@ -31,7 +31,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3')
+        root.title('AI 현장점검 결과서 · 0.3.2')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -67,10 +67,16 @@ class App:
         self.pdf_surface=pdf
         pdf.grid(row=0,column=0,sticky='ew',pady=(0,12));pdf.columnconfigure(0,weight=1)
         ttk.Label(pdf,text='사업계획서 PDF',style='FieldTitle.TLabel').grid(row=0,column=0,sticky='w',padx=12,pady=(10,0))
-        self.button(pdf,'PDF 첨부',self.attach,style='Quiet.TButton').grid(row=0,column=1,rowspan=2,padx=(6,10),pady=10)
+        pdf.rowconfigure(0,minsize=30)
+        self.remove_pdf_button=self.button(pdf,'×',self.remove_pdf,style='Text.TButton')
+        self.remove_pdf_button.configure(width=2,padding=(0,0),takefocus=True)
+        self.remove_pdf_button.grid(row=0,column=1,sticky='ne',padx=(6,10),pady=(4,0))
+        self.remove_pdf_button.grid_remove()
+        self.button(pdf,'PDF 첨부',self.attach,style='Quiet.TButton').grid(row=1,column=1,padx=(6,10),pady=(0,8))
         self.pdf_caption=tk.Label(pdf,textvariable=self.pdf_label,bg='#F5F7FD',fg=MUTED,font=('맑은 고딕',9),anchor='w',justify='left',wraplength=200,height=2)
         self.pdf_caption.grid(row=1,column=0,sticky='ew',padx=(12,4),pady=(3,8))
         pdf.bind('<Configure>',lambda e:self.pdf_caption.configure(wraplength=max(100,e.width-110)))
+        self.enable_pdf_drop()
         ttk.Label(self.input_panel,text='회의록',style='FieldLabel.TLabel').grid(row=1,column=0,sticky='w',pady=(0,6))
         self.minutes_hint=ttk.Label(self.input_panel,text='기업 설명·직접 확인·예정·안내를 구분해 입력하세요.',style='Hint.TLabel',wraplength=300)
         self.minutes_hint.grid(row=2,column=0,sticky='w',pady=(0,7))
@@ -285,6 +291,9 @@ class App:
             self.general_canvas.yview_moveto(max(0,y-6)/max(1,self.general_body.winfo_height()))
 
     def refresh_state(self):
+        if self.pdf_path:self.remove_pdf_button.grid()
+        else:self.remove_pdf_button.grid_remove()
+        self.remove_pdf_button.configure(state='disabled' if self.busy else 'normal')
         count=sum(bool(v.get().strip()) for v in self.general.values())
         self.meta_toggle.configure(text=f'일반현황 · {count}/{len(GENERAL)} 확인됨    '+('자료 입력으로  ←' if self.general_expanded else '확인하기  →'))
         self.connection_badge.configure(text='●  API 연결됨' if self.connected else '●  API 연결 확인 필요',fg='#168575' if self.connected else MUTED)
@@ -414,8 +423,53 @@ class App:
         if p:self.folder.set(p)
 
     def attach(self):
+        if self.busy:return
         p=filedialog.askopenfilename(parent=self.root,title='사업계획서 PDF',filetypes=[('PDF','*.pdf')])
         if not p:return
+        self.load_pdf(p)
+
+    def remove_pdf(self):
+        if self.busy:return
+        self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
+        hint='PDF 첨부 또는 여기로 드래그 · 최대 30MB' if self.root.tk.call('package','provide','tkdnd') else 'PDF 파일을 첨부해 주세요 · 최대 30MB'
+        self.pdf_label.set(hint)
+        self.pdf_drag_leave()
+        self.status.set('PDF 첨부를 해제했습니다. 회의록과 기존 초안은 유지됩니다. 새 PDF를 첨부한 뒤 필요하면 초안을 다시 작성하세요.')
+        self.refresh_state()
+
+    def enable_pdf_drop(self):
+        # Normal Tk roots used by existing controller tests need no native DnD.
+        if not self.root.tk.call('package','provide','tkdnd'):return
+        from tkinterdnd2 import DND_FILES
+        for widget in [self.pdf_surface,*self.pdf_surface.winfo_children()]:
+            widget.drop_target_register(DND_FILES)
+            widget.dnd_bind('<<DropEnter>>',self.pdf_drag_enter)
+            widget.dnd_bind('<<DropLeave>>',self.pdf_drag_leave)
+            widget.dnd_bind('<<Drop>>',self.pdf_drop)
+        self.pdf_label.set('PDF 첨부 또는 여기로 드래그 · 최대 30MB')
+
+    def pdf_drag_enter(self,event):
+        if self.busy:return 'refuse_drop'
+        self.pdf_surface.configure(highlightbackground=BLUE,highlightthickness=1)
+        return 'copy'
+
+    def pdf_drag_leave(self,event=None):
+        self.pdf_surface.configure(highlightbackground=LINE,highlightthickness=1)
+        return 'copy'
+
+    def pdf_drop(self,event):
+        self.pdf_drag_leave()
+        if self.busy:return 'refuse_drop'
+        try:paths=self.root.tk.splitlist(event.data)
+        except tk.TclError:paths=()
+        if len(paths)!=1 or Path(paths[0]).suffix.lower()!='.pdf':
+            self.status.set('사업계획서 PDF 파일 1개만 놓아 주세요. 기존 첨부는 유지됩니다.')
+            return 'refuse_drop'
+        self.load_pdf(paths[0])
+        return 'copy'
+
+    def load_pdf(self,p):
+        if self.busy:return
         def done(result):
             self.plan=result.local_text;self.api_plan=result.api_text
             self.pdf_bytes=result.visual_pdf;self.pdf_path=p
@@ -587,4 +641,5 @@ def run():
         import ctypes
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
     except Exception:pass
-    root=tk.Tk();App(root);root.mainloop()
+    from tkinterdnd2 import TkinterDnD
+    root=TkinterDnD.Tk();App(root);root.mainloop()

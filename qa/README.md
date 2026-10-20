@@ -7,3 +7,7 @@ Windows 소스 실행 의존성을 설치한 후 이 폴더의 스크립트를 �
 - ui_checks.py: 기존 채팅·API 오류·NAS 오류·재승인 상태 검사를 수행합니다. API·NAS 장애는 모의 시험입니다.
 
 이 스크립트는 실제 API를 호출하거나 실제 HWP 결과를 만들지 않습니다. 시험 JSON은 이 폴더에 작성합니다. 실제 API 및 한글 검증 범위는 DEVELOPMENT_TEST_RECORD.md를 확인하세요.
+
+- pdf_drop_checks.py: 실제 TkDND 로드, PDF 파일명/드롭 입력 검증, 실패 시 기존 첨부 보존과 버튼 호환성을 확인합니다. 가상 PDF만 임시 생성하며 API/HWP는 호출하지 않습니다.
+
+- pdf_drop_checks.py: 실제 TkDND 파일 첨부, × 해제, 메모리 제거, 재첨부, 원본/초안 보존을 검사합니다. 가상 자료만 쓰며 API/HWP는 호출하지 않습니다.
