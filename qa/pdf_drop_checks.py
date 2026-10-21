@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='inspection-pdf-drop-') as tmp:
     p=Path(tmp)/'가상 사업계획서 {검증} (1).PDF'
     writer=PdfWriter();writer.add_blank_page(595,842);writer.write(p)
     errors=[]
-    with patch('inspection.ui.messagebox.showerror',side_effect=lambda *a,**k:errors.append(a)):
+    with patch('inspection.ui.messagebox.showerror',side_effect=lambda *a,**k:errors.append(a)),patch('inspection.ui.metadata.extract',return_value=({},{})),patch('inspection.ui.vault.read',return_value='fake'):
         assert app.pdf_drop(event(str(p)))=='copy';settle()
         assert app.pdf_path==str(p) and '첨부 완료' in app.pdf_label.get()
         before=(app.pdf_path,app.plan,app.api_plan,app.pdf_bytes)

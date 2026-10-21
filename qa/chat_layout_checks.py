@@ -32,6 +32,7 @@ for scaling in [None,2.0]:
                 widgets=app.buttons+[app.minutes]+([app.conversation] if mode=='chat' else [getattr(app,mode)])
                 for w in widgets:
                     if general and str(w).startswith(str(app.input_panel)+'.'):continue
+                    if not general and str(w).startswith(str(app.general_panel)+'.'):continue
                     if not w.winfo_ismapped():failures.append({'control':str(w),'reason':'unmapped'});continue
                     parent=w.master
                     while parent:

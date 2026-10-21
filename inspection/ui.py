@@ -6,7 +6,7 @@ from .streaming import preview
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
-from . import api, vault, exporter
+from . import api, vault, exporter, metadata
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf
 
@@ -25,6 +25,7 @@ class App:
         self.busy=False;self.connected=False;self.last_saved=None;self.saved_current=False
         self.mailbox=queue.Queue();self.pdf_progress=queue.SimpleQueue();self.edits=[];self.buttons=[];self.entries=[]
         self.general_expanded=False
+        self.auto_general={};self._auto_write=False;self.general_scanned=False;self.document_revision=0;self.metadata_started=None
         self.editor_open=False;self.messages=[];self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
         self.name=self.title;self.folder=tk.StringVar()
@@ -34,7 +35,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3.5')
+        root.title('AI 현장점검 결과서 · 0.3.7')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -105,6 +106,7 @@ class App:
         for widget in [self.general_canvas,*self.general_body.winfo_children()]:
             widget.bind('<MouseWheel>',self.scroll_general)
         ttk.Label(self.general_panel,text='자료 확인값만 자동 입력 · 빈 필수값은 승인 전에 확인',style='Hint.TLabel',wraplength=340).grid(row=1,column=0,columnspan=2,sticky='w',pady=(6,0))
+        self.button(self.general_panel,'AI로 일반현황 다시 읽기',lambda:self.recognize_general(force=True),style='Quiet.TButton').grid(row=2,column=0,columnspan=2,sticky='ew',pady=(6,0))
         self.general_panel.grid_remove()
         left.bind('<Configure>',lambda e:self.fit_general())
 
@@ -186,9 +188,10 @@ class App:
         self.open_folder=self.button(footer,'폴더 열기',self.open_saved_folder,style='Text.TButton');self.open_folder.grid(row=0,column=2)
         footer.bind('<Configure>',lambda e:self.status_label.configure(wraplength=max(250,e.width-200)))
         self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
-        ttk.Label(outer,text='PDF·회의록·현재 초안·수정 요청을 OpenAI로 전송합니다. API 사용량별 과금 · ChatGPT 구독과 별도 · 승인 전 파일 생성 없음',style='Legal.TLabel',wraplength=1250).grid(row=3,column=0,sticky='w',pady=(7,0))
+        ttk.Label(outer,text='PDF 첨부 시 일반현황 AI 인식으로 OpenAI 전송·추가 과금 · 초안 작성 시 PDF·회의록·현재 초안·요청 전송 · ChatGPT 구독과 별도 · 승인 전 파일 생성 없음',style='Legal.TLabel',wraplength=1250).grid(row=3,column=0,sticky='w',pady=(7,0))
 
         for v in [self.title,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
+        for k,v in self.general.items():v.trace_add('write',lambda *a,key=k:self.general_edited(key))
         for text in self.edits:text.bind('<<Modified>>',lambda e:self.text_changed(e.widget))
         self.status.trace_add('write',lambda *a:self.refresh_state())
         root.protocol('WM_DELETE_WINDOW',self.close)
@@ -433,6 +436,8 @@ class App:
         threading.Thread(target=execute,daemon=False).start()
 
     def poll(self):
+        if self.metadata_started is not None:
+            self.status.set(f'PDF 첨부 완료 · 일반현황 AI 인식 중 · {int(time.monotonic()-self.metadata_started)}초 경과')
         if self.ai_started is not None and self.pending_request is not None:
             try:
                 while True:self.stream_json+=self.stream_queue.get_nowait()
@@ -484,6 +489,7 @@ class App:
 
     def remove_pdf(self):
         if self.busy:return
+        self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         hint='PDF 첨부 또는 여기로 드래그 · 최대 30MB' if self.root.tk.call('package','provide','tkdnd') else 'PDF 파일을 첨부해 주세요 · 최대 30MB'
         self.pdf_label.set(hint)
@@ -525,13 +531,62 @@ class App:
     def load_pdf(self,p):
         if self.busy:return
         def done(result):
+            self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
             self.plan=result.local_text;self.api_plan=result.api_text
             self.pdf_bytes=result.visual_pdf;self.pdf_path=p
             name=Path(p).name
             if len(name)>32:name=Path(p).stem[:27]+'…'+Path(p).suffix
             self.pdf_label.set(f'{name}\n{result.page_count}쪽 · 첨부 완료')
-            self.status.set('PDF를 읽었습니다. 회의록을 입력한 뒤 초안을 작성하세요.')
+            if self.connected:
+                self.status.set('PDF 첨부 완료 · 일반현황 AI 인식을 준비합니다.')
+                self.recognize_general()
+            else:self.status.set('PDF 첨부 완료 · API 연결 확인 후 일반현황을 자동 인식합니다. 직접 입력도 가능합니다.')
         self.background(lambda:prepare_pdf(p,progress=lambda current,total:self.pdf_progress.put((current,total))),done,'PDF의 모든 쪽과 시각 자료를 읽고 있습니다. 지금은 외부 전송하지 않습니다.')
+
+    def general_edited(self,key):
+        if not self._auto_write:self.auto_general.pop(key,None)
+
+    def set_plan_general(self,key,value):
+        self._auto_write=True
+        try:self.general[key].set(value);self.auto_general[key]=value
+        finally:self._auto_write=False
+
+    def clear_plan_general(self):
+        self._auto_write=True
+        try:
+            for key,value in self.auto_general.items():
+                if self.general[key].get()==value:self.general[key].set('')
+            self.auto_general.clear()
+        finally:self._auto_write=False
+
+    def recognize_general(self,force=False):
+        if self.busy or not self.pdf_path:return
+        if not self.connected:
+            self.status.set('API 설정에서 연결 확인 후 일반현황을 자동 인식합니다. 직접 입력도 가능합니다.');return
+        if self.general_scanned and not force:return
+        fields=tuple(k for k in metadata.PLAN_FIELDS if not self.general[k].get().strip())
+        if not fields:
+            self.general_scanned=True;self.status.set('PDF 첨부 완료 · 일반현황이 이미 입력되어 추가 AI 인식을 생략했습니다.');return
+        revision=self.document_revision;plan=self.plan;api_plan=self.api_plan;pdf=self.pdf_bytes
+        self.metadata_started=time.monotonic()
+        def task():
+            try:
+                key=vault.read()
+                if not key:raise ValueError('저장된 API 키가 없습니다.')
+                return {'data':metadata.extract(key,api_plan,plan,pdf,fields)}
+            except Exception as e:return {'error':self.safe_error(e)}
+        def done(result):
+            self.metadata_started=None
+            if revision!=self.document_revision:return
+            if 'error' in result:
+                self.status.set('PDF 첨부는 완료됐습니다. 일반현황 AI 인식 실패: '+result['error']+' 일반현황에서 다시 읽기 또는 직접 입력해 주세요.');return
+            values,usage=result['data'];added=0
+            for key,value in values.items():
+                if key in fields and not self.general[key].get().strip():self.set_plan_general(key,value);added+=1
+            self.general_scanned=True
+            cost=usage.get('estimated_usd');price=f' · 약 ${cost:.5f}' if cost is not None else ''
+            self.status.set(f'PDF 첨부 완료 · 일반현황 {added}개 자동 입력 · 확인되지 않은 항목은 직접 확인{price}')
+        self.background(task,done,'PDF 첨부 완료 · 일반현황을 AI로 인식합니다. PDF 전송과 API 비용이 발생합니다.')
 
     def ready(self):
         if not self.connected:
@@ -572,7 +627,9 @@ class App:
             for t,k in [(self.findings,'findings'),(self.actions,'actions'),(self.checks,'checks')]:
                 t.delete('1.0','end');t.insert('1.0',result[k]);t.edit_modified(False)
             for k,v in evidenced_general(result['general'],plan,minutes).items():
-                if not self.general[k].get().strip():self.general[k].set(v)
+                if not self.general[k].get().strip():
+                    if k in metadata.PLAN_FIELDS and result['general'][k].get('source')=='plan':self.set_plan_general(k,v)
+                    else:self.general[k].set(v)
             self.changed()
             inputs=usage.get('input_tokens','-');outputs=usage.get('output_tokens','-')
             cost=usage.get('estimated_usd');price=f' · 약 ${cost:.5f}' if cost is not None else ''
@@ -676,13 +733,14 @@ class App:
                 self.connected=True
                 if w.winfo_exists():state.set(f'연결 확인 성공 · {api.MODEL} · {usage.get("total_tokens","-")} 토큰')
                 self.status.set('API 모델 실제 연결 확인을 완료했습니다.')
+                self.recognize_general()
             self.connected=False
             self.background(task,done,'API 모델 연결을 확인하고 있습니다. 소량의 API 비용이 발생합니다.')
         ttk.Button(f,text='키 저장·변경',command=store).grid(row=3,column=0,pady=8)
         ttk.Button(f,text='키 삭제',style='Danger.TButton',command=remove).grid(row=3,column=1,pady=8)
         ttk.Button(f,text='연결 확인',style='Primary.TButton',command=check).grid(row=3,column=2,pady=8)
         ttk.Label(f,textvariable=state,style='Card.TLabel',wraplength=440).grid(row=4,column=0,columnspan=3,sticky='w',pady=(10,6))
-        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\n전송: PDF 모든 쪽의 텍스트·시각 자료, 회의록·현재 초안·수정 요청\n사용량별 과금이며 ChatGPT 구독과 별도입니다.\n표시 비용은 공개 단가 기준 USD 추정치입니다.\n연결 확인도 소량 과금됩니다. 키는 소스·로그에 기록하지 않습니다.',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
+        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\nPDF 첨부 시: 모든 쪽의 텍스트·시각 자료로 일반현황 인식(추가 과금)\n초안 작성 시: PDF·회의록·현재 초안·수정 요청 전송\n사용량별 과금이며 ChatGPT 구독과 별도입니다.\n표시 비용은 공개 단가 기준 USD 추정치입니다.\n연결 확인도 소량 과금됩니다. 키는 소스·로그에 기록하지 않습니다.',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
         w.protocol('WM_DELETE_WINDOW',lambda:None if self.busy else w.destroy())
         self.place_dialog(w);e.focus_set();e.selection_range(0,'end')
 
