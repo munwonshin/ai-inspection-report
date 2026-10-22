@@ -1,0 +1,77 @@
+{
+  "ui_before": {
+    "seconds": 17.55046019994188,
+    "preview": 600,
+    "status_writes": 600,
+    "text_deletes": 600,
+    "ticks": 600,
+    "preview_sha256": "106648aa9091c1a73d45045ce51b5ce23db08ad749776fc6b25e9a9108580337"
+  },
+  "ui_after": {
+    "seconds": 1.6568917999975383,
+    "preview": 100,
+    "status_writes": 1,
+    "text_deletes": 122,
+    "ticks": 600,
+    "preview_sha256": "106648aa9091c1a73d45045ce51b5ce23db08ad749776fc6b25e9a9108580337"
+  },
+  "runtime_bytes_before": 56181054,
+  "runtime_bytes_after": 44658757,
+  "frozen": {
+    "pdf": [
+      {
+        "case": "digital",
+        "version": "before",
+        "seconds": 1.6217758000129834,
+        "page_count": 3,
+        "visual_pages": [
+          2
+        ],
+        "native_support_loaded": true,
+        "api_text_sha256": "35c26fcc0b6be33015a744f49b18879b6c5565972ae09fdbd767aac38bdded7a",
+        "visual_pdf_sha256": "e724212778a8ff7a73a0376110e8125a26e0c3738598152110ea9936f4b04734"
+      },
+      {
+        "case": "digital",
+        "version": "after",
+        "seconds": 2.989610999939032,
+        "page_count": 3,
+        "visual_pages": [
+          2
+        ],
+        "native_support_loaded": true,
+        "api_text_sha256": "35c26fcc0b6be33015a744f49b18879b6c5565972ae09fdbd767aac38bdded7a",
+        "visual_pdf_sha256": "e724212778a8ff7a73a0376110e8125a26e0c3738598152110ea9936f4b04734"
+      },
+      {
+        "case": "scan",
+        "version": "before",
+        "seconds": 4.925565799931064,
+        "page_count": 3,
+        "visual_pages": [
+          2
+        ],
+        "native_support_loaded": true,
+        "api_text_sha256": "35c26fcc0b6be33015a744f49b18879b6c5565972ae09fdbd767aac38bdded7a",
+        "visual_pdf_sha256": "713422141d97126d0d490835430a71c3f61dfae0ac3798685c41739bd66afb03"
+      },
+      {
+        "case": "scan",
+        "version": "after",
+        "seconds": 4.523143600090407,
+        "page_count": 3,
+        "visual_pages": [
+          2
+        ],
+        "native_support_loaded": true,
+        "api_text_sha256": "35c26fcc0b6be33015a744f49b18879b6c5565972ae09fdbd767aac38bdded7a",
+        "visual_pdf_sha256": "713422141d97126d0d490835430a71c3f61dfae0ac3798685c41739bd66afb03"
+      }
+    ],
+    "runtime": {
+      "tkdnd": "2.9.5",
+      "tls": "OpenSSL 3.5.8 25 Aug 2026",
+      "pdf_error": "암호화된 PDF입니다. 암호를 제거한 사본을 첨부해 주세요."
+    }
+  }
+}

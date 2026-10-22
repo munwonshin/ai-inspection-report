@@ -23,11 +23,16 @@ DRAWING={b'Do',b'sh',b'S',b's',b'f',b'F',b'f*',b'B',b'B*',b'b',b'b*'}
 
 def prepare_pdf(path,progress=None):
     from pypdf import PdfReader,PdfWriter
+    from pypdf.errors import DependencyError
     if Path(path).stat().st_size>30*1024*1024:raise ValueError('PDF는 30MB 이하로 첨부해 주세요.')
     data=Path(path).read_bytes()
     if len(data)>30*1024*1024:raise ValueError('PDF는 30MB 이하로 첨부해 주세요.')
     if not data.startswith(b'%PDF-'):raise ValueError('실제 PDF 파일이 아닙니다.')
-    reader=PdfReader(io.BytesIO(data))
+    try:reader=PdfReader(io.BytesIO(data))
+    except DependencyError as e:
+        # pypdf can attempt an empty password before is_encrypted is exposed.
+        # AES decryption is deliberately not bundled: encrypted input is refused.
+        raise ValueError('암호화된 PDF입니다. 암호를 제거한 사본을 첨부해 주세요.') from None
     if reader.is_encrypted:raise ValueError('암호화된 PDF입니다. 암호를 제거한 사본을 첨부해 주세요.')
     count=len(reader.pages)
     if count<1 or count>250:raise ValueError('PDF는 1~250쪽 범위로 첨부해 주세요.')

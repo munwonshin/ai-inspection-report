@@ -45,6 +45,7 @@ with patch('inspection.ui.vault.read',return_value='fake'),patch('inspection.ui.
     assert any('가상 기업은' in x and '시험일 확인 필요.' not in x for x in seen)
     assert all('"findings"' not in x and '"general"' not in x for x in seen)
     assert app.snapshot().findings==body['findings'];save.assert_not_called()
+    assert not app.stream_json and not app.stream_target and not app.stream_visible
     before=app.snapshot()
     def fail(*args,on_delta=None,**kwargs):
         on_delta('{"findings":"가상 중단될 내용');time.sleep(.5)
@@ -55,6 +56,7 @@ with patch('inspection.ui.vault.read',return_value='fake'),patch('inspection.ui.
     assert app.messages[-1]['status']=='failed'
     assert '중단될 내용' not in app.conversation.get('1.0','end')
     assert app.ai_started is None;save.assert_not_called()
+    assert not app.stream_json and not app.stream_target and not app.stream_visible
 for timer in root.tk.call('after','info'):root.after_cancel(timer)
 root.destroy()
 print('STREAM_WIDGET_CHECKS_OK: elapsed, incremental, title alias, approval lock, failure retention, no export',flush=True)

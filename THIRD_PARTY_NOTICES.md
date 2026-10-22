@@ -8,7 +8,7 @@ This application bundles Python and libraries through PyInstaller. It requires a
 - PyInstaller 6.22.3 bootloader: GPL with bootloader exception, https://pyinstaller.org/en/stable/license.html
 - Tcl/Tk: BSD-style license, https://www.tcl.tk/software/tcltk/license.html
 - tkinterdnd2 0.4.4.1: MIT; bundled tkdnd: BSD-style, https://github.com/pmgagne/tkinterdnd2
-- cryptography: Apache-2.0 OR BSD-3-Clause, https://github.com/pyca/cryptography
+- cryptography (optional source environment dependency; excluded from Windows x64 0.3.9): Apache-2.0 OR BSD-3-Clause, https://github.com/pyca/cryptography
 - cffi: MIT, https://foss.heptapod.net/pypy/cffi
 - OpenSSL: Apache-2.0, https://www.openssl.org/source/license.html
 

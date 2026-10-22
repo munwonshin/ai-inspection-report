@@ -30,13 +30,13 @@ class App:
         self.editor_open=False;self.messages=[];self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
         self.name=self.title;self.folder=tk.StringVar()
-        self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible=""
+        self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.general={k:tk.StringVar() for k in GENERAL}
         self.status=tk.StringVar(value='PDF와 회의록을 입력한 뒤 초안을 작성하세요.')
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3.8')
+        root.title('AI 현장점검 결과서 · 0.3.9')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -393,8 +393,11 @@ class App:
         return f'AI 작성 중 {dots}  {elapsed}초 경과 · 완료 후 검수 가능\n'
 
     def render_stream(self):
+        signature=(self.stream_header(),self.stream_visible)
+        if signature==self._stream_rendered:return
         if 'stream_start' not in self.conversation.mark_names():
             self.render_conversation();return
+        self._stream_rendered=signature
         view=self.conversation.yview();follow=not view or view[1]>.97
         self.conversation.configure(state='normal')
         self.conversation.delete('stream_start','stream_end')
@@ -437,29 +440,37 @@ class App:
             except Exception as e:self.mailbox.put((done,False,e))
         threading.Thread(target=execute,daemon=False).start()
 
+    def set_status(self,text):
+        # Avoid firing Tk traces and rewriting labels on every idle animation tick.
+        if self.status.get()!=text:self.status.set(text)
+
     def poll(self):
         if self.metadata_started is not None:
-            self.status.set(f'PDF 첨부 완료 · 일반현황 AI 인식 중 · {int(time.monotonic()-self.metadata_started)}초 경과')
+            self.set_status(f'PDF 첨부 완료 · 일반현황 AI 인식 중 · {int(time.monotonic()-self.metadata_started)}초 경과')
         if self.ai_started is not None and self.pending_request is not None:
+            chunks=[]
             try:
-                while True:self.stream_json+=self.stream_queue.get_nowait()
+                while True:chunks.append(self.stream_queue.get_nowait())
             except queue.Empty:pass
-            target=preview(self.stream_json)
+            if chunks:
+                self.stream_json+="".join(chunks)
+                self.stream_target=preview(self.stream_json)
+            target=self.stream_target
             # Short paced batches follow actual network data; never invent text.
             gap=len(target)-len(self.stream_visible)
             self.stream_visible=target[:len(self.stream_visible)+max(1,min(500,gap//4))]
             elapsed=int(time.monotonic()-self.ai_started)
-            self.status.set(f'AI 작성 중 · {elapsed}초 경과 · '+('본문 수신 중' if target else '응답을 기다리는 중'))
+            self.set_status(f'AI 작성 중 · {elapsed}초 경과 · '+('본문 수신 중' if target else '응답을 기다리는 중'))
             self.render_stream()
         latest=None
         try:
             while True:latest=self.pdf_progress.get_nowait()
         except queue.Empty:pass
         if latest is not None and self.busy:
-            self.status.set(f'PDF 읽기 · {latest[0]}/{latest[1]}쪽 분석 중 · 외부 전송 없음')
+            self.set_status(f'PDF 읽기 · {latest[0]}/{latest[1]}쪽 분석 중 · 외부 전송 없음')
         try:
             done,ok,result=self.mailbox.get_nowait()
-            if ok and self.ai_started is not None and self.stream_visible!=preview(self.stream_json):
+            if ok and self.ai_started is not None and self.stream_visible!=self.stream_target:
                 # Keep the approval gate closed while the last received characters
                 # drain, avoiding a final jump from a partial to the entire report.
                 self.mailbox.put((done,ok,result))
@@ -470,8 +481,11 @@ class App:
                 else:
                     if self.pending_request is not None:
                         self.pending_request['status']='failed';self.pending_request=None;self.render_conversation(follow=True)
-                    self.status.set('처리에 실패했습니다. 입력·편집 내용은 유지됩니다.')
+                    self.set_status('처리에 실패했습니다. 입력·편집 내용은 유지됩니다.')
                     messagebox.showerror('처리 실패',self.safe_error(result),parent=self.root)
+                # Editors/history own the report; release animation-only copies.
+                self.stream_json="";self.stream_target="";self.stream_visible=""
+                self._stream_rendered=None
         except queue.Empty:pass
         self.root.after(40 if self.ai_started is not None else 120,self.poll)
 
@@ -633,7 +647,7 @@ class App:
     def ai(self,instruction,is_chat,from_chat=False):
         if self.busy:return
         self.sync_latest_report()
-        self.ai_started=time.monotonic();self.stream_json="";self.stream_visible=""
+        self.ai_started=time.monotonic();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.stream_queue=queue.SimpleQueue()
         self.pending_request={'kind':'user','text':instruction,'status':'pending'}
         self.messages.append(self.pending_request)
