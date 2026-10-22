@@ -10,13 +10,13 @@ from . import api, vault, exporter, metadata
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf
 
-BG='#F3F5FA'
+BG='#F4F6F8'
 WHITE='#FFFFFF'
-INK='#1E2B43'
-MUTED='#6F7E95'
-LINE='#E1E7F0'
-FIELD='#FAFBFE'
-BLUE='#405EE8'
+INK='#182B35'
+MUTED='#627580'
+LINE='#DFE6EA'
+FIELD='#FAFCFC'
+BLUE='#137C75'
 
 class App:
     def __init__(self,root,*,restore_api=True):
@@ -33,25 +33,25 @@ class App:
         self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.general={k:tk.StringVar() for k in GENERAL}
         self.status=tk.StringVar(value='PDF와 회의록을 입력한 뒤 초안을 작성하세요.')
-        self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
+        self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.4.2')
+        root.title('AI 현장점검 결과서 · 0.4.3')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
 
-        outer=ttk.Frame(root,padding=(20,16,20,12));outer.pack(fill='both',expand=True)
+        outer=ttk.Frame(root,padding=(24,20,24,12));outer.pack(fill='both',expand=True)
         outer.columnconfigure(0,weight=1);outer.rowconfigure(1,weight=1)
-        header=ttk.Frame(outer);header.grid(row=0,column=0,sticky='ew',pady=(0,14))
+        header=ttk.Frame(outer);header.grid(row=0,column=0,sticky='ew',pady=(0,18))
         logo=tk.Canvas(header,width=42,height=42,bg=BG,highlightthickness=0)
         logo.pack(side='left',padx=(0,12))
         logo.create_polygon(10,0,32,0,42,0,42,10,42,32,42,42,32,42,10,42,0,42,0,32,0,10,0,0,smooth=True,fill=BLUE)
         logo.create_text(21,21,text='AI',fill=WHITE,font=('Segoe UI',13,'bold'))
         brand=ttk.Frame(header);brand.pack(side='left')
         ttk.Label(brand,text='AI 현장점검 결과서',style='Brand.TLabel').pack(anchor='w')
-        ttk.Label(brand,text='자료 입력  →  AI와 초안 작성  →  승인·저장',style='Subtle.TLabel').pack(anchor='w',pady=(2,0))
-        self.button(header,'API 설정',self.settings,style='White.TButton').pack(side='right')
+        ttk.Label(brand,text='회의록에서 결과서까지, 한 화면에서',style='Subtle.TLabel').pack(anchor='w',pady=(2,0))
+        self.button(header,'API 설정',self.settings,style='Quiet.TButton').pack(side='right')
         self.connection_badge=tk.Label(header,text='●  API 연결 확인 필요',font=('맑은 고딕',9),bg=BG,fg=MUTED)
         self.connection_badge.pack(side='right',padx=(10,14))
 
@@ -61,14 +61,14 @@ class App:
         left_card.configure(width=360);left_card.pack_propagate(False)
         right_card.configure(width=800);right_card.pack_propagate(False)
         self.workspace.add(left_card,weight=3);self.workspace.add(right_card,weight=7)
-        left=ttk.Frame(left_card,style='Card.TFrame',padding=14)
+        left=ttk.Frame(left_card,style='Card.TFrame',padding=18)
         left.pack(fill='both',expand=True);self.left_content=left
         left.columnconfigure(0,weight=1);left.rowconfigure(1,weight=1,minsize=80)
         self.left_heading=self.heading(left,'01','자료 입력')
         self.left_heading.grid(row=0,column=0,sticky='ew',pady=(0,12))
         self.input_panel=ttk.Frame(left,style='Card.TFrame');self.input_panel.grid(row=1,column=0,sticky='nsew')
-        self.input_panel.columnconfigure(0,weight=1);self.input_panel.rowconfigure(3,weight=1,minsize=60)
-        pdf=tk.Frame(self.input_panel,bg='#F5F7FD',highlightbackground=LINE,highlightthickness=1)
+        self.input_panel.columnconfigure(0,weight=1);self.input_panel.rowconfigure(3,weight=1,minsize=20)
+        pdf=tk.Frame(self.input_panel,bg='#F1F7F6',highlightbackground=LINE,highlightthickness=1)
         self.pdf_surface=pdf
         pdf.grid(row=0,column=0,sticky='ew',pady=(0,12));pdf.columnconfigure(0,weight=1)
         ttk.Label(pdf,text='사업계획서 PDF',style='FieldTitle.TLabel').grid(row=0,column=0,sticky='w',padx=12,pady=(10,0))
@@ -78,7 +78,7 @@ class App:
         self.remove_pdf_button.grid(row=0,column=1,sticky='ne',padx=(6,10),pady=(4,0))
         self.remove_pdf_button.grid_remove()
         self.button(pdf,'PDF 첨부',self.attach,style='Quiet.TButton').grid(row=1,column=1,padx=(6,10),pady=(0,8))
-        self.pdf_caption=tk.Label(pdf,textvariable=self.pdf_label,bg='#F5F7FD',fg=MUTED,font=('맑은 고딕',9),anchor='w',justify='left',wraplength=200,height=2)
+        self.pdf_caption=tk.Label(pdf,textvariable=self.pdf_label,bg='#F1F7F6',fg=MUTED,font=('맑은 고딕',9),anchor='w',justify='left',wraplength=200,height=2)
         self.pdf_caption.grid(row=1,column=0,sticky='ew',padx=(12,4),pady=(3,8))
         pdf.bind('<Configure>',lambda e:self.pdf_caption.configure(wraplength=max(100,e.width-110)))
         self.enable_pdf_drop()
@@ -86,7 +86,7 @@ class App:
         self.minutes_hint=ttk.Label(self.input_panel,text='기업 설명·직접 확인·예정·안내를 구분해 입력하세요.',style='Hint.TLabel',wraplength=300)
         self.minutes_hint.grid(row=2,column=0,sticky='w',pady=(0,7))
         self.minutes=self.textbox(self.input_panel,3,height=7)
-        self.meta_toggle=self.button(left,'일반현황 · 0/9 입력됨    확인하기  →',self.toggle_general,style='Meta.TButton')
+        self.meta_toggle=self.button(left,'일반현황 0/9 · 확인 →',self.toggle_general,style='Meta.TButton')
         self.meta_toggle.grid(row=2,column=0,sticky='ew',pady=(12,0))
         self.general_panel=ttk.Frame(left,style='Card.TFrame')
         self.general_panel.grid(row=1,column=0,sticky='nsew');self.general_panel.columnconfigure(0,weight=1);self.general_panel.rowconfigure(0,weight=1)
@@ -112,9 +112,9 @@ class App:
         self.general_panel.grid_remove()
         left.bind('<Configure>',lambda e:self.fit_general())
 
-        right=ttk.Frame(right_card,style='Card.TFrame',padding=14);right.pack(fill='both',expand=True)
+        right=ttk.Frame(right_card,style='Card.TFrame',padding=18);right.pack(fill='both',expand=True)
         right.columnconfigure(0,weight=1);right.rowconfigure(2,weight=1,minsize=80)
-        draftbar=self.heading(right,'02','AI와 초안 작성')
+        draftbar=self.heading(right,'02','AI 작업 공간')
         draftbar.grid(row=0,column=0,sticky='ew',pady=(0,8))
         self.editor_button=self.button(draftbar,'직접 편집',self.toggle_editor,style='Quiet.TButton')
         self.editor_button.pack(side='right',padx=(8,0))
@@ -122,20 +122,20 @@ class App:
         self.draft_hint=tk.StringVar(value='초안 작성 후 원하는 수정을 채팅으로 요청하세요.')
         ttk.Label(right,textvariable=self.draft_hint,style='Hint.TLabel',wraplength=700).grid(row=1,column=0,sticky='w',pady=(0,8))
         area=ttk.Frame(right,style='Card.TFrame');area.grid(row=2,column=0,sticky='nsew');area.columnconfigure(0,weight=1);area.rowconfigure(0,weight=1)
-        self.chat_view=tk.Frame(area,bg=FIELD,highlightbackground=LINE,highlightthickness=1)
+        self.chat_view=tk.Frame(area,bg=WHITE,highlightbackground=LINE,highlightthickness=1)
         self.chat_view.grid(row=0,column=0,sticky='nsew')
         self.conversation=tk.Text(self.chat_view,wrap='word',state='disabled',width=20,height=10,relief='flat',borderwidth=0,
-            bg=FIELD,fg=INK,font=('맑은 고딕',10),padx=18,pady=16,spacing1=3,spacing3=7,selectbackground='#DBE4FF',cursor='arrow')
+            bg=WHITE,fg=INK,font=('맑은 고딕',10),padx=22,pady=20,spacing1=3,spacing3=7,selectbackground='#CDEBE6',cursor='arrow')
         scroll=ttk.Scrollbar(self.chat_view,command=self.conversation.yview)
         self.conversation.configure(yscrollcommand=scroll.set)
         self.conversation.pack(side='left',fill='both',expand=True);scroll.pack(side='right',fill='y')
         self.conversation.tag_configure('welcome',font=('맑은 고딕',14,'bold'),foreground=INK,spacing1=12,spacing3=14)
         self.conversation.tag_configure('hint',font=('맑은 고딕',9),foreground=MUTED,spacing3=16)
         self.conversation.tag_configure('user_head',font=('맑은 고딕',9,'bold'),foreground=BLUE,justify='right',spacing1=16,spacing3=4)
-        self.conversation.tag_configure('user',background='#EDF1FF',foreground='#334DB7',lmargin1=48,lmargin2=48,rmargin=8,spacing1=8,spacing3=14)
+        self.conversation.tag_configure('user',background='#E7F3F0',foreground='#166C65',lmargin1=48,lmargin2=48,rmargin=8,spacing1=8,spacing3=14)
         self.conversation.tag_configure('report_head',font=('맑은 고딕',10,'bold'),foreground=BLUE,spacing1=16,spacing3=8)
         self.conversation.tag_configure('old_head',font=('맑은 고딕',9,'bold'),foreground=MUTED,spacing1=16,spacing3=8)
-        self.conversation.tag_configure('section',font=('맑은 고딕',9,'bold'),foreground='#53647E',spacing1=9,spacing3=5)
+        self.conversation.tag_configure('section',font=('맑은 고딕',9,'bold'),foreground='#506872',spacing1=9,spacing3=5)
         self.conversation.tag_configure('body',lmargin1=2,lmargin2=2,rmargin=10,spacing1=2,spacing3=10)
         self.conversation.tag_configure('error',font=('맑은 고딕',9),foreground='#AD4A56',spacing3=12)
         self.editor_view=ttk.Notebook(area)
@@ -145,15 +145,15 @@ class App:
             self.editor_view.add(tab,text=label)
             setattr(self,key,self.textbox(tab,0,height=8))
         self.editor_view.grid_remove()
-        chat=tk.Frame(right,bg='#F5F7FD',highlightbackground=LINE,highlightthickness=1)
+        chat=tk.Frame(right,bg='#F1F7F6',highlightbackground=LINE,highlightthickness=1)
         chat.grid(row=3,column=0,sticky='ew',pady=(10,0));chat.columnconfigure(0,weight=1)
-        self.chat_title=ttk.Label(chat,text='수정할 내용을 입력하세요',style='FieldTitle.TLabel')
+        self.chat_title=ttk.Label(chat,text='AI에게 수정 요청',style='FieldTitle.TLabel')
         self.chat_title.grid(row=0,column=0,sticky='w',padx=12,pady=(9,5))
         self.chat_entry=self.entry(chat,self.chat);self.chat_entry.grid(row=1,column=0,sticky='ew',padx=(12,6),pady=(0,7))
         self.chat_entry.bind('<Return>',lambda e:self.send_chat())
-        self.chat_button=self.button(chat,'보내기',self.send_chat,primary=True)
+        self.chat_button=self.button(chat,'보내기 ↑',self.send_chat,primary=True)
         self.chat_button.grid(row=1,column=1,padx=(0,12),pady=(0,7))
-        self.chat_note=tk.Label(chat,textvariable=self.chat_info,font=('맑은 고딕',9),bg='#F5F7FD',fg=MUTED,anchor='w',justify='left',wraplength=700)
+        self.chat_note=tk.Label(chat,textvariable=self.chat_info,font=('맑은 고딕',9),bg='#F1F7F6',fg=MUTED,anchor='w',justify='left',wraplength=700)
         self.chat_note.grid(row=2,column=0,columnspan=2,sticky='ew',padx=12,pady=(0,9))
         chat.bind('<Configure>',lambda e:self.chat_note.configure(wraplength=max(250,e.width-24)))
         right.bind('<Configure>',lambda e:self.fit_editor(e.height))
@@ -162,7 +162,7 @@ class App:
         save=ttk.Frame(save_card,style='Card.TFrame',padding=(14,11,14,10));save.pack(fill='both',expand=True)
         save.columnconfigure(0,weight=1)
         save_header=self.heading(save,'03','승인 후 저장',small=True);save_header.grid(row=0,column=0,sticky='ew',pady=(0,9))
-        self.state_badge=tk.Label(save_header,text='작성 전',bg='#EFF2F7',fg=MUTED,font=('맑은 고딕',9,'bold'),padx=9,pady=3)
+        self.state_badge=tk.Label(save_header,text='작성 전',bg='#EDF2F3',fg=MUTED,font=('맑은 고딕',9,'bold'),padx=9,pady=3)
         self.state_badge.pack(side='right')
         fields=ttk.Frame(save,style='Card.TFrame');fields.grid(row=1,column=0,sticky='ew')
         for col,weight,size in [(0,3,240),(1,4,300)]:fields.columnconfigure(col,weight=weight,minsize=size)
@@ -175,12 +175,12 @@ class App:
             hint.grid(row=2,column=0,sticky='ew',pady=(3,0))
             hint.bind('<Configure>',lambda e:e.widget.configure(wraplength=max(160,e.width)))
         location=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,14,0));location.grid(row=0,column=1,sticky='ew');location.columnconfigure(0,weight=1)
-        ttk.Label(location,text='저장 위치 · 로컬 / NAS',style='Hint.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,4))
+        ttk.Label(location,text='저장 폴더 · 로컬 / NAS',style='Hint.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,4))
         self.entry(location,self.folder).grid(row=1,column=0,sticky='ew',padx=(0,6))
         self.button(location,'폴더 선택',self.choose_folder,style='Quiet.TButton').grid(row=1,column=1)
         self.approve_button=self.button(fields,'승인 및 한글 저장',self.approve,primary=True)
         self.approve_button.grid(row=0,column=2,sticky='se')
-        progress_track=tk.Frame(save,height=3,bg='#EDF1F7');progress_track.grid(row=2,column=0,sticky='ew',pady=(10,8));progress_track.pack_propagate(False)
+        progress_track=tk.Frame(save,height=3,bg='#ECF1F2');progress_track.grid(row=2,column=0,sticky='ew',pady=(10,8));progress_track.pack_propagate(False)
         self.progress=ttk.Progressbar(progress_track,style='Thin.Horizontal.TProgressbar',mode='determinate',maximum=100)
         self.progress.pack(fill='both',expand=True)
         footer=ttk.Frame(save,style='Card.TFrame');footer.grid(row=3,column=0,sticky='ew');footer.columnconfigure(0,weight=1)
@@ -233,33 +233,35 @@ class App:
         style.configure('TFrame',background=BG)
         style.configure('Card.TFrame',background=WHITE)
         style.configure('TLabel',background=BG,foreground=INK)
-        style.configure('Brand.TLabel',font=('맑은 고딕',17,'bold'))
+        style.configure('Brand.TLabel',font=('맑은 고딕',18,'bold'))
         style.configure('Subtle.TLabel',font=('맑은 고딕',9),foreground=MUTED)
         style.configure('Card.TLabel',background=WHITE,foreground=INK)
         style.configure('Section.TLabel',background=WHITE,foreground=INK,font=('맑은 고딕',12,'bold'))
-        style.configure('Step.TLabel',background=WHITE,foreground=BLUE,font=('Segoe UI',10,'bold'))
+        style.configure('Step.TLabel',background='#E8F3F0',foreground=BLUE,font=('Segoe UI',9,'bold'),padding=(7,4))
         style.configure('FieldLabel.TLabel',background=WHITE,foreground=INK,font=('맑은 고딕',9,'bold'))
         style.configure('Hint.TLabel',background=WHITE,foreground=MUTED,font=('맑은 고딕',9))
-        style.configure('FieldTitle.TLabel',background='#F5F7FD',foreground=INK,font=('맑은 고딕',9,'bold'))
+        style.configure('FieldTitle.TLabel',background='#F1F7F6',foreground=INK,font=('맑은 고딕',9,'bold'))
         style.configure('Legal.TLabel',background=BG,foreground=MUTED,font=('맑은 고딕',8))
         style.configure('TEntry',fieldbackground=FIELD,foreground=INK,bordercolor=LINE,lightcolor=LINE,darkcolor=LINE,insertcolor=BLUE,padding=(9,7),borderwidth=1)
-        style.map('TEntry',bordercolor=[('focus',BLUE)],lightcolor=[('focus',BLUE)],darkcolor=[('focus',BLUE)],fieldbackground=[('disabled','#F2F4F8')])
+        style.map('TEntry',bordercolor=[('focus',BLUE)],lightcolor=[('focus',BLUE)],darkcolor=[('focus',BLUE)],fieldbackground=[('disabled','#F0F3F4')])
         style.configure('Compact.TEntry',padding=(7,4),font=('맑은 고딕',9))
-        style.configure('TButton',padding=(12,7),background='#EDF1F8',foreground=INK,borderwidth=0,relief='flat',focusthickness=1,focuscolor=BLUE)
-        style.map('TButton',background=[('disabled','#F1F3F8'),('pressed','#DCE3F1'),('active','#E3E9F4')],foreground=[('disabled','#9AA6B9')])
-        style.configure('Primary.TButton',background=BLUE,foreground=WHITE,font=('맑은 고딕',10,'bold'),padding=(16,8),focuscolor='#AFBEFF')
-        style.map('Primary.TButton',background=[('disabled','#C5CEF2'),('pressed','#2D45B5'),('active','#3451D7')],foreground=[('disabled','#F4F6FF'),('!disabled',WHITE)])
-        style.configure('Quiet.TButton',background='#EAF0FD',foreground='#3652C6',padding=(10,7),font=('맑은 고딕',9,'bold'))
+        style.configure('TButton',padding=(12,7),background='#EEF3F4',foreground=INK,borderwidth=0,relief='flat',focusthickness=1,focuscolor=BLUE)
+        style.map('TButton',background=[('disabled','#F0F3F4'),('pressed','#D7E6E4'),('active','#E0ECEA')],foreground=[('disabled','#87979E')])
+        style.configure('Primary.TButton',background=BLUE,foreground=WHITE,font=('맑은 고딕',10,'bold'),padding=(16,8),focuscolor='#9DD4CC')
+        style.map('Primary.TButton',background=[('disabled','#A6CCC7'),('pressed','#0C5C56'),('active','#106A63')],foreground=[('disabled','#F5FAF9'),('!disabled',WHITE)])
+        style.configure('Quiet.TButton',background='#E8F3F0',foreground='#146B63',padding=(10,7),font=('맑은 고딕',9,'bold'))
         style.configure('White.TButton',background=WHITE,padding=(14,8))
-        style.configure('Meta.TButton',background='#F5F7FC',foreground='#53647E',anchor='w',padding=(11,9),font=('맑은 고딕',9,'bold'))
-        style.configure('Text.TButton',background=WHITE,foreground='#53647E',padding=(7,3),font=('맑은 고딕',9))
+        style.map('Quiet.TButton',background=[('disabled','#F0F3F4'),('pressed','#D4E9E3'),('active','#DAEDE7')],foreground=[('disabled','#87979E'),('!disabled','#146B63')])
+        style.map('Text.TButton',background=[('pressed','#E0ECEA'),('active','#EEF5F3')])
+        style.configure('Meta.TButton',background='#F0F5F5',foreground='#506872',anchor='w',padding=(11,9),font=('맑은 고딕',9,'bold'))
+        style.configure('Text.TButton',background=WHITE,foreground='#506872',padding=(7,3),font=('맑은 고딕',9))
         style.configure('Danger.TButton',background='#FFF0F3',foreground='#AF3D56')
-        style.configure('Vertical.TScrollbar',background='#CAD3E3',troughcolor=FIELD,borderwidth=0,arrowsize=10)
-        style.configure('Thin.Horizontal.TProgressbar',background=BLUE,troughcolor='#EDF1F7',borderwidth=0,thickness=3)
+        style.configure('Vertical.TScrollbar',background='#C4D2D5',troughcolor=FIELD,borderwidth=0,arrowsize=10)
+        style.configure('Thin.Horizontal.TProgressbar',background=BLUE,troughcolor='#ECF1F2',borderwidth=0,thickness=3)
         style.configure('TPanedwindow',background=BG)
         style.configure('Sash',sashthickness=12,background=BG)
         style.configure('TNotebook',background=WHITE,borderwidth=0)
-        style.configure('TNotebook.Tab',padding=(12,7),font=('맑은 고딕',9),background='#EDF1F8',foreground=MUTED)
+        style.configure('TNotebook.Tab',padding=(12,7),font=('맑은 고딕',9),background='#EEF3F4',foreground=MUTED)
         style.map('TNotebook.Tab',background=[('selected',WHITE)],foreground=[('selected',BLUE)])
         style.configure('TCheckbutton',background=WHITE,foreground=INK)
 
@@ -284,8 +286,8 @@ class App:
         f=tk.Frame(parent,bg=FIELD,highlightbackground=LINE,highlightcolor=BLUE,highlightthickness=1,bd=0)
         f.grid(row=row,column=0,sticky='nsew')
         t=tk.Text(f,wrap='word',undo=True,height=height,width=20,relief='flat',borderwidth=0,
-            padx=12,pady=9,bg=FIELD,fg=INK,insertbackground=BLUE,selectbackground='#DBE4FF',
-            selectforeground=INK,font=('맑은 고딕',10),spacing1=2,spacing3=5,inactiveselectbackground='#E4EAF7')
+            padx=12,pady=9,bg=FIELD,fg=INK,insertbackground=BLUE,selectbackground='#CDEBE6',
+            selectforeground=INK,font=('맑은 고딕',10),spacing1=2,spacing3=5,inactiveselectbackground='#E0EDEB')
         s=ttk.Scrollbar(f,command=t.yview);t.configure(yscrollcommand=s.set)
         t.pack(side='left',fill='both',expand=True);s.pack(side='right',fill='y')
         t.bind('<FocusIn>',lambda e:f.configure(highlightbackground=BLUE))
@@ -332,12 +334,12 @@ class App:
         else:self.remove_pdf_button.grid_remove()
         self.remove_pdf_button.configure(state='disabled' if self.busy else 'normal')
         count=sum(bool(v.get().strip()) for v in self.general.values())
-        self.meta_toggle.configure(text=f'일반현황 · {count}/{len(GENERAL)} 입력됨    '+('자료 입력으로  ←' if self.general_expanded else '확인하기  →'))
+        self.meta_toggle.configure(text=f'일반현황 {count}/{len(GENERAL)} · '+('입력으로 ←' if self.general_expanded else '확인 →'))
         self.connection_badge.configure(text='●  API 연결됨' if self.connected else '●  API 연결 확인 필요',fg='#168575' if self.connected else MUTED)
-        if self.busy:text,bg,fg='처리 중','#EDF0FF',BLUE
+        if self.busy:text,bg,fg='처리 중','#E8F3F0',BLUE
         elif self.saved_current:text,bg,fg='저장 완료','#E8F6F0','#168575'
         elif self.get(self.findings).strip():text,bg,fg='미저장 초안','#FFF4DF','#956717'
-        else:text,bg,fg='작성 전','#EFF2F7',MUTED
+        else:text,bg,fg='작성 전','#EDF2F3',MUTED
         self.state_badge.configure(text=text,bg=bg,fg=fg)
         if hasattr(self,'draft_hint'):
             self.draft_hint.set('직접 편집 중 · 현재 편집 내용이 승인 시 저장됩니다.' if self.editor_open else ('저장 대상: 최신 초안 · '+text if self.get(self.findings).strip() else '초안 작성 후 원하는 수정을 채팅으로 요청하세요.'))
@@ -385,8 +387,8 @@ class App:
                     self.conversation.insert('end',report[key]+'\n','body')
             self.conversation.insert('end','\n')
         if not self.messages and not self.get(self.findings).strip():
-            self.conversation.insert('end','현장점검 결과서를 작성하세요\n','welcome')
-            self.conversation.insert('end','왼쪽에 PDF와 회의록을 입력하고 ‘초안 작성’을 눌러주세요.\n\n초안이 표시되면 원하는 수정을 아래 채팅으로 요청할 수 있습니다.\n직접 고치려면 상단의 ‘직접 편집’을 이용하세요.','hint')
+            self.conversation.insert('end','자료를 준비하면, 초안은 AI가 작성해요.\n','welcome')
+            self.conversation.insert('end','01  사업계획서 PDF와 현장 회의록을 입력하세요.\n02  ‘초안 작성’을 누르고, 대화로 내용을 다듬으세요.\n03  최종 내용을 검수한 뒤 승인하고 한글로 저장하세요.\n\n문장을 직접 수정하려면 오른쪽 위 ‘직접 편집’을 이용하세요.','hint')
         for message in self.messages:
             if message['kind']=='user':
                 self.conversation.insert('end','나의 요청\n','user_head')
@@ -705,7 +707,7 @@ class App:
     def missing_dialog(self,missing):
         w=tk.Toplevel(self.root);w.title('승인 전 필수값 확인');w.configure(bg=WHITE);w.resizable(False,False);w.transient(self.root);w.grab_set()
         f=ttk.Frame(w,style='Card.TFrame',padding=22);f.pack(fill='both',expand=True)
-        ttk.Label(f,style='Card.TLabel',text='자료에서 확인되지 않은 필수값만 입력해 주세요.\n해당하지 않으면 ‘해당 없음’으로 확인하세요.').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,14))
+        ttk.Label(f,style='Card.TLabel',text='자료에서 확인되지 않은 필수값만 입력해 주세요.\n해당하지 않으면 ‘해당 없음’으로 확인하세요.').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,18))
         values={};accepted=[]
         for i,k in enumerate(missing,1):
             ttk.Label(f,text=GENERAL[k],style='Hint.TLabel').grid(row=i,column=0,sticky='w',padx=(0,10),pady=4)
@@ -807,7 +809,7 @@ class App:
 
     def close(self):
         if self.busy:
-            messagebox.showinfo('처리 중','작업이 진행 중입니다. 한글 접근 확인 창을 확인하고 작업 완료 후 닫아 주세요.',parent=self.root);return
+            messagebox.showinfo('처리 중','작업이 진행 중입니다. 완료 후 닫아 주세요. 입력 내용은 그대로 유지됩니다.',parent=self.root);return
         if any(self.get(t).strip() for t in [self.minutes,self.findings]) and not messagebox.askyesno('프로그램 종료','저장하지 않은 편집 내용은 사라집니다. 종료할까요?',parent=self.root):return
         self.root.destroy()
 

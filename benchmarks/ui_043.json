@@ -1,0 +1,293 @@
+{
+  "version": "0.4.3",
+  "unit_tests_passed": 57,
+  "layout_cases": [
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.3333333333333333,
+      "general": false,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.3333333333333333,
+      "general": false,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.3333333333333333,
+      "general": false,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.3333333333333333,
+      "general": true,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.3333333333333333,
+      "general": true,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.3333333333333333,
+      "general": true,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.3333333333333333,
+      "general": false,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.3333333333333333,
+      "general": false,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.3333333333333333,
+      "general": false,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.3333333333333333,
+      "general": true,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.3333333333333333,
+      "general": true,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.3333333333333333,
+      "general": true,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.99803343166175,
+      "general": false,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.99803343166175,
+      "general": false,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.99803343166175,
+      "general": false,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.99803343166175,
+      "general": true,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.99803343166175,
+      "general": true,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1320,
+        880
+      ],
+      "scaling": 1.99803343166175,
+      "general": true,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.99803343166175,
+      "general": false,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.99803343166175,
+      "general": false,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.99803343166175,
+      "general": false,
+      "mode": "actions",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.99803343166175,
+      "general": true,
+      "mode": "chat",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.99803343166175,
+      "general": true,
+      "mode": "findings",
+      "failures": []
+    },
+    {
+      "geometry": [
+        1060,
+        720
+      ],
+      "scaling": 1.99803343166175,
+      "general": true,
+      "mode": "actions",
+      "failures": []
+    }
+  ],
+  "mock_widget_suites": [
+    "chat",
+    "stream",
+    "save_name",
+    "metadata",
+    "remember",
+    "pdf_drop",
+    "ui"
+  ],
+  "frozen_source_match": {
+    "compiled_matches_final_source": true,
+    "modules": [
+      "ui",
+      "api",
+      "style",
+      "metadata",
+      "core",
+      "streaming",
+      "exporter",
+      "vault",
+      "documents",
+      "runtime_probe"
+    ]
+  },
+  "unchanged_core_modules": [
+    "api.py",
+    "core.py",
+    "documents.py",
+    "exporter.py",
+    "metadata.py",
+    "pdf_layout.py",
+    "pdf_native.py",
+    "pdf_probe.py",
+    "runtime_probe.py",
+    "streaming.py",
+    "style.py",
+    "vault.py",
+    "__init__.py"
+  ],
+  "real_frozen_hwp": {
+    "ok": true,
+    "pages": 1,
+    "reopened": true
+  },
+  "visual_review": "Not completed: Computer Use app approval timed out",
+  "api_retested": false,
+  "physical_nas_retested": false
+}

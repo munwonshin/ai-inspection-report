@@ -34,6 +34,8 @@ for scaling in [None,2.0]:
                     if general and str(w).startswith(str(app.input_panel)+'.'):continue
                     if not general and str(w).startswith(str(app.general_panel)+'.'):continue
                     if not w.winfo_ismapped():failures.append({'control':str(w),'reason':'unmapped'});continue
+                    if isinstance(w,tk.ttk.Button) and w.winfo_width()+2<w.winfo_reqwidth():
+                        failures.append({'control':str(w),'text':w.cget('text'),'reason':'button_text_squeezed'})
                     parent=w.master
                     while parent:
                         if not inside(w,parent):
