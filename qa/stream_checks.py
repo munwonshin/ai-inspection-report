@@ -1,5 +1,5 @@
 """Native Tk controller check with a deliberately delayed synthetic stream."""
-import sys,time,json,threading
+import sys,time,json,threading,re
 from pathlib import Path
 from unittest.mock import patch
 base=Path(__file__).resolve().parent
@@ -41,7 +41,7 @@ with patch('inspection.ui.vault.read',return_value='fake'),patch('inspection.ui.
     root.after(30,observe)
     assert '0초' in app.activity.get()
     pump_until_idle()
-    assert any('1초' in x for x in activity)
+    assert any(re.search(r'(?:^|\s)[1-9]\d*초$',x) for x in activity)
     assert len({x.split('  ')[0] for x in activity if x})>=3
     assert all('원본 자료에 근거하여' not in x and '나의 요청' not in x for x in seen)
     assert app.activity.get()==''

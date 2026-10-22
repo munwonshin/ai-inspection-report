@@ -104,9 +104,15 @@ def generate(key,plan,minutes,current,instruction,pdf_bytes=None,*,model=None,re
     text,usage=request(key,payload,on_delta=on_delta) if on_delta is not None else request(key,payload)
     try:
         result=json.loads(text)
+        if not isinstance(result,dict):raise ValueError()
         result.setdefault('checks','')  # Internal compatibility; not an AI output field.
         if not all(isinstance(result[k],str) for k in ['findings','actions','checks']):raise ValueError()
         result.setdefault('general',{})
         if not isinstance(result['general'],dict) or not result['findings'].strip():raise ValueError()
+        # Reject malformed evidence before the UI replaces any edited text.
+        for name,record in result['general'].items():
+            if name not in GENERAL or not isinstance(record,dict):raise ValueError()
+            if not all(isinstance(record.get(k),str) for k in ('value','evidence','source')):raise ValueError()
+            if record['source'] not in ('plan','minutes','none'):raise ValueError()
     except (ValueError,KeyError,TypeError):raise ApiFailure('API 초안 형식이 올바르지 않습니다. 현재 편집 내용은 유지됩니다.') from None
     return result,usage

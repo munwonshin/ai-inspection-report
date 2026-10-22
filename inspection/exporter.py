@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from .core import Report, destination, compose, verify_xml
 
 def resource_dir():
@@ -53,6 +54,17 @@ def native_hwp_bytes(text):
     except (ValueError,binascii.Error):
         raise RuntimeError('한글이 정상적인 HWP 데이터를 반환하지 않았습니다. 저장하지 않았습니다.') from None
     return data
+
+def publish_no_replace(source,dest):
+    # A scanner/other process may briefly hold the completed file on Windows.
+    # Keep no-replace semantics on every attempt; never retry name collisions.
+    delays=(.05,.1,.2,.4,.8,1.)
+    for attempt in range(len(delays)+1):
+        try:
+            os.rename(str(source),str(dest));return
+        except OSError as e:
+            if getattr(e,'winerror',None) not in (32,33) or attempt==len(delays):raise
+            time.sleep(delays[attempt])
 
 
 def worker(payload):
@@ -100,7 +112,7 @@ def worker(payload):
         hwp.Clear(1);hwp.Quit();hwp=None
         # Windows rename fails if the target appeared during COM processing.
         # Do not use replace(), which would overwrite that target.
-        os.rename(str(staged),str(dest))
+        publish_no_replace(staged,dest)
         return {'ok':True,'path':str(dest),'pages':pages,'reopened':True}
     finally:
         if hwp is not None:
@@ -115,10 +127,14 @@ def worker_main():
         result=worker(json.loads(Path(sys.argv[2]).read_text(encoding='utf-8')))
     except FileExistsError:
         result={'ok':False,'error':'같은 이름의 파일이 있습니다. 파일명을 바꿔 주세요. 덮어쓰지 않았습니다.'}
-    except (ValueError,PermissionError,RuntimeError) as e:
+    except (ValueError,RuntimeError) as e:
         result={'ok':False,'error':str(e)}
     except OSError as e:
-        result={'ok':False,'error':f'파일 저장 실패(Windows 오류 {getattr(e,"winerror",None) or e.errno}). 경로·NAS 연결·쓰기 권한을 확인하고 다른 경로로 재시도해 주세요.'}
+        code=getattr(e,'winerror',None) or e.errno
+        if code in (32,33):message='파일이 다른 프로그램에서 사용 중입니다. 잠시 후 다시 저장해 주세요. 편집 내용은 유지됩니다.'
+        elif code is None:message=str(e)
+        else:message=f'파일 저장 실패(Windows 오류 {code}). 경로·NAS 연결·쓰기 권한을 확인하고 다른 경로로 재시도해 주세요.'
+        result={'ok':False,'error':message}
     except Exception:
         result={'ok':False,'error':'한글 자동화 오류입니다. 한글 설치·COM 등록·파일 접근 확인 창을 확인해 주세요. 편집 내용은 유지됩니다.'}
     Path(sys.argv[3]).write_text(json.dumps(result,ensure_ascii=False),encoding='utf-8')

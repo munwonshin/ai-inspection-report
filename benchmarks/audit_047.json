@@ -1,0 +1,158 @@
+{
+  "version": "0.4.7",
+  "inspection_baseline": "0.4.6",
+  "synthetic_only": true,
+  "unit_tests_passed": 64,
+  "application_issue_fixed": [
+    "Malformed nested general-info API evidence accepted before UI update",
+    "Transient Windows sharing violation at final no-replace rename"
+  ],
+  "test_issue_fixed": "Exact 1-second observation is invalid under concurrent load; check any elapsed second >=1",
+  "native_lock": {
+    "native_windows_lock_recovery": true,
+    "elapsed_seconds": 0.5939999999245629,
+    "existing_destination_preserved": true
+  },
+  "post_regression": {
+    "passed": true,
+    "scripts": 11,
+    "mode": "sequential",
+    "includes_new_malformed_response_ui_recovery": true,
+    "layout_conditions": 24
+  },
+  "layout_conditions": 24,
+  "pdf_20_pages": {
+    "pages": 20,
+    "bytes": 306557,
+    "baseline_seconds": 7.595999200013466,
+    "optimized_seconds": 1.5621318999910727,
+    "api_text_and_mapping_equal": true,
+    "visual_pdf_bytes_equal": true,
+    "visual_verification": {
+      "pages_checked": 20,
+      "all_text_and_renderings_match_original": true
+    },
+    "local_quote_layout_equal": true
+  },
+  "live_flow": {
+    "synthetic_only": true,
+    "actual_api_requests": 4,
+    "usage": [
+      {
+        "kind": "connection",
+        "usage": {
+          "input_tokens": 11,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 5,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 16,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.797,
+          "estimated_usd": 3.6000000000000003e-06
+        }
+      },
+      {
+        "kind": "inspection_general",
+        "usage": {
+          "input_tokens": 861,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 214,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1075,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.657,
+          "estimated_usd": 0.00019310000000000003
+        }
+      },
+      {
+        "kind": "inspection_report",
+        "usage": {
+          "input_tokens": 2141,
+          "input_tokens_details": {
+            "cache_write_tokens": 2138,
+            "cached_tokens": 0
+          },
+          "output_tokens": 141,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2282,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.203,
+          "estimated_usd": 0.00033805
+        }
+      },
+      {
+        "kind": "inspection_report",
+        "usage": {
+          "input_tokens": 2308,
+          "input_tokens_details": {
+            "cache_write_tokens": 617,
+            "cached_tokens": 1688
+          },
+          "output_tokens": 159,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2467,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.578,
+          "estimated_usd": 0.000173805
+        }
+      }
+    ],
+    "all_five_pdf_fields_exact": true,
+    "direct_edit_marker_preserved": true,
+    "original_minutes_preserved": true,
+    "no_output_before_approval": true,
+    "approved_snapshot_exact": true,
+    "real_hwp_reloaded_by_hancom": true,
+    "collision_preserves_file_and_input": true,
+    "callbacks": [],
+    "timer_seen": true,
+    "report": {
+      "title": "가상_전체흐름_검증",
+      "general": {
+        "project": "가상 지능형 설비 점검",
+        "lead_org": "가상 주관기관(주)",
+        "partner_org": "가상 참여기관(주)",
+        "lead_person": "가상 주관책임자",
+        "partner_person": "가상 참여책임자",
+        "visit_date": "2026-10-22",
+        "visit_org": "가상 방문기관",
+        "inspector_org": "가상 점검기관",
+        "inspector": "가상 점검자"
+      },
+      "findings": "• 기업은 센서 4대 설치가 끝났다고 설명함. 수집 데이터 84건을 화면에서 확인하고 관제 화면을 시연하였음. 누락 로그는 분석 중임.\n\n• 기업은 11월 7일 추가 시험 예정이라고 설명함.\n\n• 가상 수동 검수 메모를 원문 그대로 유지함.",
+      "actions": "• 시험 후 결과서와 로그를 제출해 달라고 요청함. 제출기한은 11월 12일로 안내함.\n\n• 변경 내역은 증빙과 대조하여 정리하도록 안내함. 미확정 항목은 다음 회의에서 확인하기로 함.",
+      "checks": ""
+    },
+    "hwp_name": "가상_전체흐름_검증.hwp"
+  },
+  "frozen_hwp": [
+    {
+      "case": "actual_ai",
+      "ok": true,
+      "pages": 1,
+      "reopened": true
+    },
+    {
+      "case": "long",
+      "ok": true,
+      "pages": 3,
+      "reopened": true
+    }
+  ],
+  "visual_desktop_review_completed": false,
+  "physical_nas_tested": false
+}
