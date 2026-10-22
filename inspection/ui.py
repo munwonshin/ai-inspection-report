@@ -36,7 +36,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.4.1')
+        root.title('AI 현장점검 결과서 · 0.4.2')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -745,7 +745,7 @@ class App:
             self.open_file.configure(state='normal');self.open_folder.configure(state='normal')
             self.status.set(f'저장 완료 · {result["pages"]}쪽 · 한글 재열기 확인을 마쳤습니다.')
         self.background(lambda:exporter.save(snapshot,folder,name,approved=True),done,
-            '승인된 내용을 한글에 저장·재열기 검증 중입니다. 한글 접근 확인 창이 뜨면 직접 확인해 주세요.')
+            '승인한 문서 경로로 한글 저장·재열기 검증 중입니다.')
 
     def open_saved(self):
         if self.last_saved:

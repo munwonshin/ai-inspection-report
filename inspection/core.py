@@ -6,6 +6,7 @@ import json
 import ntpath
 import re
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 
 GENERAL = {
     'project': '과제명', 'lead_org': '주관기관', 'partner_org': '참여기관',
@@ -100,6 +101,24 @@ def compose(template_xml, report):
         if any(ord(c)<32 and c not in '\r\n\t' for c in value):
             raise ValueError('입력에 지원하지 않는 제어문자가 있습니다.')
         set_cell(table_cell(ts[ti],row,col),value,ti==4)
+    # Only the empty separator paragraphs get a fixed 3pt height. Text retains
+    # the template's original font and line spacing, without rewriting edits.
+    shapes=root.find('.//PARASHAPELIST')
+    by_id={s.get('Id'):s for s in shapes}
+    blank_shapes={}
+    for row in (1,2):
+        for p in table_cell(ts[4],row,1).findall('./PARALIST/P'):
+            if ''.join(p.itertext()).strip():continue
+            source=p.get('ParaShape')
+            if source not in blank_shapes:
+                clone=deepcopy(by_id[source]);new_id=str(max(int(s.get('Id')) for s in shapes)+1)
+                clone.set('Id',new_id);clone.set('SnapToGrid','false')
+                margin=clone.find('PARAMARGIN')
+                margin.set('LineSpacingType','Fixed');margin.set('LineSpacing','300')
+                margin.set('Prev','0');margin.set('Next','0')
+                shapes.append(clone);blank_shapes[source]=new_id
+            p.set('ParaShape',blank_shapes[source])
+    shapes.set('Count',str(len(shapes)))
     # Long body cells must be allowed to continue across page boundaries.
     ts[4].set('PageBreak','Cell')
     pos=ts[4].find('./SHAPEOBJECT/POSITION')
@@ -118,6 +137,13 @@ def verify_xml(xml, report):
             raise ValueError('저장 후 편집 내용이 일치하지 않습니다. 최종 파일로 확정하지 않았습니다.')
     if any(root.iter('PICTURE')) or any(root.iter('OLE')):
         raise ValueError('서명 또는 개체 잔류가 발견됐습니다.')
+    shapes={p.get('Id'):p for p in root.iter('PARASHAPE')}
+    for row in (1,2):
+        for p in table_cell(ts[4],row,1).findall('./PARALIST/P'):
+            if ''.join(p.itertext()).strip():continue
+            margin=shapes[p.get('ParaShape')].find('PARAMARGIN')
+            if margin.get('LineSpacingType')!='Fixed' or int(margin.get('LineSpacing'))!=300:
+                raise ValueError('저장 후 문단 사이 빈 줄의 고정 3pt 설정이 일치하지 않습니다.')
 
 def evidenced_general(result, plan, minutes):
     """Only prefill exact source-backed values; the human supplies the rest."""

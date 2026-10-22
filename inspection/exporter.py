@@ -1,6 +1,8 @@
 """No result or staging file is created before explicit approval."""
 from pathlib import Path
 import hashlib
+import base64
+import binascii
 import json
 import os
 import shutil
@@ -43,6 +45,16 @@ def save(report, folder, name, *, approved=False):
         raise RuntimeError(result.get('error','한글 저장에 실패했습니다.'))
     return result
 
+def native_hwp_bytes(text):
+    try:
+        if not isinstance(text,str):raise ValueError()
+        data=base64.b64decode(''.join(text.split()),validate=True)
+        if data[:8]!=bytes.fromhex('D0CF11E0A1B11AE1'):raise ValueError()
+    except (ValueError,binascii.Error):
+        raise RuntimeError('한글이 정상적인 HWP 데이터를 반환하지 않았습니다. 저장하지 않았습니다.') from None
+    return data
+
+
 def worker(payload):
     if payload.get('approved') is not True:
         raise PermissionError('사용자 승인 전에는 저장할 수 없습니다.')
@@ -66,30 +78,30 @@ def worker(payload):
         # Same-volume staging supports UNC paths and atomic no-replace publication.
         stage=Path(tempfile.mkdtemp(prefix='.ai-inspection-',dir=str(dest.parent)))
         staged=stage/'approved.hwp'
-        with tempfile.TemporaryDirectory(prefix='ai-inspection-approved-') as local:
-            hml=Path(local)/'approved.hml'
-            hml.write_text(xml,encoding='utf-8-sig')
-            hwp=win32com.client.DispatchEx('HWPFrame.HwpObject')
-            hwp.XHwpWindows.Item(0).Visible=True
-            if not hwp.Open(str(hml),'HWPML2X',''):
-                raise RuntimeError('한글에서 승인 문서를 열지 못했습니다. 파일 접근 확인 창을 확인해 주세요.')
-            if not hwp.SaveAs(str(staged),'HWP',''):
-                raise RuntimeError('한글 HWP 저장이 취소되거나 실패했습니다. 편집 내용은 유지됩니다.')
-            hwp.Clear(1)
-            if not hwp.Open(str(staged),'HWP',''):
-                raise RuntimeError('저장한 HWP를 한글에서 다시 열지 못했습니다. 최종 파일로 확정하지 않았습니다.')
-            verify_xml(hwp.GetTextFile('HWPML2X',''),report)
-            pages=int(hwp.PageCount)
-            hwp.Clear(1)
-            hwp.Quit()
-            hwp=None
-            with staged.open('rb') as f:
-                if f.read(8)!=bytes.fromhex('D0CF11E0A1B11AE1'):
-                    raise RuntimeError('실제 HWP 파일 형식 검증에 실패했습니다.')
-            # Windows rename fails if the target appeared during COM processing.
-            # Do not use replace(), which would overwrite that target.
-            os.rename(str(staged),str(dest))
-            return {'ok':True,'path':str(dest),'pages':pages,'reopened':True}
+        hwp=win32com.client.DispatchEx('HWPFrame.HwpObject')
+        hwp.XHwpWindows.Item(0).Visible=False
+        # BSTR is UTF-16. An UTF-8 declaration makes older Hancom versions
+        # import XML as visible text rather than a formatted document.
+        data=xml.replace('encoding="UTF-8"','encoding="UTF-16"',1)
+        if not hwp.SetTextFile(data,'HWPML2X','insertfile'):
+            raise RuntimeError('한글에서 승인 본문을 변환하지 못했습니다. 편집 내용은 유지됩니다.')
+        verify_xml(hwp.GetTextFile('HWPML2X',''),report)
+        binary=native_hwp_bytes(hwp.GetTextFile('HWP',''))
+        with staged.open('xb') as f:f.write(binary)
+        # Re-read the bytes actually written, then reload in Hancom. The app
+        # owns disk I/O; no Hancom Open/SaveAs, registry or security policy change.
+        saved=staged.read_bytes()
+        if saved!=binary:raise RuntimeError('저장한 HWP 데이터가 일치하지 않습니다.')
+        hwp.Clear(1)
+        if not hwp.SetTextFile(base64.b64encode(saved).decode('ascii'),'HWP','insertfile'):
+            raise RuntimeError('저장한 HWP를 한글에서 다시 불러오지 못했습니다.')
+        verify_xml(hwp.GetTextFile('HWPML2X',''),report)
+        pages=int(hwp.PageCount)
+        hwp.Clear(1);hwp.Quit();hwp=None
+        # Windows rename fails if the target appeared during COM processing.
+        # Do not use replace(), which would overwrite that target.
+        os.rename(str(staged),str(dest))
+        return {'ok':True,'path':str(dest),'pages':pages,'reopened':True}
     finally:
         if hwp is not None:
             try:hwp.Clear(1); hwp.Quit()

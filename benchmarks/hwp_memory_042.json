@@ -1,0 +1,65 @@
+{
+  "source_saves": {
+    "synthetic_only": true,
+    "no_ui_clicks": true,
+    "results": [
+      {
+        "ok": true,
+        "path": "가상_접근창제거_빈줄3pt_1.hwp",
+        "pages": 1,
+        "reopened": true,
+        "seconds": 14.469
+      },
+      {
+        "ok": true,
+        "path": "가상_접근창제거_빈줄3pt_2.hwp",
+        "pages": 1,
+        "reopened": true,
+        "seconds": 13.031
+      }
+    ]
+  },
+  "long_and_ai": {
+    "long": {
+      "ok": true,
+      "path": "가상_장문_빈줄3pt.hwp",
+      "pages": 3,
+      "reopened": true
+    },
+    "collision_preserved": true,
+    "actual_api_requests": 1,
+    "synthetic_report": {
+      "findings": "• 기업은 장치 2대를 설치했다고 설명함. 시연 화면 확인함.\n\n• 데이터는 가상 서버에 수집 중이라고 설명함. 시험은 다음 달 예정이라고 설명함.",
+      "actions": "• 로그 보관 양식을 안내함. 제출일은 미정으로 확인 필요함.",
+      "checks": "",
+      "general": {}
+    },
+    "usage": {
+      "input_tokens": 1389,
+      "input_tokens_details": {
+        "cache_write_tokens": 1386,
+        "cached_tokens": 0
+      },
+      "output_tokens": 78,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 1467,
+      "model": "gpt-6-luna",
+      "elapsed_seconds": 2.953,
+      "estimated_usd": 0.00021255000000000002
+    },
+    "ai_saved": {
+      "ok": true,
+      "path": "가상_AI_빈줄3pt.hwp",
+      "pages": 1,
+      "reopened": true
+    }
+  },
+  "frozen_save": {
+    "ok": true,
+    "path": "가상_실행파일_빈줄3pt.hwp",
+    "pages": 1,
+    "reopened": true
+  }
+}
