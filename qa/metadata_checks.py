@@ -10,7 +10,7 @@ from inspection import api
 root=tk.Tk();root.attributes('-alpha',0);app=App(root);app.connected=True
 app.minutes.insert('1.0','가상 회의록 보존');app.findings.insert('1.0','가상 직접 편집 보존')
 app.general['lead_person'].set('직접 입력한 가상 책임자')
-doc=SimpleNamespace(local_text='가상 계획',api_text='가상 계획',visual_pdf=None,page_count=1)
+doc=SimpleNamespace(local_text='가상 계획',api_text='가상 계획',visual_pdf=None,original_bytes=b'%PDF-SYNTHETIC',page_count=1)
 rows=[]
 def settle():
     until=time.monotonic()+15
@@ -24,7 +24,8 @@ with patch('inspection.ui.prepare_pdf',return_value=doc),patch('inspection.ui.va
     app.load_pdf('synthetic-a.pdf');settle()
     assert app.general['project'].get()=='가상 과제 A'
     assert app.general['lead_person'].get()=='직접 입력한 가상 책임자'
-    assert 'lead_person' not in extract.call_args.args[4]
+    assert 'lead_person' not in extract.call_args.args[3]
+    assert extract.call_args.args[1]==doc.original_bytes
     assert all(not app.general[k].get() for k in ['visit_date','visit_org','inspector_org','inspector'])
     assert extract.call_count==1;app.recognize_general();assert extract.call_count==1
     rows.append('attach_without_minutes_or_draft_populates_plan_fields_once')
@@ -53,6 +54,16 @@ with patch('inspection.ui.prepare_pdf',return_value=doc),patch('inspection.ui.va
     app.connected=True;app.recognize_general();settle()
     assert app.general['project'].get()=='가상 과제 A'
     rows.append('attachment_before_connection_can_resume_after_connection')
+    app.general_evidence['project']={'page':1,'quote':'과제명: 가상 과제 A'}
+    entry=next(w for w in app.entries if str(w.cget('textvariable'))==str(app.general['project']))
+    app.reveal_general_evidence('project',entry)
+    assert '원본 PDF 1쪽' in app.general_evidence_note.get()
+    app.general['project'].set('직접 수정한 과제')
+    assert 'project' not in app.general_evidence and '직접 수정됨' in app.general_evidence_note.get()
+    app.remove_pdf()
+    assert app.original_pdf_bytes is None and app.pdf_page_count==0
+    assert app.general['project'].get()=='직접 수정한 과제'
+    rows.append('evidence_view_manual_edit_invalidation_and_original_bytes_cleared')
     draft.assert_not_called();save.assert_not_called()
 for timer in root.tk.call('after','info'):root.after_cancel(timer)
 root.destroy()

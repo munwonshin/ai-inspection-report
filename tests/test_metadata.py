@@ -1,34 +1,49 @@
-import json,unittest
+import base64,json,unittest
 from unittest.mock import patch
 from inspection import metadata,api
 
-def entry(value,evidence,source='plan'):return dict(value=value,evidence=evidence,source=source)
+def entry(value,evidence,source='plan',page=2,reason=''):
+    return dict(value=value,evidence=evidence,source=source,page=page,reason=reason)
 
 class MetadataTests(unittest.TestCase):
-    def test_exact_and_wrapped_evidence(self):
-        text='과제명: 가상 AI\n점검 사업\n주관기관: 가상 기관'
-        result=metadata.accepted_general({'project':entry('가상 AI 점검 사업','과제명: 가상 AI 점검 사업'), 'lead_org':entry('가상 기관','주관기관: 가상 기관')},text)
-        self.assertEqual(result,{'project':'가상 AI 점검 사업','lead_org':'가상 기관'})
+    def test_scanned_or_split_table_evidence_is_retained(self):
+        result=metadata.accepted_general({'project':entry('가상 AI 점검 사업','과제명: 가상 AI\n점검 사업')},3)
+        self.assertEqual(result,{'project':'가상 AI 점검 사업'})
+        self.assertEqual(result.evidence['project']['page'],2)
 
-    def test_reject_unverified_and_visit_inference(self):
-        text='과제명: 가상 계획'
-        data={'project':entry('다른 사업','과제명: 가상 계획'),'lead_org':entry('가상 계획','과제명: 가상 계획','minutes'),'partner_org':entry('가상 계획',''), 'visit_date':entry('가상 계획',text)}
-        self.assertEqual(metadata.accepted_general(data,text),{})
+    def test_reject_mismatched_quote_page_and_source(self):
+        data={'project':entry('다른 사업','과제명: 가상 계획'), 'lead_org':entry('가상 기관','가상 기관','minutes'),
+            'partner_org':entry('가상 기관','가상 기관',page=9),'lead_person':entry('가상 책임자',''),
+            'visit_date':entry('미지원 항목','미지원 항목')}
+        result=metadata.accepted_general(data,3)
+        self.assertEqual(result,{})
+        self.assertIn('project',result.issues)
 
-    def test_only_requested_missing_plan_fields_sent(self):
-        data={'project':entry('가상 사업','과제명: 가상 사업')}
-        with patch('inspection.api.request',return_value=(json.dumps(data),{'input_tokens':10})) as call:
-            result,usage=metadata.extract('fake','과제명: 가상 사업','과제명: 가상 사업',b'%PDF-TEST',('project','visit_date'))
-        payload=call.call_args.args[1]
+    def test_entire_original_bytes_sent_without_text_duplication(self):
+        data={'project':entry('가상 사업','과제명: 가상 사업')};original=b'%PDF-ALL-ORIGINAL-PAGES'
+        with patch('inspection.api.request',return_value=(json.dumps(data),{})) as call:
+            result,usage=metadata.extract('fake',original,3,('project','visit_date'))
+        payload=call.call_args.args[1];content=payload['input'][0]['content']
         self.assertFalse(payload['store']);self.assertEqual(payload['model'],api.MODEL)
         self.assertEqual(payload['text']['format']['schema']['required'],['project'])
-        self.assertEqual(payload['input'][0]['content'][0]['type'],'input_file')
+        self.assertEqual(len(content),1);self.assertEqual(content[0]['type'],'input_file')
+        self.assertEqual(base64.b64decode(content[0]['file_data'].split(',',1)[1]),original)
         self.assertEqual(result,{'project':'가상 사업'})
 
     def test_no_fields_no_request(self):
-        with patch('inspection.api.request') as call:self.assertEqual(metadata.extract('fake','','',fields=()),({},{}));call.assert_not_called()
+        with patch('inspection.api.request') as call:
+            self.assertEqual(metadata.extract('fake',None,0,()),({},{}));call.assert_not_called()
 
     def test_malformed_response_rejected(self):
-        for data in [[],{'project':None},{'wrong':{}},{'project':{'value':9}}]:
+        for data in [[],{'project':None},{'wrong':{}},{'project':{'value':9}}, {'project':entry('가상','가상',page=True)}]:
             with self.subTest(data=data),patch('inspection.api.request',return_value=(json.dumps(data),{})):
-                with self.assertRaises(api.ApiFailure):metadata.extract('fake','가상','가상',fields=('project',))
+                with self.assertRaises(api.ApiFailure):metadata.extract('fake',b'%PDF-TEST',3,('project',))
+
+    def test_missing_value_reason_is_available_for_review(self):
+        result=metadata.accepted_general({'lead_org':entry('','','none',0,'기관 역할 구분이 불명확함')},3)
+        self.assertEqual(result,{})
+        self.assertEqual(result.issues['lead_org'],'기관 역할 구분이 불명확함')
+
+    def test_unicode_legal_company_symbol_matches_quote(self):
+        result=metadata.accepted_general({'lead_org':entry('㈜가상','주관기관: (주)가상')},3)
+        self.assertEqual(result,{'lead_org':'㈜가상'})
