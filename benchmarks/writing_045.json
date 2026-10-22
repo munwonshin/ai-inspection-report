@@ -1,0 +1,292 @@
+{
+  "version": "0.4.5",
+  "synthetic_only": true,
+  "unit_tests_passed": 57,
+  "actual_api_requests": 9,
+  "comparison": {
+    "synthetic_only": true,
+    "actual_api_requests": 8,
+    "results": [
+      {
+        "case": "rich_typo",
+        "version": "before",
+        "minutes": "[명확한 가상 회의록] 설비 4대의 센서 설지가 끝났다고 기업이 설명함. 수집 데이타 84건을 화면에서 확인함. 관제 화면 시연을 확인했음. 누락 로그는 아직 분석중이라고 설명함. 기업은 11월 7일 추가 시험을 진행할 예졍이라고 설명함. 시험 항목은 오탐 여부와 알람 지연시간이라고 설명함. 점검자는 시험이 끝난 뒤 결과서와 해당 로그를 제출해 달라고 요청햇음. 제출기한은 11월 12일로 안내했음. 사업비 변경 내역은 담당자가 증빙과 대조해서 정리하도록 안내함. 변경 내역 중 확정되지 않은 항목은 다음 회의에서 확인하기로 함.",
+        "result": {
+          "findings": "• 설비 4대의 센서 설치가 끝났다고 기업이 설명함. 수집 데이터 84건을 화면에서 확인하고 관제 화면 시연을 확인함. 누락 로그는 아직 분석 중이라고 설명함.\n\n• 기업은 11월 7일 추가 시험을 진행할 예정이며, 시험 항목은 오탐 여부와 알람 지연시간이라고 설명함.",
+          "actions": "• 시험 종료 후 결과서와 해당 로그를 제출하도록 요청함. 제출기한은 11월 12일로 안내함.\n\n• 사업비 변경 내역은 담당자가 증빙과 대조해 정리하도록 안내함. 변경 내역 중 확정되지 않은 항목은 다음 회의에서 확인하기로 함."
+        },
+        "chars_without_spaces": {
+          "findings": 112,
+          "actions": 95
+        },
+        "short_to_long_ratio": 0.848,
+        "usage": {
+          "input_tokens": 1532,
+          "input_tokens_details": {
+            "cache_write_tokens": 1529,
+            "cached_tokens": 0
+          },
+          "output_tokens": 174,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1706,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 4.172,
+          "estimated_usd": 0.000278425
+        }
+      },
+      {
+        "case": "rich_typo",
+        "version": "after",
+        "minutes": "[명확한 가상 회의록] 설비 4대의 센서 설지가 끝났다고 기업이 설명함. 수집 데이타 84건을 화면에서 확인함. 관제 화면 시연을 확인했음. 누락 로그는 아직 분석중이라고 설명함. 기업은 11월 7일 추가 시험을 진행할 예졍이라고 설명함. 시험 항목은 오탐 여부와 알람 지연시간이라고 설명함. 점검자는 시험이 끝난 뒤 결과서와 해당 로그를 제출해 달라고 요청햇음. 제출기한은 11월 12일로 안내했음. 사업비 변경 내역은 담당자가 증빙과 대조해서 정리하도록 안내함. 변경 내역 중 확정되지 않은 항목은 다음 회의에서 확인하기로 함.",
+        "result": {
+          "findings": "• 기업은 설비 4대의 센서 설치가 끝났다고 설명함. 수집 데이터 84건을 화면에서 확인하였으며, 관제 화면 시연을 확인함.\n\n• 기업은 누락 로그를 아직 분석 중이라고 설명함. 11월 7일 추가 시험을 진행할 예정이며, 시험 항목은 오탐 여부와 알람 지연시간이라고 설명함.",
+          "actions": "• 점검자는 추가 시험이 끝난 뒤 결과서와 해당 로그를 제출해 달라고 요청하였음. 제출기한은 11월 12일로 안내하였음.\n\n• 사업비 변경 내역은 담당자가 증빙과 대조하여 정리하도록 안내하였음. 변경 내역 중 확정되지 않은 항목은 다음 회의에서 확인하기로 하였음."
+        },
+        "chars_without_spaces": {
+          "findings": 115,
+          "actions": 112
+        },
+        "short_to_long_ratio": 0.974,
+        "usage": {
+          "input_tokens": 2042,
+          "input_tokens_details": {
+            "cache_write_tokens": 2039,
+            "cached_tokens": 0
+          },
+          "output_tokens": 193,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2235,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 4.094,
+          "estimated_usd": 0.000351675
+        }
+      },
+      {
+        "case": "rich_followup",
+        "version": "before",
+        "minutes": "[명확한 가상 회의록] 가상 검수 화면에서 알림 이력과 장치 상태 표시를 직접 확인함. 기업은 학습 자료 정리가 끝났으며 모델 비교는 진행중이라고 설명함. 점검자는 주간 로그 3종을 비교표로 정리해 다음 회의에 가져오도록 요청함. 비교 기준은 발생 시각, 알림 결과, 현장 확인 기록으로 안내함. 기업 담당자는 12월 4일 검토 회의에서 비교 결과를 설명할 예정이라고 함. 시험기관 일정은 아직 미정이며 기업이 일정 확인 후 담당자에게 공유하기로 함. 미정인 항목은 확정값처럼 보고하지 않도록 안내함.",
+        "result": {
+          "findings": "• 가상 검수 화면에서 알림 이력과 장치 상태 표시를 직접 확인함. 기업은 학습 자료 정리가 끝났으며 모델 비교는 진행 중이라고 설명함.\n\n• 기업 담당자는 12월 4일 검토 회의에서 비교 결과를 설명할 예정이라고 함. 시험기관 일정은 아직 미정임.",
+          "actions": "• 주간 로그 3종을 비교표로 정리해 다음 회의에 가져오도록 요청함. 비교 기준은 발생 시각, 알림 결과, 현장 확인 기록으로 안내함.\n\n• 기업은 시험기관 일정을 확인한 후 담당자에게 공유하기로 함. 미정인 항목은 확정값처럼 보고하지 않도록 안내함."
+        },
+        "chars_without_spaces": {
+          "findings": 102,
+          "actions": 105
+        },
+        "short_to_long_ratio": 0.971,
+        "usage": {
+          "input_tokens": 1508,
+          "input_tokens_details": {
+            "cache_write_tokens": 327,
+            "cached_tokens": 1178
+          },
+          "output_tokens": 170,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1678,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 3.688,
+          "estimated_usd": 0.000137955
+        }
+      },
+      {
+        "case": "rich_followup",
+        "version": "after",
+        "minutes": "[명확한 가상 회의록] 가상 검수 화면에서 알림 이력과 장치 상태 표시를 직접 확인함. 기업은 학습 자료 정리가 끝났으며 모델 비교는 진행중이라고 설명함. 점검자는 주간 로그 3종을 비교표로 정리해 다음 회의에 가져오도록 요청함. 비교 기준은 발생 시각, 알림 결과, 현장 확인 기록으로 안내함. 기업 담당자는 12월 4일 검토 회의에서 비교 결과를 설명할 예정이라고 함. 시험기관 일정은 아직 미정이며 기업이 일정 확인 후 담당자에게 공유하기로 함. 미정인 항목은 확정값처럼 보고하지 않도록 안내함.",
+        "result": {
+          "findings": "• 가상 검수 화면에서 알림 이력과 장치 상태 표시를 직접 확인함. 기업은 학습 자료 정리가 끝났으며 모델 비교는 진행 중이라고 설명함.",
+          "actions": "• 주간 로그 3종을 비교표로 정리해 다음 회의에 가져오도록 요청함. 비교 기준은 발생 시각, 알림 결과, 현장 확인 기록으로 안내함. 기업 담당자는 12월 4일 검토 회의에서 비교 결과를 설명할 예정이라고 함. 시험기관 일정은 아직 미정이며, 기업이 일정을 확인한 후 담당자에게 공유하기로 함. 미정인 항목은 확정값처럼 보고하지 않도록 안내함."
+        },
+        "chars_without_spaces": {
+          "findings": 56,
+          "actions": 146
+        },
+        "short_to_long_ratio": 0.384,
+        "usage": {
+          "input_tokens": 2018,
+          "input_tokens_details": {
+            "cache_write_tokens": 327,
+            "cached_tokens": 1688
+          },
+          "output_tokens": 162,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2180,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 3.328,
+          "estimated_usd": 0.00013905500000000002
+        }
+      },
+      {
+        "case": "no_followup",
+        "version": "before",
+        "minutes": "[명확한 가상 회의록] 가상 화면의 장치 상태 표시를 확인함. 기업은 센서 설치가 끝났고 현재 데이터 수집 중이라고 설명함. 추가 안내, 요청, 향후 일정이나 미정 사항은 기록되지 않았음.",
+        "result": {
+          "findings": "• 가상 화면의 장치 상태 표시를 확인함. 기업은 센서 설치가 끝났고 현재 데이터 수집 중이라고 설명함.",
+          "actions": "회의록에 기재된 향후 조치요청 사항 없음."
+        },
+        "chars_without_spaces": {
+          "findings": 43,
+          "actions": 18
+        },
+        "short_to_long_ratio": 0.419,
+        "usage": {
+          "input_tokens": 1411,
+          "input_tokens_details": {
+            "cache_write_tokens": 230,
+            "cached_tokens": 1178
+          },
+          "output_tokens": 61,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1472,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.437,
+          "estimated_usd": 7.133e-05
+        }
+      },
+      {
+        "case": "no_followup",
+        "version": "after",
+        "minutes": "[명확한 가상 회의록] 가상 화면의 장치 상태 표시를 확인함. 기업은 센서 설치가 끝났고 현재 데이터 수집 중이라고 설명함. 추가 안내, 요청, 향후 일정이나 미정 사항은 기록되지 않았음.",
+        "result": {
+          "findings": "• 가상 화면의 장치 상태 표시를 확인함. 기업은 센서 설치가 끝났으며 현재 데이터 수집 중이라고 설명함.",
+          "actions": "회의록에 기재된 향후 조치요청 사항 없음."
+        },
+        "chars_without_spaces": {
+          "findings": 44,
+          "actions": 18
+        },
+        "short_to_long_ratio": 0.409,
+        "usage": {
+          "input_tokens": 1921,
+          "input_tokens_details": {
+            "cache_write_tokens": 230,
+            "cached_tokens": 1688
+          },
+          "output_tokens": 61,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1982,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 1.781,
+          "estimated_usd": 7.643000000000001e-05
+        }
+      },
+      {
+        "case": "ambiguous",
+        "version": "before",
+        "minutes": "[명확한 가상 회의록] 기업명은 가온테쿠로 기재됨. 기업은 두 차례에 각각 120건씩 총 250건을 수집했다고 설명함. 시험일은 11월 31일로 적혀 있음. 탐지율 90%는 기업의 예상이며 시험 결과가 아님. 샘플 주기는 미정임. 점검자는 시험 일정 확인 뒤 담당자에게 공유하도록 요청함.",
+        "result": {
+          "findings": "• 기업은 두 차례에 각각 120건씩 총 250건을 수집했다고 설명함. 두 차례 수집 건수와 총 건수 간 수치 상충이 있어 확인 필요함.\n\n• 시험일은 11월 31일로 기재되어 있어 일정 확인 필요함. 기업은 탐지율 90%를 예상한다고 설명했으며, 이는 시험 결과가 아님. 샘플 주기는 미정임.",
+          "actions": "• 점검자는 시험 일정 확인 뒤 담당자에게 공유하도록 요청함. 샘플 주기는 미정으로 기록되어 있어 확인 필요함."
+        },
+        "chars_without_spaces": {
+          "findings": 121,
+          "actions": 47
+        },
+        "short_to_long_ratio": 0.388,
+        "usage": {
+          "input_tokens": 1452,
+          "input_tokens_details": {
+            "cache_write_tokens": 271,
+            "cached_tokens": 1178
+          },
+          "output_tokens": 144,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1596,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 3.031,
+          "estimated_usd": 0.000117955
+        }
+      },
+      {
+        "case": "ambiguous",
+        "version": "after",
+        "minutes": "[명확한 가상 회의록] 기업명은 가온테쿠로 기재됨. 기업은 두 차례에 각각 120건씩 총 250건을 수집했다고 설명함. 시험일은 11월 31일로 적혀 있음. 탐지율 90%는 기업의 예상이며 시험 결과가 아님. 샘플 주기는 미정임. 점검자는 시험 일정 확인 뒤 담당자에게 공유하도록 요청함.",
+        "result": {
+          "findings": "• 기업은 두 차례에 각각 120건씩 총 250건을 수집했다고 설명함. 두 차례 수집 건수와 기재된 총합이 일치하지 않아 확인 필요함.\n\n• 탐지율 90%는 기업의 예상이며 시험 결과가 아님. 시험일은 11월 31일로 기재되어 있고, 샘플 주기는 미정임.",
+          "actions": "• 점검자는 시험 일정 확인 뒤 담당자에게 공유하도록 요청함. 시험일은 11월 31일로 기재되어 있어 일정 확인이 필요함.\n\n• 샘플 주기는 미정으로 기록되어 있어 확인 필요함."
+        },
+        "chars_without_spaces": {
+          "findings": 106,
+          "actions": 74
+        },
+        "short_to_long_ratio": 0.698,
+        "usage": {
+          "input_tokens": 1962,
+          "input_tokens_details": {
+            "cache_write_tokens": 271,
+            "cached_tokens": 1688
+          },
+          "output_tokens": 158,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2120,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.594,
+          "estimated_usd": 0.00013005500000000001
+        }
+      }
+    ]
+  },
+  "revision": {
+    "synthetic_only": true,
+    "actual_api_requests": 1,
+    "stream_chunks": 202,
+    "manual_marker_preserved": true,
+    "original_minutes_preserved": true,
+    "result": {
+      "findings": "• 기업은 설비 4대의 센서 설치가 끝났다고 설명함. 수집 데이터 84건을 화면에서 확인하였으며, 관제 화면 시연을 확인함.\n\n• 기업은 누락 로그를 아직 분석 중이라고 설명함. 11월 7일 추가 시험을 진행할 예정이며, 시험 항목은 오탐 여부와 알람 지연시간이라고 설명함.\n\n• 별도 가상 수동 검수 메모는 그대로 유지함.",
+      "actions": "• 점검자는 추가 시험이 끝난 뒤 결과서와 해당 로그를 제출해 달라고 요청하였음. 제출기한은 11월 12일로 안내하였음.\n\n• 사업비 변경 내역은 담당자가 증빙과 대조하여 정리하도록 안내하였음. 변경 내역 중 확정되지 않은 항목은 다음 회의에서 확인하기로 하였음.",
+      "checks": "",
+      "general": {}
+    },
+    "usage": {
+      "input_tokens": 2255,
+      "input_tokens_details": {
+        "cache_write_tokens": 564,
+        "cached_tokens": 1688
+      },
+      "output_tokens": 211,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 2466,
+      "model": "gpt-6-luna",
+      "elapsed_seconds": 3.64,
+      "estimated_usd": 0.00019318000000000002
+    }
+  },
+  "frozen_source_check": {
+    "compiled_matches_final_source": true,
+    "modules": [
+      "ui",
+      "api",
+      "style",
+      "metadata",
+      "core",
+      "streaming",
+      "exporter",
+      "vault",
+      "documents",
+      "runtime_probe"
+    ]
+  },
+  "real_hwp": {
+    "ok": true,
+    "pages": 1,
+    "reopened": true
+  }
+}

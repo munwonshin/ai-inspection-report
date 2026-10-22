@@ -36,7 +36,7 @@ class App:
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='요청 없이도 초안을 작성할 수 있습니다.')
-        root.title('AI 현장점검 결과서 · 0.4.4')
+        root.title('AI 현장점검 결과서 · 0.4.5')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
