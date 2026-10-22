@@ -55,9 +55,9 @@ def preview(text):
             if depth==1 and j<len(text) and text[j]==':':
                 j+=1
                 while j<len(text) and text[j].isspace():j+=1
-                if key in {'findings','actions','checks'} and j<len(text) and text[j]=='"':
+                if key in {'findings','actions'} and j<len(text) and text[j]=='"':
                     value,i,closed=string_prefix(text,j+1);result[key]=value
                     if not closed:break
         else:i+=1
-    labels={'findings':'현장 점검·확인 사항','actions':'안내·조치요청','checks':'확인할 사항'}
+    labels={'findings':'현장 점검·확인 사항','actions':'향후 조치요청 사항'}
     return '\n\n'.join(labels[k]+'\n'+result[k] for k in labels if result.get(k))

@@ -1,0 +1,130 @@
+{
+  "api": {
+    "model": "gpt-6-luna",
+    "synthetic_only": true,
+    "results": [
+      {
+        "case": "minutes_primary",
+        "report": {
+          "findings": "• 기업은 장치 2대를 설치했다고 설명함. 시연 화면을 확인함. 성능시험은 다음 달 예정이라고 설명함.",
+          "actions": "• 로그 보관 양식을 안내함. 제출일은 아직 미정으로, 확인 필요함.",
+          "checks": "",
+          "general": {}
+        },
+        "usage": {
+          "input_tokens": 1378,
+          "input_tokens_details": {
+            "cache_write_tokens": 1375,
+            "cached_tokens": 0
+          },
+          "output_tokens": 67,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1445,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 3.938,
+          "estimated_usd": 0.000205675
+        }
+      },
+      {
+        "case": "no_followup",
+        "report": {
+          "findings": "시연 화면을 확인함.",
+          "actions": "회의록에 기재된 향후 조치요청 사항 없음.",
+          "checks": "",
+          "general": {}
+        },
+        "usage": {
+          "input_tokens": 1354,
+          "input_tokens_details": {
+            "cache_write_tokens": 226,
+            "cached_tokens": 1125
+          },
+          "output_tokens": 37,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1391,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.532,
+          "estimated_usd": 5.8299999999999994e-05
+        }
+      },
+      {
+        "case": "conflicting_numbers",
+        "report": {
+          "findings": "• 기업은 1차 2건, 2차 3건을 수집하여 총 8건이라고 설명함. 세부 수치 합계와 총계가 상충함.",
+          "actions": "• 수집 건수의 합계와 총계가 상충하여 확인 필요함. 회의록에 기재된 별도 안내·수정 요청 또는 제출 기한 없음.",
+          "checks": "",
+          "general": {}
+        },
+        "usage": {
+          "input_tokens": 1383,
+          "input_tokens_details": {
+            "cache_write_tokens": 255,
+            "cached_tokens": 1125
+          },
+          "output_tokens": 96,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1479,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.812,
+          "estimated_usd": 9.1425e-05
+        }
+      },
+      {
+        "case": "manual_edit_then_chat",
+        "report": {
+          "findings": "• 기업은 장치 2대를 설치했다고 설명함. 시연 화면을 확인함. 성능시험은 다음 달 예정이라고 설명함.\n직접 편집 보존 문장: 가상 시연 자료를 별도 검토함.",
+          "actions": "• 로그 보관 양식 안내함. 제출일은 아직 미정으로 확인 필요함.",
+          "checks": "",
+          "general": {}
+        },
+        "usage": {
+          "input_tokens": 1470,
+          "input_tokens_details": {
+            "cache_write_tokens": 342,
+            "cached_tokens": 1125
+          },
+          "output_tokens": 88,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1558,
+          "model": "gpt-6-luna",
+          "elapsed_seconds": 2.969,
+          "estimated_usd": 9.829999999999999e-05
+        }
+      }
+    ],
+    "template_followup_exact": true,
+    "actual_hwp": false
+  },
+  "ui": {
+    "actual_api_requests": 2,
+    "two_tabs": true,
+    "direct_edit_then_actual_chat": true,
+    "approved_snapshot_exact": true,
+    "result_file_created": false,
+    "report": {
+      "title": "가상_통합본문_UI검증",
+      "general": {
+        "project": "가상 값",
+        "lead_org": "가상 값",
+        "partner_org": "가상 값",
+        "lead_person": "가상 값",
+        "partner_person": "가상 값",
+        "visit_date": "가상 값",
+        "visit_org": "가상 값",
+        "inspector_org": "가상 값",
+        "inspector": "가상 값"
+      },
+      "findings": "기업은 장치 2대를 설치했다고 설명함. 시험은 다음 달 예정임.",
+      "actions": "로그 보관 양식을 안내함.\n직접 편집 보존 문장: 가상 보관 위치를 별도 검토함.",
+      "checks": ""
+    }
+  }
+}

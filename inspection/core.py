@@ -77,7 +77,7 @@ def targets(tables, report):
     g=report.values()
     body=report.actions
     if report.checks.strip():
-        body += ('\n\n' if body else '')+'확인할 사항\n'+report.checks
+        body += ('\n\n' if body else '')+report.checks
     return [(2,0,0,report.title),
         (3,0,1,g['project']),(3,1,1,g['lead_org']),(3,1,3,g['partner_org']),
         (3,2,1,g['lead_person']),(3,2,3,g['partner_person']),

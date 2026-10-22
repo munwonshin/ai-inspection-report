@@ -25,9 +25,9 @@ for scaling in [None,2.0]:
         root.geometry(f'{width}x{height}');pump(root)
         for general in [False,True]:
             if app.general_expanded!=general:app.toggle_general();pump(root)
-            for mode in ['chat','findings','actions','checks']:
+            for mode in ['chat','findings','actions']:
                 if app.editor_open!=(mode!='chat'):app.toggle_editor();pump(root)
-                if mode!='chat':app.editor_view.select(['findings','actions','checks'].index(mode));pump(root)
+                if mode!='chat':app.editor_view.select(['findings','actions'].index(mode));pump(root)
                 failures=[]
                 widgets=app.buttons+[app.minutes]+([app.conversation] if mode=='chat' else [getattr(app,mode)])
                 for w in widgets:

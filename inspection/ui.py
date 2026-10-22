@@ -36,7 +36,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.3.9')
+        root.title('AI 현장점검 결과서 · 0.4.0')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -140,7 +140,7 @@ class App:
         self.conversation.tag_configure('error',font=('맑은 고딕',9),foreground='#AD4A56',spacing3=12)
         self.editor_view=ttk.Notebook(area)
         self.editor_view.grid(row=0,column=0,sticky='nsew')
-        for key,label in [('findings','현장 점검·확인'),('actions','안내·조치요청'),('checks','확인할 사항')]:
+        for key,label in [('findings','현장 점검·확인'),('actions','향후 조치요청 사항')]:
             tab=ttk.Frame(self.editor_view,style='Card.TFrame',padding=(0,8,0,0));tab.columnconfigure(0,weight=1);tab.rowconfigure(0,weight=1)
             self.editor_view.add(tab,text=label)
             setattr(self,key,self.textbox(tab,0,height=8))
@@ -357,7 +357,7 @@ class App:
         def report_card(report,heading,latest_card):
             self.conversation.insert('end',heading+'\n','report_head' if latest_card else 'old_head')
             if report.get('title'):self.conversation.insert('end',report['title']+'\n','section')
-            for key,label in [('findings','현장 점검·확인 사항'),('actions','안내·조치요청'),('checks','확인할 사항')]:
+            for key,label in [('findings','현장 점검·확인 사항'),('actions','향후 조치요청 사항')]:
                 if report.get(key,'').strip():
                     self.conversation.insert('end',label+'\n','section')
                     self.conversation.insert('end',report[key]+'\n','body')
@@ -421,7 +421,7 @@ class App:
 
     def snapshot(self):
         return Report(self.title.get(),tuple((k,v.get()) for k,v in self.general.items()),
-            self.get(self.findings),self.get(self.actions),self.get(self.checks))
+            self.get(self.findings),self.get(self.actions),'')
 
     def lock(self,value):
         self.busy=value
@@ -661,8 +661,10 @@ class App:
             return api.generate(key,api_plan,minutes,current,instruction,pdf_bytes=self.pdf_bytes,revision=is_chat,on_delta=self.stream_queue.put)
         def done(data):
             result,usage=data
-            for t,k in [(self.findings,'findings'),(self.actions,'actions'),(self.checks,'checks')]:
-                t.delete('1.0','end');t.insert('1.0',result[k]);t.edit_modified(False)
+            for t,k in [(self.findings,'findings'),(self.actions,'actions')]:
+                value=result[k]
+                if k=='actions' and result.get('checks','').strip():value+='\n\n'+result['checks']
+                t.delete('1.0','end');t.insert('1.0',value);t.edit_modified(False)
             for k,v in evidenced_general(result['general'],plan,minutes).items():
                 if not self.general[k].get().strip():
                     if k in metadata.PLAN_FIELDS and result['general'][k].get('source')=='plan':self.set_plan_general(k,v)
