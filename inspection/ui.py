@@ -35,8 +35,8 @@ class App:
         self.status=tk.StringVar(value='PDF와 회의록을 입력한 뒤 초안을 작성하세요.')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.4.3')
+        self.chat_info=tk.StringVar(value='요청 없이도 초안을 작성할 수 있습니다.')
+        root.title('AI 현장점검 결과서 · 0.4.4')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -50,7 +50,7 @@ class App:
         logo.create_text(21,21,text='AI',fill=WHITE,font=('Segoe UI',13,'bold'))
         brand=ttk.Frame(header);brand.pack(side='left')
         ttk.Label(brand,text='AI 현장점검 결과서',style='Brand.TLabel').pack(anchor='w')
-        ttk.Label(brand,text='회의록에서 결과서까지, 한 화면에서',style='Subtle.TLabel').pack(anchor='w',pady=(2,0))
+        ttk.Label(brand,text='자료 입력 → 초안 검수 → 승인 저장',style='Subtle.TLabel').pack(anchor='w',pady=(2,0))
         self.button(header,'API 설정',self.settings,style='Quiet.TButton').pack(side='right')
         self.connection_badge=tk.Label(header,text='●  API 연결 확인 필요',font=('맑은 고딕',9),bg=BG,fg=MUTED)
         self.connection_badge.pack(side='right',padx=(10,14))
@@ -64,7 +64,7 @@ class App:
         left=ttk.Frame(left_card,style='Card.TFrame',padding=18)
         left.pack(fill='both',expand=True);self.left_content=left
         left.columnconfigure(0,weight=1);left.rowconfigure(1,weight=1,minsize=80)
-        self.left_heading=self.heading(left,'01','자료 입력')
+        self.left_heading=self.heading(left,'','자료')
         self.left_heading.grid(row=0,column=0,sticky='ew',pady=(0,12))
         self.input_panel=ttk.Frame(left,style='Card.TFrame');self.input_panel.grid(row=1,column=0,sticky='nsew')
         self.input_panel.columnconfigure(0,weight=1);self.input_panel.rowconfigure(3,weight=1,minsize=20)
@@ -114,11 +114,10 @@ class App:
 
         right=ttk.Frame(right_card,style='Card.TFrame',padding=18);right.pack(fill='both',expand=True)
         right.columnconfigure(0,weight=1);right.rowconfigure(2,weight=1,minsize=80)
-        draftbar=self.heading(right,'02','AI 작업 공간')
+        draftbar=self.heading(right,'','초안 검수')
         draftbar.grid(row=0,column=0,sticky='ew',pady=(0,8))
         self.editor_button=self.button(draftbar,'직접 편집',self.toggle_editor,style='Quiet.TButton')
         self.editor_button.pack(side='right',padx=(8,0))
-        self.button(draftbar,'초안 작성',self.draft,primary=True).pack(side='right')
         self.draft_hint=tk.StringVar(value='초안 작성 후 원하는 수정을 채팅으로 요청하세요.')
         ttk.Label(right,textvariable=self.draft_hint,style='Hint.TLabel',wraplength=700).grid(row=1,column=0,sticky='w',pady=(0,8))
         area=ttk.Frame(right,style='Card.TFrame');area.grid(row=2,column=0,sticky='nsew');area.columnconfigure(0,weight=1);area.rowconfigure(0,weight=1)
@@ -147,11 +146,11 @@ class App:
         self.editor_view.grid_remove()
         chat=tk.Frame(right,bg='#F1F7F6',highlightbackground=LINE,highlightthickness=1)
         chat.grid(row=3,column=0,sticky='ew',pady=(10,0));chat.columnconfigure(0,weight=1)
-        self.chat_title=ttk.Label(chat,text='AI에게 수정 요청',style='FieldTitle.TLabel')
+        self.chat_title=ttk.Label(chat,text='추가 요청 (선택)',style='FieldTitle.TLabel')
         self.chat_title.grid(row=0,column=0,sticky='w',padx=12,pady=(9,5))
         self.chat_entry=self.entry(chat,self.chat);self.chat_entry.grid(row=1,column=0,sticky='ew',padx=(12,6),pady=(0,7))
-        self.chat_entry.bind('<Return>',lambda e:self.send_chat())
-        self.chat_button=self.button(chat,'보내기 ↑',self.send_chat,primary=True)
+        self.chat_entry.bind('<Return>',lambda e:self.submit_chat())
+        self.chat_button=self.button(chat,'초안 작성',self.submit_chat,primary=True)
         self.chat_button.grid(row=1,column=1,padx=(0,12),pady=(0,7))
         self.chat_note=tk.Label(chat,textvariable=self.chat_info,font=('맑은 고딕',9),bg='#F1F7F6',fg=MUTED,anchor='w',justify='left',wraplength=700)
         self.chat_note.grid(row=2,column=0,columnspan=2,sticky='ew',padx=12,pady=(0,9))
@@ -161,7 +160,7 @@ class App:
         save_card=self.card(outer);save_card.grid(row=2,column=0,sticky='ew',pady=(12,0))
         save=ttk.Frame(save_card,style='Card.TFrame',padding=(14,11,14,10));save.pack(fill='both',expand=True)
         save.columnconfigure(0,weight=1)
-        save_header=self.heading(save,'03','승인 후 저장',small=True);save_header.grid(row=0,column=0,sticky='ew',pady=(0,9))
+        save_header=self.heading(save,'','저장',small=True);save_header.grid(row=0,column=0,sticky='ew',pady=(0,9))
         self.state_badge=tk.Label(save_header,text='작성 전',bg='#EDF2F3',fg=MUTED,font=('맑은 고딕',9,'bold'),padx=9,pady=3)
         self.state_badge.pack(side='right')
         fields=ttk.Frame(save,style='Card.TFrame');fields.grid(row=1,column=0,sticky='ew')
@@ -195,6 +194,7 @@ class App:
         for v in [self.title,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
         for k,v in self.general.items():v.trace_add('write',lambda *a,key=k:self.general_edited(key))
         for text in self.edits:text.bind('<<Modified>>',lambda e:self.text_changed(e.widget))
+        self.chat.trace_add('write',lambda *a:self.refresh_state())
         self.status.trace_add('write',lambda *a:self.refresh_state())
         root.protocol('WM_DELETE_WINDOW',self.close)
         root.after(120,self.poll);root.after_idle(self.initial_sash)
@@ -270,7 +270,7 @@ class App:
 
     def heading(self,parent,step,title,small=False):
         f=ttk.Frame(parent,style='Card.TFrame')
-        ttk.Label(f,text=step,style='Step.TLabel').pack(side='left',padx=(0,9))
+        if step:ttk.Label(f,text=step,style='Step.TLabel').pack(side='left',padx=(0,9))
         ttk.Label(f,text=title,style='FieldLabel.TLabel' if small else 'Section.TLabel').pack(side='left')
         return f
 
@@ -341,6 +341,11 @@ class App:
         elif self.get(self.findings).strip():text,bg,fg='미저장 초안','#FFF4DF','#956717'
         else:text,bg,fg='작성 전','#EDF2F3',MUTED
         self.state_badge.configure(text=text,bg=bg,fg=fg)
+        if hasattr(self,'chat_button'):
+            has_draft=bool(self.get(self.findings).strip())
+            has_request=bool(self.chat.get().strip())
+            self.chat_button.configure(text=('수정 반영 ↑' if has_request else '다시 작성') if has_draft else '초안 작성')
+            self.chat_title.configure(text='수정 요청' if has_draft else '추가 요청 (선택)')
         if hasattr(self,'draft_hint'):
             self.draft_hint.set('직접 편집 중 · 현재 편집 내용이 승인 시 저장됩니다.' if self.editor_open else ('저장 대상: 최신 초안 · '+text if self.get(self.findings).strip() else '초안 작성 후 원하는 수정을 채팅으로 요청하세요.'))
         if not self.busy:self.progress.configure(value=100 if self.saved_current else 0)
@@ -355,6 +360,11 @@ class App:
             self.sync_latest_report();self.editor_view.grid_remove();self.chat_view.grid()
             self.editor_button.configure(text='직접 편집');self.render_conversation(follow=True)
         self.refresh_state()
+
+    def submit_chat(self):
+        if self.busy:return
+        if self.chat.get().strip():self.send_chat()
+        else:self.draft()
 
     def send_chat(self):
         if self.busy or not self.chat.get().strip() or not self.ready():return
@@ -387,8 +397,8 @@ class App:
                     self.conversation.insert('end',report[key]+'\n','body')
             self.conversation.insert('end','\n')
         if not self.messages and not self.get(self.findings).strip():
-            self.conversation.insert('end','자료를 준비하면, 초안은 AI가 작성해요.\n','welcome')
-            self.conversation.insert('end','01  사업계획서 PDF와 현장 회의록을 입력하세요.\n02  ‘초안 작성’을 누르고, 대화로 내용을 다듬으세요.\n03  최종 내용을 검수한 뒤 승인하고 한글로 저장하세요.\n\n문장을 직접 수정하려면 오른쪽 위 ‘직접 편집’을 이용하세요.','hint')
+            self.conversation.insert('end','자료를 넣고, 아래에서 초안을 작성하세요.\n','welcome')
+            self.conversation.insert('end','PDF와 회의록을 입력한 뒤 아래 ‘초안 작성’을 누르세요.\n수정할 내용도 같은 입력창에서 요청하면 됩니다.\n\n최종 내용을 검수하고 ‘승인 및 한글 저장’을 누르세요.','hint')
         for message in self.messages:
             if message['kind']=='user':
                 self.conversation.insert('end','나의 요청\n','user_head')
@@ -701,7 +711,8 @@ class App:
             self.revision+=1
             self.messages.append({'kind':'report','version':self.revision,'report':self.snapshot().as_dict(),'origin':'ai'})
             self.render_conversation(follow=True)
-            if is_chat or from_chat:self.chat_info.set('수정을 반영했습니다. 최신 초안을 확인해 주세요.');self.chat.set('')
+            self.chat_info.set('요청을 입력하면 수정 · 빈 입력창에서 다시 작성하면 새 초안 생성')
+            if is_chat or from_chat:self.chat.set('')
         self.background(task,done,'OpenAI에서 작성 중입니다. 화면 입력은 잠시 잠기며 기존 내용은 유지됩니다.')
 
     def missing_dialog(self,missing):
@@ -735,6 +746,10 @@ class App:
         if self.busy:return
         if not self.title.get().strip() or not self.get(self.findings).strip():
             messagebox.showinfo('입력 확인','결과서 제목과 현장 점검 본문을 입력해 주세요.',parent=self.root);return
+        # Pick a destination only when needed; cancellation leaves all inputs intact.
+        if not self.folder.get().strip():
+            self.choose_folder()
+            if not self.folder.get().strip():return
         try:destination(self.folder.get(),self.name.get())
         except ValueError as e:messagebox.showerror('저장 설정',str(e),parent=self.root);return
         missing=[k for k in GENERAL if not self.general[k].get().strip()]

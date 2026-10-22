@@ -1,0 +1,44 @@
+{
+  "version": "0.4.4",
+  "unit_tests_passed": 57,
+  "layout_cases": 24,
+  "workflow_mock_checks": [
+    "single_composer_blank_starts_draft_without_save",
+    "blank_composer_regeneration_requires_confirmation",
+    "same_composer_revises_latest_direct_edit_without_save",
+    "approval_folder_cancel_keeps_input_and_does_not_export",
+    "approval_picks_missing_folder_and_exports_latest_snapshot_once"
+  ],
+  "mock_widget_suites": [
+    "chat",
+    "stream",
+    "save_name",
+    "metadata",
+    "remember",
+    "pdf_drop",
+    "ui"
+  ],
+  "frozen_source_match": {
+    "compiled_matches_final_source": true,
+    "modules": [
+      "ui",
+      "api",
+      "style",
+      "metadata",
+      "core",
+      "streaming",
+      "exporter",
+      "vault",
+      "documents",
+      "runtime_probe"
+    ]
+  },
+  "real_frozen_hwp": {
+    "ok": true,
+    "pages": 1,
+    "reopened": true
+  },
+  "visual_review_completed": false,
+  "api_retested": false,
+  "physical_nas_retested": false
+}

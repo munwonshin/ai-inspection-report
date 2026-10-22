@@ -28,3 +28,6 @@ remember_checks.py: 합성 키로 시작 자동 연결·앱 재초기화·키 �
 
 
 hwp_memory_checks.py --approved EXISTING_TEST_FOLDER: 실제 한글로 가상 HWP를 저장·재입력하고 3pt 빈 줄까지 검사합니다. API를 호출하거나 보안 설정을 바꾸지 않습니다. 명시적인 승인 인자와 기존 시험 폴더가 필요하며 자동 빌드 검사에서는 실행하지 않습니다.
+
+
+workflow_checks.py: 실제 Tk 위젯에서 단일 입력창 초안/수정/재작성 취소, 승인 시 폴더 선택 취소·선택 완료 후 최신 스냅샷 한 번만 전달을 검사합니다. API·폴더 대화상자·HWP 저장은 모의 처리합니다.
