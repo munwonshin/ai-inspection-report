@@ -1,0 +1,44 @@
+[
+  {
+    "same_windows_user": true,
+    "vault_write_or_delete": false,
+    "results": [
+      {
+        "launch": 1,
+        "connected": true,
+        "seconds": 2.61,
+        "documents_sent": false
+      },
+      {
+        "launch": 2,
+        "connected": true,
+        "seconds": 0.937,
+        "documents_sent": false
+      }
+    ]
+  },
+  {
+    "same_windows_user": true,
+    "vault_write_or_delete": false,
+    "results": [
+      {
+        "launch": 1,
+        "connected": true,
+        "seconds": 2.156,
+        "documents_sent": false
+      }
+    ]
+  },
+  {
+    "same_windows_user": true,
+    "vault_write_or_delete": false,
+    "results": [
+      {
+        "launch": 1,
+        "connected": true,
+        "seconds": 1.328,
+        "documents_sent": false
+      }
+    ]
+  }
+]

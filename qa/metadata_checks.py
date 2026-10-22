@@ -7,7 +7,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import tkinter as tk
 from inspection.ui import App
 from inspection import api
-root=tk.Tk();root.attributes('-alpha',0);app=App(root);app.connected=True
+root=tk.Tk();root.attributes('-alpha',0);app=App(root,restore_api=False);app.connected=True
 app.minutes.insert('1.0','가상 회의록 보존');app.findings.insert('1.0','가상 직접 편집 보존')
 app.general['lead_person'].set('직접 입력한 가상 책임자')
 doc=SimpleNamespace(local_text='가상 계획',api_text='가상 계획',visual_pdf=None,original_bytes=b'%PDF-SYNTHETIC',page_count=1)

@@ -8,7 +8,7 @@ import tkinter as tk
 from inspection.ui import App
 from inspection.core import filename,destination
 from test_core import fixture
-root=tk.Tk();root.attributes('-alpha',0);app=App(root)
+root=tk.Tk();root.attributes('-alpha',0);app=App(root,restore_api=False)
 report=fixture()
 for k,v in report.general:app.general[k].set(v)
 app.findings.insert('1.0',report.findings);app.folder.set(r'D:\가상 저장 시험')

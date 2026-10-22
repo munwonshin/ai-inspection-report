@@ -8,7 +8,7 @@ import tkinter as tk
 from inspection.ui import App
 from inspection import api
 
-root=tk.Tk();root.attributes('-alpha',0);app=App(root)
+root=tk.Tk();root.attributes('-alpha',0);app=App(root,restore_api=False)
 app.connected=True;app.pdf_path='synthetic.pdf';app.plan=app.api_plan='가상 사업계획: 설치 예정.'
 app.minutes.insert('1.0','가상 회의록: 시연 화면 확인. 시험은 예정.')
 app.title.set('가상_검수결과 (초안)');app.folder.set(str(base))

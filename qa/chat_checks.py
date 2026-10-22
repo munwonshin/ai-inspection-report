@@ -6,7 +6,7 @@ import tkinter as tk
 from inspection.ui import App
 from inspection import api
 from test_core import fixture
-root=tk.Tk();root.attributes('-alpha',0);app=App(root)
+root=tk.Tk();root.attributes('-alpha',0);app=App(root,restore_api=False)
 app.plan=app.api_plan='[가상 계획] 설치는 목표이며 실적이 아님.';app.pdf_path='synthetic.pdf';app.connected=True
 app.minutes.insert('1.0','[가상 회의록] 시연 화면을 확인했으며 시험은 예정임.')
 app.name.set('가상_채팅검증');app.folder.set(r'D:\ai-inspection-report\verification')

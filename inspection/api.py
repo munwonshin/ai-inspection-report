@@ -36,12 +36,12 @@ def estimate_cost(usage,model=None):
     if model in {'gpt-6-luna','gpt-5.6-luna','gpt-5.6-terra'} and inputs>272000:price*=2;cp*=2;op*=1.5
     return (max(0,inputs-cached-writes)*price+cached*cp+writes*price*1.25+usage.get('output_tokens',0)*op)/1e6
 
-def request(key,payload,on_delta=None):
+def request(key,payload,on_delta=None,*,timeout=150):
     if on_delta is not None:payload={**payload,'stream':True}
     req=urllib.request.Request(ENDPOINT,data=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode('utf-8'),headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'})
     started=time.monotonic()
     try:
-        with urllib.request.urlopen(req,timeout=150) as response:
+        with urllib.request.urlopen(req,timeout=timeout) as response:
             if on_delta is None:data=json.load(response)
             else:
                 from .streaming import events
@@ -71,7 +71,7 @@ def request(key,payload,on_delta=None):
 def connection(key):
     p={'model':MODEL,'store':False,'max_output_tokens':32,'input':'Reply with exactly OK.'}
     if MODEL!='gpt-4.1-mini':p['reasoning']={'effort':'none'}
-    text,usage=request(key,p)
+    text,usage=request(key,p,timeout=15)
     if text.strip()!='OK':raise ApiFailure('연결 확인 응답이 예상과 다릅니다.')
     return usage
 

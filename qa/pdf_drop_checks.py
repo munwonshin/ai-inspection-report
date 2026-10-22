@@ -8,7 +8,7 @@ from tkinterdnd2 import TkinterDnD
 from pypdf import PdfWriter
 from inspection.ui import App
 
-root=TkinterDnD.Tk();root.attributes('-alpha',0);app=App(root);root.update()
+root=TkinterDnD.Tk();root.attributes('-alpha',0);app=App(root,restore_api=False);root.update()
 assert root.tk.call('package','provide','tkdnd')
 assert app.pdf_surface.dnd_bind('<<Drop>>')
 assert all(w.dnd_bind('<<Drop>>') for w in app.pdf_surface.winfo_children())

@@ -8,7 +8,7 @@ import tkinter as tk
 from inspection.ui import App
 from inspection import api
 from test_core import fixture
-root=tk.Tk();app=App(root)
+root=tk.Tk();app=App(root,restore_api=False)
 app.plan='[가상 사업계획서] 시험 설비의 상태 확인을 목표로 한다.'
 app.api_plan=app.plan;app.pdf_path='synthetic-test.pdf'
 app.minutes.insert('1.0','[가상 회의록] 가상 센서 시연을 확인했으며 성능시험은 예정임.')

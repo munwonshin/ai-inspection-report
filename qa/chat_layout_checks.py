@@ -15,7 +15,7 @@ rows=[]
 for scaling in [None,2.0]:
     root=tk.Tk();root.attributes('-alpha',0)
     if scaling:root.tk.call('tk','scaling',scaling)
-    app=App(root)
+    app=App(root,restore_api=False)
     # Check the attachment-present layout, including its conditional × button.
     # The empty/hidden and cleared states are covered by pdf_drop_checks.py.
     app.pdf_path=r'C:\가상 화면배치 시험.pdf'

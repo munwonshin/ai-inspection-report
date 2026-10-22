@@ -19,7 +19,7 @@ FIELD='#FAFBFE'
 BLUE='#405EE8'
 
 class App:
-    def __init__(self,root):
+    def __init__(self,root,*,restore_api=True):
         self.root=root
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         self.original_pdf_bytes=None;self.pdf_page_count=0;self.general_evidence={};self.general_issues={}
@@ -36,7 +36,7 @@ class App:
         self.pdf_label=tk.StringVar(value='PDF 파일을 첨부해 주세요 · 최대 30MB')
         self.chat=tk.StringVar()
         self.chat_info=tk.StringVar(value='원본 자료와 현재 편집한 초안을 함께 반영합니다.')
-        root.title('AI 현장점검 결과서 · 0.4.0')
+        root.title('AI 현장점검 결과서 · 0.4.1')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -199,6 +199,28 @@ class App:
         root.protocol('WM_DELETE_WINDOW',self.close)
         root.after(120,self.poll);root.after_idle(self.initial_sash)
         self.refresh_state();self.render_conversation()
+        if restore_api:root.after_idle(self.restore_connection)
+
+    def restore_connection(self):
+        # Read only the current Windows user's vault; never ship a preset key.
+        if self.busy:
+            self.root.after(200,self.restore_connection);return
+        def task():
+            try:
+                key=vault.read()
+                if not key:return {'saved':False}
+                return {'saved':True,'usage':api.connection(key)}
+            except Exception as e:return {'error':self.safe_error(e)}
+        def done(result):
+            self.connected='usage' in result
+            if self.connected:
+                self.status.set('저장된 API 키로 자동 연결 확인 완료 · '+api.MODEL)
+                self.recognize_general()
+            elif 'error' in result:
+                self.status.set('API 자동 연결 확인 실패: '+result['error']+' 키는 삭제하지 않았습니다. API 설정에서 다시 확인해 주세요.')
+            else:self.status.set('API 설정에서 키를 한 번 저장·연결 확인해 주세요. 다음 실행부터 자동으로 확인합니다.')
+            self.refresh_state()
+        self.background(task,done,'저장된 API 키 확인 중 · 자동 연결 확인은 소량 과금되며 업무 자료는 전송하지 않습니다.')
 
     def initial_sash(self):
         width=self.workspace.winfo_width()
@@ -779,7 +801,7 @@ class App:
         ttk.Button(f,text='키 삭제',style='Danger.TButton',command=remove).grid(row=3,column=1,pady=8)
         ttk.Button(f,text='연결 확인',style='Primary.TButton',command=check).grid(row=3,column=2,pady=8)
         ttk.Label(f,textvariable=state,style='Card.TLabel',wraplength=440).grid(row=4,column=0,columnspan=3,sticky='w',pady=(10,6))
-        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\nPDF 첨부 시: 원본 PDF 전체로 일반현황 인식(추가 과금)\n초안 작성 시: PDF 텍스트·시각 자료·회의록·현재 초안·수정 요청\n사용량별 과금이며 ChatGPT 구독과 별도입니다.\n표시 비용은 공개 단가 기준 USD 추정치입니다.\n연결 확인도 소량 과금됩니다. 키는 소스·로그에 기록하지 않습니다.',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
+        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\nPDF 첨부 시: 원본 PDF 전체로 일반현황 인식(추가 과금)\n초안 작성 시: PDF 텍스트·시각 자료·회의록·현재 초안·수정 요청\n사용량별 과금이며 ChatGPT 구독과 별도입니다.\n표시 비용은 공개 단가 기준 USD 추정치입니다.\n재실행 시 저장된 키로 자동 연결 확인(소량 과금)합니다. 키는 소스·로그에 기록하지 않습니다.',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
         w.protocol('WM_DELETE_WINDOW',lambda:None if self.busy else w.destroy())
         self.place_dialog(w);e.focus_set();e.selection_range(0,'end')
 

@@ -5,7 +5,7 @@ sys.path.insert(0,sys.argv[1])
 import tkinter as tk
 from inspection.ui import App
 from inspection import ui
-root=tk.Tk();root.withdraw();app=App(root)
+root=tk.Tk();root.withdraw();app=App(root,restore_api=False)
 body={'findings':'가상 현장 확인 사항임.\n'*1000,'actions':'가상 안내함.','checks':'가상 확인 필요.'}
 encoded=json.dumps(body,ensure_ascii=False)
 app.ai_started=time.monotonic();app.pending_request={'kind':'user','text':'가상 시험','status':'pending'};app.messages.append(app.pending_request)
