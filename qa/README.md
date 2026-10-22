@@ -31,3 +31,6 @@ hwp_memory_checks.py --approved EXISTING_TEST_FOLDER: 실제 한글로 가상 HW
 
 
 workflow_checks.py: 실제 Tk 위젯에서 단일 입력창 초안/수정/재작성 취소, 승인 시 폴더 선택 취소·선택 완료 후 최신 스냅샷 한 번만 전달을 검사합니다. API·폴더 대화상자·HWP 저장은 모의 처리합니다.
+
+
+quiet_checks.py: 모의 API·보안 저장소·HWP로 자동 요청/역할·사용량·상태 문구 숨김, 직접 요청/결과 보존, 설정 창의 전송·비용 안내를 확인합니다. stream_checks.py는 대화 상단에 고정된 초와 로딩 점 3상태·점진 본문·실패 보존을 확인합니다.

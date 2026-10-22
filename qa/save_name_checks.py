@@ -25,7 +25,7 @@ def settle():
 with patch('inspection.ui.exporter.save',side_effect=save) as export,patch('inspection.ui.messagebox.showerror',side_effect=lambda title,text,**kw:errors.append(text)):
     for title in [' 가상_결과. ', '\u3000가상_결과\u00a0.\u3000', ' 가상_결과.HWP . ']:
         app.title.set(title);root.update()
-        assert app.filename_hint.get()=='저장 이름: 가상_결과.hwp'
+        assert app.filename_hint.get()=='' and not app.filename_hint_label.winfo_ismapped()
         before=app.snapshot();app.approve();settle()
         assert calls[-1][0]==before and app.title.get()==title
         assert calls[-1][1]=='가상_결과.hwp' and not errors
@@ -33,7 +33,7 @@ with patch('inspection.ui.exporter.save',side_effect=save) as export,patch('insp
     for title in [' ... ','.hwp','CON','가상:결과']:
         app.title.set(title);root.update();app.approve();settle()
         assert len(calls)==count and app.title.get()==title
-        assert '확인 필요' in app.filename_hint.get()
+        assert app.filename_hint.get() and app.filename_hint_label.winfo_ismapped()
     assert len(errors)==4
     app.title.set(' 가상_결과. ');before=app.snapshot()
     with patch('inspection.ui.exporter.save',side_effect=RuntimeError('같은 이름의 파일이 있습니다. 덮어쓰지 않았습니다.')):

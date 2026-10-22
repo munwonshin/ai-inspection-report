@@ -1,0 +1,52 @@
+{
+  "version": "0.4.6",
+  "unit_tests_passed": 57,
+  "layout_cases": 24,
+  "quiet_main_mock_checks": [
+    "automatic_prompt_hidden_report_preserved",
+    "typed_request_visible_without_role_label",
+    "main_metadata_usage_and_footer_absent_no_export",
+    "data_and_cost_disclosure_in_settings_only"
+  ],
+  "widget_suites": [
+    "quiet",
+    "stream",
+    "chat",
+    "save_name",
+    "workflow",
+    "metadata",
+    "remember",
+    "pdf_drop",
+    "ui"
+  ],
+  "stream_checks": {
+    "elapsed_seconds_visible": true,
+    "at_least_three_loading_phases": true,
+    "incremental_body": true,
+    "approval_blocked": true,
+    "failure_preserves_inputs": true
+  },
+  "frozen_source_match": {
+    "compiled_matches_final_source": true,
+    "modules": [
+      "ui",
+      "api",
+      "style",
+      "metadata",
+      "core",
+      "streaming",
+      "exporter",
+      "vault",
+      "documents",
+      "runtime_probe"
+    ]
+  },
+  "real_frozen_hwp": {
+    "ok": true,
+    "pages": 1,
+    "reopened": true
+  },
+  "api_retested": false,
+  "visual_review_completed": false,
+  "physical_nas_retested": false
+}

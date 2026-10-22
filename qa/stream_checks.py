@@ -15,17 +15,17 @@ app.title.set('가상_검수결과 (초안)');app.folder.set(str(base))
 assert app.name is app.title
 assert len([w for w in app.entries if str(w.cget('textvariable'))==str(app.title)])==1
 body={'findings':'가상 기업은 설치 예정이라고 설명함.\n시연 화면을 확인함.','actions':'회의록에 기재된 조치요청 없음.','checks':'시험일 확인 필요.','general':{}}
-seen=[]
+seen=[];activity=[]
 def observe():
     if app.busy:
-        seen.append(app.conversation.get('1.0','end'))
+        seen.append(app.conversation.get('1.0','end'));activity.append(app.activity.get())
         assert app.approve_button.instate(['disabled'])
         root.after(75,observe)
 
 def pump_until_idle():
     until=time.monotonic()+10
     while app.busy and time.monotonic()<until:
-        root.update();seen.append(app.conversation.get('1.0','end'));time.sleep(.02)
+        root.update();seen.append(app.conversation.get('1.0','end'));activity.append(app.activity.get());time.sleep(.02)
     for _ in range(15):root.update();time.sleep(.02)
     assert not app.busy
 
@@ -39,9 +39,12 @@ with patch('inspection.ui.vault.read',return_value='fake'),patch('inspection.ui.
     app.draft()
     assert app.busy and app.approve_button.instate(['disabled'])
     root.after(30,observe)
-    assert '초 경과' in app.conversation.get('1.0','end')
+    assert '0초' in app.activity.get()
     pump_until_idle()
-    assert any('1초 경과' in x for x in seen)
+    assert any('1초' in x for x in activity)
+    assert len({x.split('  ')[0] for x in activity if x})>=3
+    assert all('원본 자료에 근거하여' not in x and '나의 요청' not in x for x in seen)
+    assert app.activity.get()==''
     assert any('가상 기업은' in x and '시험일 확인 필요.' not in x for x in seen)
     assert all('"findings"' not in x and '"general"' not in x for x in seen)
     assert app.snapshot().findings==body['findings'];save.assert_not_called()

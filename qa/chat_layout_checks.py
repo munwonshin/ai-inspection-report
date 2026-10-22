@@ -28,8 +28,10 @@ for scaling in [None,2.0]:
             for mode in ['chat','findings','actions']:
                 if app.editor_open!=(mode!='chat'):app.toggle_editor();pump(root)
                 if mode!='chat':app.editor_view.select(['findings','actions'].index(mode));pump(root)
+                # The elapsed/loading label stays visible even in compact/high-DPI views.
+                app.activity.set('● · ·  999초');root.update()
                 failures=[]
-                widgets=app.buttons+[app.minutes]+([app.conversation] if mode=='chat' else [getattr(app,mode)])
+                widgets=app.buttons+[app.minutes,app.activity_label]+([app.conversation] if mode=='chat' else [getattr(app,mode)])
                 for w in widgets:
                     if general and str(w).startswith(str(app.input_panel)+'.'):continue
                     if not general and str(w).startswith(str(app.general_panel)+'.'):continue

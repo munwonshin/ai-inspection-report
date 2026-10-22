@@ -25,7 +25,7 @@ with patch('inspection.ui.vault.read',return_value='SYNTHETIC_TEST_KEY'),patch('
     app.chat.set('가상 자료로 초안을 작성해 주세요.');app.send_chat();settle()
     assert len(requests)==1 and requests[0][2]['revision'] is False
     assert app.chat.get()=='' and len(app.messages)==2
-    assert '최신 초안 · 1차' in app.conversation.get('1.0','end')
+    assert '[가상 초안]' in app.conversation.get('1.0','end') and '최신 초안' not in app.conversation.get('1.0','end')
     assert app.conversation.cget('state')=='disabled'
     save.assert_not_called();results.append('initial_chat_creates_draft_without_save')
     app.toggle_editor();root.update();assert app.editor_open
@@ -40,7 +40,8 @@ with patch('inspection.ui.vault.read',return_value='SYNTHETIC_TEST_KEY'),patch('
     with patch('inspection.ui.api.generate',side_effect=revise):
         app.chat.set('직접 편집을 유지하고 가상 문체를 다듬어 주세요.');app.send_chat();settle()
     transcript=app.conversation.get('1.0','end')
-    assert '이전 초안 · 1차' in transcript and '최신 초안 · 2차' in transcript
+    assert '[가상 초안]' in transcript and '가상 문체 수정 반영.' in transcript
+    assert all(label not in transcript for label in ['이전 초안 ·','최신 초안 ·','나의 요청','승인 시 저장 대상'])
     assert len(app.messages)==4 and marker in app.snapshot().findings
     save.assert_not_called();results.append('direct_edit_and_revised_latest_draft_preserved')
     before=app.snapshot();before_messages=len(app.messages)
