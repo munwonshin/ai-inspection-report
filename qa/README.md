@@ -40,3 +40,6 @@ response_failure_checks.py: 네트워크만 모의 처리하고 실제 API 클�
 
 
 calendar_pin_checks.py: 격리된 가상 사용자 설정을 사용한 실제 Tk 달력/승인 누락값/재실행 복원/고정 해제/오류 보존 검사. test_preferences.py: 허용된 수동 항목만 저장, 원자 저장 실패 시 기존 파일 보존, 손상 파일 읽기 검증. verify_frozen.py는 현재 12개 모듈(달력·고정 설정 포함)의 소스 일치를 검사한다.
+
+
+inline_calendar_checks.py: 별도 창 미생성, 앱 내부 채팅 입력 바로 위 배치, 6주 달력, 실제 버튼 press/release 한 번 반영을 네 가지 창 크기/배율 조합에서 검사한다.

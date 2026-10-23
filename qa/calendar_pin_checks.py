@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory(prefix='calendar-pins-') as folder:
     checks.append('month_year_navigation_cancel_today')
     picker.open();pump(root);picker.window.event_generate('<Escape>');pump(root)
     assert picker.window is None
-    picker.open();pump(root);app.chat_entry.focus_force();pump(root)
+    picker.open();pump(root);app.chat_entry.event_generate('<Button-1>',x=4,y=4);pump(root)
     assert picker.window is None
     errors=[];root.report_callback_exception=lambda *args:errors.append(str(args))
     def complete_missing():
@@ -42,14 +42,14 @@ with tempfile.TemporaryDirectory(prefix='calendar-pins-') as folder:
         frame=modal.winfo_children()[0]
         entry=next(w for w in frame.winfo_children() if isinstance(w,tk.ttk.Entry))
         entry.event_generate('<ButtonRelease-1>',x=5,y=5);root.update_idletasks()
-        popup=next(w for w in entry.winfo_children() if isinstance(w,tk.Toplevel))
+        popup=next(w for w in frame.winfo_children() if isinstance(w,tk.Frame))
         body=popup.winfo_children()[0]
         next(w for w in body.winfo_children() if isinstance(w,tk.ttk.Button) and w.cget('text')=='21').invoke()
         next(w for w in frame.winfo_children() if isinstance(w,tk.ttk.Button) and '승인' in w.cget('text')).invoke()
     root.after(200,complete_missing)
     assert app.missing_dialog(['visit_date'])
     assert app.general['visit_date'].get().endswith('-21') and not errors
-    checks.append('escape_outside_focus_and_approval_missing_date_calendar')
+    checks.append('escape_outside_click_and_embedded_approval_calendar')
 
     values={'visit_org':'가상 방문기관','inspector_org':'가상 점검기관','inspector':'가상 점검자'}
     for k,v in values.items():app.general[k].set(v);app.pinned[k].set(True)

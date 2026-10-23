@@ -51,7 +51,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.8')
+        root.title('AI 현장점검 결과서 · 0.4.9')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -120,7 +120,7 @@ class App:
             entry.grid(row=i,column=1,sticky='ew',pady=3)
             entry.bind('<FocusIn>',lambda e,key=k:self.reveal_general_evidence(key,e.widget))
             if k=='visit_date':
-                self.date_pickers.append(DatePicker(entry,self.general[k]))
+                self.date_pickers.append(DatePicker(entry,self.general[k],host=lambda:self.calendar_host,anchor=lambda:self.calendar_anchor))
             if k in self.pinned:
                 pin=ttk.Checkbutton(self.general_body,text='고정',variable=self.pinned[k],command=self.persist_preferences)
                 pin.grid(row=i,column=2,sticky='e',padx=(6,0))
@@ -167,7 +167,9 @@ class App:
             self.editor_view.add(tab,text=label)
             setattr(self,key,self.textbox(tab,0,height=8))
         self.editor_view.grid_remove()
+        self.calendar_host=right
         chat=tk.Frame(right,bg='#F1F7F6',highlightbackground=LINE,highlightthickness=1)
+        self.calendar_anchor=chat
         chat.grid(row=3,column=0,sticky='ew',pady=(10,0));chat.columnconfigure(0,weight=1)
         self.chat_title=ttk.Label(chat,text='추가 요청 (선택)',style='FieldTitle.TLabel')
         self.chat_title.grid(row=0,column=0,sticky='w',padx=12,pady=(9,5))
@@ -747,7 +749,8 @@ class App:
         f=ttk.Frame(w,style='Card.TFrame',padding=22);f.pack(fill='both',expand=True)
         ttk.Label(f,style='Card.TLabel',text='자료에서 확인되지 않은 필수값만 입력해 주세요.\n해당하지 않으면 ‘해당 없음’으로 확인하세요.').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,18))
         values={};accepted=[]
-        for i,k in enumerate(missing,1):
+        for row,k in enumerate(missing,1):
+            i=row*2-1
             ttk.Label(f,text=GENERAL[k],style='Hint.TLabel').grid(row=i,column=0,sticky='w',padx=(0,10),pady=4)
             values[k]=tk.StringVar()
             entry=ttk.Entry(f,textvariable=values[k],width=36);entry.grid(row=i,column=1,pady=3)
@@ -757,8 +760,8 @@ class App:
                 messagebox.showinfo('입력 확인','빈 값을 모두 확인해 주세요.',parent=w);return
             for k,v in values.items():self.general[k].set(v.get().strip())
             accepted.append(True);w.destroy()
-        ttk.Button(f,text='취소',style='Text.TButton',command=w.destroy).grid(row=len(missing)+1,column=0,sticky='w',pady=(16,0))
-        ttk.Button(f,text='확인 후 승인·저장',style='Primary.TButton',command=accept).grid(row=len(missing)+1,column=1,sticky='e',pady=(16,0))
+        ttk.Button(f,text='취소',style='Text.TButton',command=w.destroy).grid(row=len(missing)*2+1,column=0,sticky='w',pady=(16,0))
+        ttk.Button(f,text='확인 후 승인·저장',style='Primary.TButton',command=accept).grid(row=len(missing)*2+1,column=1,sticky='e',pady=(16,0))
         self.place_dialog(w)
         self.root.wait_window(w);return bool(accepted)
 
