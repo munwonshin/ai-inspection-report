@@ -46,3 +46,6 @@ inline_calendar_checks.py: 별도 창 미생성, 앱 내부 채팅 입력 바로
 
 
 pin_tick_checks.py: 실제 Windows Tk에서 고정 전용 네이티브 indicator/스타일·선택 해제·Space 키·비활성화·고정 복원·해제 저장을 검사한다. 실제 사용자 설정과 보안 저장소는 사용하지 않는다.
+
+
+today_checks.py: 가상 시계와 실제 Tk 타이머를 사용한 오늘 파란 강조/날짜·월·연도 변경/입력 날짜 보존/타이머 정리 검사. 실제 업무 자료·API 키·외부 호출을 사용하지 않는다.
