@@ -6,7 +6,8 @@ from .streaming import preview
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
-from . import api, vault, exporter, metadata
+from . import api, vault, exporter, metadata, preferences
+from .date_picker import DatePicker
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf
 
@@ -19,7 +20,7 @@ FIELD='#FAFCFC'
 BLUE='#137C75'
 
 class App:
-    def __init__(self,root,*,restore_api=True):
+    def __init__(self,root,*,restore_api=True,preferences_path=None,restore_preferences=None):
         self.root=root
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         self.original_pdf_bytes=None;self.pdf_page_count=0;self.general_evidence={};self.general_issues={}
@@ -32,10 +33,25 @@ class App:
         self.name=self.title;self.folder=tk.StringVar()
         self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.general={k:tk.StringVar() for k in GENERAL}
+        self.preferences_path=Path(preferences_path) if preferences_path is not None else None
+        self.preferences_enabled=restore_api if restore_preferences is None else restore_preferences
+        if preferences_path is not None:self.preferences_enabled=True
+        self._preferences_timer=None;self.date_pickers=[]
+        remembered={};self.preferences_error=False
+        if self.preferences_enabled:
+            try:
+                if self.preferences_path is None:self.preferences_path=preferences.default_path()
+                remembered=preferences.load(self.preferences_path)
+            except (OSError,ValueError):
+                self.preferences_error=True
+                if self.preferences_path is None:self.preferences_enabled=False
+        self._remembered=dict(remembered)
+        self.pinned={k:tk.BooleanVar(value=k in remembered) for k in preferences.FIELDS}
+        for k,value in remembered.items():self.general[k].set(value)
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.7')
+        root.title('AI 현장점검 결과서 · 0.4.8')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -103,6 +119,13 @@ class App:
             entry=self.entry(self.general_body,self.general[k],compact=True)
             entry.grid(row=i,column=1,sticky='ew',pady=3)
             entry.bind('<FocusIn>',lambda e,key=k:self.reveal_general_evidence(key,e.widget))
+            if k=='visit_date':
+                self.date_pickers.append(DatePicker(entry,self.general[k]))
+            if k in self.pinned:
+                pin=ttk.Checkbutton(self.general_body,text='고정',variable=self.pinned[k],command=self.persist_preferences)
+                pin.grid(row=i,column=2,sticky='e',padx=(6,0))
+                pin.bind('<FocusIn>',lambda e:self.reveal_general(e.widget))
+                self.buttons.append(pin)
         for widget in [self.general_canvas,*self.general_body.winfo_children()]:
             widget.bind('<MouseWheel>',self.scroll_general)
         self.general_evidence_note=tk.StringVar(value='AI 인식값은 검수해 주세요 · 항목 선택 시 근거 쪽수 표시')
@@ -189,6 +212,10 @@ class App:
         for v in [self.title,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
         for k,v in self.general.items():v.trace_add('write',lambda *a,key=k:self.general_edited(key))
         for text in self.edits:text.bind('<<Modified>>',lambda e:self.text_changed(e.widget))
+        for k in preferences.FIELDS:
+            self.general[k].trace_add('write',lambda *a:self.schedule_preferences())
+        if self.preferences_error:
+            self.status.set('고정값을 불러오지 못했습니다. 항목을 다시 입력해 주세요.')
         self.chat.trace_add('write',lambda *a:self.refresh_state())
         self.status.trace_add('write',lambda *a:self.refresh_state())
         root.protocol('WM_DELETE_WINDOW',self.close)
@@ -445,6 +472,8 @@ class App:
 
     def lock(self,value):
         self.busy=value
+        if value:
+            for picker in self.date_pickers:picker.close()
         if value:self.progress.configure(mode='indeterminate');self.progress.start(12)
         else:self.progress.stop();self.progress.configure(mode='determinate',value=0)
         for e in self.entries+self.edits+self.buttons:e.configure(state='disabled' if value else 'normal')
@@ -696,6 +725,23 @@ class App:
             if is_chat or from_chat:self.chat.set('')
         self.background(task,done,'')
 
+    def schedule_preferences(self):
+        if not self.preferences_enabled or not any(v.get() for v in self.pinned.values()):return
+        if self._preferences_timer is not None:self.root.after_cancel(self._preferences_timer)
+        self._preferences_timer=self.root.after(400,self.persist_preferences)
+
+    def persist_preferences(self):
+        if self._preferences_timer is not None:
+            self.root.after_cancel(self._preferences_timer);self._preferences_timer=None
+        if not self.preferences_enabled:return
+        values={k:self.general[k].get() for k,v in self.pinned.items() if v.get()}
+        if values==self._remembered:return
+        try:
+            preferences.save(self.preferences_path,values)
+            self._remembered=dict(values)
+        except (OSError,ValueError):
+            self.status.set('고정값을 저장하지 못했습니다. 현재 입력은 유지됩니다.')
+
     def missing_dialog(self,missing):
         w=tk.Toplevel(self.root);w.title('승인 전 필수값 확인');w.configure(bg=WHITE);w.resizable(False,False);w.transient(self.root);w.grab_set()
         f=ttk.Frame(w,style='Card.TFrame',padding=22);f.pack(fill='both',expand=True)
@@ -703,7 +749,9 @@ class App:
         values={};accepted=[]
         for i,k in enumerate(missing,1):
             ttk.Label(f,text=GENERAL[k],style='Hint.TLabel').grid(row=i,column=0,sticky='w',padx=(0,10),pady=4)
-            values[k]=tk.StringVar();ttk.Entry(f,textvariable=values[k],width=36).grid(row=i,column=1,pady=3)
+            values[k]=tk.StringVar()
+            entry=ttk.Entry(f,textvariable=values[k],width=36);entry.grid(row=i,column=1,pady=3)
+            if k=='visit_date':DatePicker(entry,values[k])
         def accept():
             if any(not v.get().strip() for v in values.values()):
                 messagebox.showinfo('입력 확인','빈 값을 모두 확인해 주세요.',parent=w);return
@@ -807,6 +855,9 @@ class App:
         if self.busy:
             messagebox.showinfo('처리 중','작업이 진행 중입니다. 완료 후 닫아 주세요. 입력 내용은 그대로 유지됩니다.',parent=self.root);return
         if any(self.get(t).strip() for t in [self.minutes,self.findings]) and not messagebox.askyesno('프로그램 종료','저장하지 않은 편집 내용은 사라집니다. 종료할까요?',parent=self.root):return
+        self.persist_preferences()
+        for picker in self.date_pickers:picker.close()
+        for timer in self.root.tk.call('after','info'):self.root.after_cancel(timer)
         self.root.destroy()
 
 def run():

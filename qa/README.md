@@ -37,3 +37,6 @@ quiet_checks.py: 모의 API·보안 저장소·HWP로 자동 요청/역할·사�
 
 
 response_failure_checks.py: 네트워크만 모의 처리하고 실제 API 클라이언트 검증을 거쳐, 잘못된 중첩 응답에 대한 기존 편집/요청 보존·정상 재시도·무저장·화면 콜백 예외 없음을 확인합니다. 시간에 민감한 UI 검사는 순차 실행을 권장합니다. run_unit_checks.py는 전체 단위검사를 실행하고 시험용 임시 디렉터리 정리의 Windows 공유 잠금만 제한 재시도합니다. verify_frozen.py PATH_TO_EXE는 빌드한 10개 모듈과 저장 소스의 컴파일 일치를 검사하며 build.ps1 끝에서 자동 실행됩니다.
+
+
+calendar_pin_checks.py: 격리된 가상 사용자 설정을 사용한 실제 Tk 달력/승인 누락값/재실행 복원/고정 해제/오류 보존 검사. test_preferences.py: 허용된 수동 항목만 저장, 원자 저장 실패 시 기존 파일 보존, 손상 파일 읽기 검증. verify_frozen.py는 현재 12개 모듈(달력·고정 설정 포함)의 소스 일치를 검사한다.

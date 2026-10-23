@@ -8,7 +8,7 @@ from inspection.ui import App
 from inspection import api
 
 def instance():
-    root=tk.Tk();root.withdraw();app=App(root)
+    root=tk.Tk();root.withdraw();app=App(root,restore_preferences=False)
     until=time.monotonic()+5
     while time.monotonic()<until:
         root.update();time.sleep(.01)
