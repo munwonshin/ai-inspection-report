@@ -43,3 +43,6 @@ calendar_pin_checks.py: 격리된 가상 사용자 설정을 사용한 실제 Tk
 
 
 inline_calendar_checks.py: 별도 창 미생성, 앱 내부 채팅 입력 바로 위 배치, 6주 달력, 실제 버튼 press/release 한 번 반영을 네 가지 창 크기/배율 조합에서 검사한다.
+
+
+pin_tick_checks.py: 실제 Windows Tk에서 고정 전용 네이티브 indicator/스타일·선택 해제·Space 키·비활성화·고정 복원·해제 저장을 검사한다. 실제 사용자 설정과 보안 저장소는 사용하지 않는다.

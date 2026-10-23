@@ -51,7 +51,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.9')
+        root.title('AI 현장점검 결과서 · 0.4.10')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -122,7 +122,7 @@ class App:
             if k=='visit_date':
                 self.date_pickers.append(DatePicker(entry,self.general[k],host=lambda:self.calendar_host,anchor=lambda:self.calendar_anchor))
             if k in self.pinned:
-                pin=ttk.Checkbutton(self.general_body,text='고정',variable=self.pinned[k],command=self.persist_preferences)
+                pin=ttk.Checkbutton(self.general_body,text='고정',style='Pin.TCheckbutton',variable=self.pinned[k],command=self.persist_preferences)
                 pin.grid(row=i,column=2,sticky='e',padx=(6,0))
                 pin.bind('<FocusIn>',lambda e:self.reveal_general(e.widget))
                 self.buttons.append(pin)
@@ -288,6 +288,16 @@ class App:
         style.configure('TNotebook.Tab',padding=(12,7),font=('맑은 고딕',9),background='#EEF3F4',foreground=MUTED)
         style.map('TNotebook.Tab',background=[('selected',WHITE)],foreground=[('selected',BLUE)])
         style.configure('TCheckbutton',background=WHITE,foreground=INK)
+        # Clam draws an X. Use the Windows checkbox indicator for a native tick,
+        # preserving ttk selection, keyboard focus and disabled-state behavior.
+        native='vista' if 'vista' in style.theme_names() else 'winnative'
+        style.element_create('Pin.indicator','from',native,'Checkbutton.indicator')
+        layout=style.layout('TCheckbutton')
+        def native_indicator(nodes):
+            return [('Pin.indicator' if name=='Checkbutton.indicator' else name,
+                     {key:native_indicator(value) if key=='children' else value for key,value in options.items()})
+                    for name,options in nodes]
+        style.layout('Pin.TCheckbutton',native_indicator(layout))
 
     def card(self,parent):
         return tk.Frame(parent,bg=WHITE,highlightbackground=LINE,highlightthickness=1,bd=0)
