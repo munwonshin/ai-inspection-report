@@ -1,4 +1,4 @@
-import base64,json,time,urllib.request,urllib.error
+import base64,json,time,urllib.request,urllib.error,socket,ssl,http.client
 from .core import GENERAL
 from .style import REPORT_STYLE
 MODEL='gpt-6-luna'  # Lowest measured cost among models passing the synthetic evaluation.
@@ -19,7 +19,30 @@ actions는 양식의 '향후 조치요청 사항'에 들어갈 하나의 본문�
 수정 시 원본 자료와 사용자가 현재 직접 편집한 초안을 모두 반영하며, 요청하지 않은 직접 편집 내용은 되돌리지 않는다.
 일반현황은 원문에서 명확한 값과 그 값을 포함하는 정확한 인용문만 반환한다. 없으면 빈 값/source=none. 사용자가 입력한 일반현황은 임의 변경하지 않는다. 일반현황의 이름·날짜·근거 인용을 본문에 다시 나열하지 않는다. 본문은 한글 표에 들어갈 일반 텍스트로 쓰며 마크다운 장식은 쓰지 않는다.
 주어진 스키마로만 응답한다.'''+'\n'+REPORT_STYLE
-class ApiFailure(Exception):pass
+class ApiFailure(Exception):
+    def __init__(self,message,*,kind=None,retryable=False):
+        super().__init__(message)
+        self.kind=kind;self.retryable=retryable
+
+
+def network_failure(error,timeout):
+    # Classify locally; never expose raw exception text, proxy URLs or headers.
+    reason=getattr(error,'reason',error)
+    code=getattr(reason,'winerror',None) or getattr(reason,'errno',None)
+    if isinstance(reason,FileNotFoundError):
+        return ApiFailure('보안 연결 구성파일을 찾지 못했습니다. 프로그램 ZIP 전체를 다시 압축 해제한 뒤 새 버전을 실행해 주세요. 입력은 유지됩니다.',kind='tls_files')
+    if isinstance(reason,ssl.SSLCertVerificationError):
+        return ApiFailure('API 보안 인증서를 확인하지 못했습니다. PC 날짜·시간과 회사 네트워크 인증서 설정을 확인해 주세요. 입력은 유지됩니다.',kind='certificate')
+    if isinstance(reason,ssl.SSLError):
+        return ApiFailure('API 보안 연결에 실패했습니다. 회사 보안 프로그램·프록시 설정을 확인해 주세요. 입력은 유지됩니다.',kind='tls')
+    if isinstance(reason,(TimeoutError,socket.timeout)) or code in (10060,110):
+        return ApiFailure(f'API 응답 대기 시간을 초과했습니다(요청별 {timeout}초). 잠시 후 다시 시도해 주세요. 입력은 유지됩니다.',kind='timeout',retryable=True)
+    if isinstance(reason,socket.gaierror):
+        return ApiFailure('API 서버 주소를 찾지 못했습니다. 인터넷·회사 DNS 연결을 확인해 주세요. 입력은 유지됩니다.',kind='dns',retryable=True)
+    if isinstance(reason,(ConnectionResetError,ConnectionAbortedError,BrokenPipeError,http.client.HTTPException)) or code in (10054,10053,104,103):
+        return ApiFailure('API 응답을 받는 중 연결이 끊겼습니다. 잠시 후 다시 시도하고 반복되면 회사 네트워크·보안 프로그램을 확인해 주세요. 입력은 유지됩니다.',kind='connection_reset',retryable=True)
+    return ApiFailure('API 서버에 연결하지 못했습니다. 인터넷·회사 방화벽·프록시 설정을 확인해 주세요. 입력은 유지됩니다.',kind='network',retryable=True)
+
 
 def schema(fields=None):
     if fields is None:fields=list(GENERAL)
@@ -57,8 +80,9 @@ def request(key,payload,on_delta=None,*,timeout=150):
                 if data is None:raise ApiFailure('AI 응답 수신이 중단됐습니다. 이전 초안은 유지됩니다. 다시 시도해 주세요.')
     except urllib.error.HTTPError as e:
         messages={401:'API 키가 유효하지 않습니다.',403:'이 키로 해당 모델에 접근할 수 없습니다.',404:'설정된 모델을 사용할 수 없습니다.',429:'사용 한도·잔액 또는 요청 속도를 확인해 주세요.',400:'API 요청을 처리하지 못했습니다. 모델 지원 상태를 확인해 주세요.',413:'전송 자료가 너무 큽니다.'}
-        raise ApiFailure(messages.get(e.code,f'API 서버 오류({e.code}). 잠시 후 다시 시도해 주세요.')) from None
-    except (urllib.error.URLError,TimeoutError,OSError):raise ApiFailure('API 연결이 끊겼거나 응답 시간이 초과됐습니다. 입력은 유지됩니다.') from None
+        raise ApiFailure(messages.get(e.code,f'API 서버 오류({e.code}). 잠시 후 다시 시도해 주세요.'),kind=f'http_{e.code}',retryable=e.code in (408,500,502,503,504)) from None
+    except (urllib.error.URLError,TimeoutError,OSError,http.client.HTTPException) as e:
+        raise network_failure(e,timeout) from None
     except (ValueError,UnicodeError):raise ApiFailure('AI 응답을 읽지 못했습니다. 입력은 유지됩니다.') from None
     if data.get('status')!='completed':raise ApiFailure('초안 응답이 완성되지 않았습니다. 입력은 유지됩니다. 다시 시도해 주세요.')
     texts=[]
@@ -73,9 +97,17 @@ def request(key,payload,on_delta=None,*,timeout=150):
 def connection(key):
     p={'model':MODEL,'store':False,'max_output_tokens':32,'input':'Reply with exactly OK.'}
     if MODEL!='gpt-4.1-mini':p['reasoning']={'effort':'none'}
-    text,usage=request(key,p,timeout=15)
-    if text.strip()!='OK':raise ApiFailure('연결 확인 응답이 예상과 다릅니다.')
-    return usage
+    # Retry only this tiny explicit connection probe. Report/PDF requests are
+    # never replayed automatically, particularly after a streamed partial body.
+    for attempt in range(2):
+        try:
+            text,usage=request(key,p,timeout=30)
+            if text.strip()!='OK':raise ApiFailure('연결 확인 응답이 예상과 다릅니다.')
+            return usage
+        except ApiFailure as e:
+            if attempt or not e.retryable:raise
+            time.sleep(1)
+
 
 def build_payload(plan,minutes,current,instruction,pdf_bytes=None,*,model=None,revision=False):
     model=model or MODEL

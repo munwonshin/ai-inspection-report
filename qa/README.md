@@ -49,3 +49,6 @@ pin_tick_checks.py: 실제 Windows Tk에서 고정 전용 네이티브 indicator
 
 
 today_checks.py: 가상 시계와 실제 Tk 타이머를 사용한 오늘 파란 강조/날짜·월·연도 변경/입력 날짜 보존/타이머 정리 검사. 실제 업무 자료·API 키·외부 호출을 사용하지 않는다.
+
+
+api_connection_checks.py: 실제 API 클라이언트의 전송 오류 분류·제한 재시도를 사용한 Tk 시작 연결/입력·키 보존 검사. tests/test_api_connection.py는 통신 오류 분류·연결 시험 재시도 제한·인증 오류 무재시도·HTTP 응답 비노출·부분 스트림 재요청 금지를 검사한다. main.py --api-check NEW_JSON은 실제 키를 표시/변경하지 않고 가상 OK 요청만 전송하는 개발자 진단이다(소량 과금). 정상 상태에서 72개 단위검사 후 verify_frozen.py PATH_TO_EXE(현재 13개 모듈)를 실행한다.

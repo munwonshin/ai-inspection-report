@@ -5,7 +5,7 @@ from PyInstaller.archive.readers import CArchiveReader
 if len(sys.argv)!=2:raise SystemExit('Usage: python qa/verify_frozen.py PATH_TO_EXE')
 root=Path(__file__).resolve().parents[1]
 archive=CArchiveReader(str(Path(sys.argv[1]).resolve())).open_embedded_archive('PYZ.pyz')
-names=['preferences','date_picker','ui','api','style','metadata','core','streaming','exporter','vault','documents','runtime_probe']
+names=['api_probe','preferences','date_picker','ui','api','style','metadata','core','streaming','exporter','vault','documents','runtime_probe']
 for name in names:
     actual=archive.extract('inspection.'+name)
     expected=compile((root/'inspection'/f'{name}.py').read_bytes(),actual.co_filename,'exec')
