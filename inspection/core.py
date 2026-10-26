@@ -75,6 +75,17 @@ def set_cell(cell, value, top=False):
         p=ET.SubElement(pl,'P',pa)
         ET.SubElement(ET.SubElement(p,'TEXT',{'CharShape':shape}),'CHAR').text=line
 
+def spaced_body(value):
+    # Only presentation whitespace changes; numbers and abbreviations stay intact.
+    lines=[]
+    for line in normalize(value).split('\n'):
+        if not line.strip():continue
+        parts=re.split(r'(?<=[함음임됨])[.]\s+(?=[가-힣A-Za-z•])',line)
+        for i,part in enumerate(parts):
+            lines.append(part+('.' if i<len(parts)-1 else ''))
+    return '\n\n'.join(lines)
+
+
 def targets(tables, report):
     g=report.values()
     body=report.actions
@@ -83,7 +94,7 @@ def targets(tables, report):
     return [(2,0,0,report.title),
         (3,0,1,g['project']),(3,1,1,g['lead_org']),(3,1,3,g['partner_org']),
         (3,2,1,g['lead_person']),(3,2,3,g['partner_person']),
-        (4,1,1,report.findings),(4,2,1,body),
+        (4,1,1,spaced_body(report.findings)),(4,2,1,spaced_body(body)),
         (5,0,1,visit_date(g['visit_date'])),(5,0,3,g['visit_org']),
         (5,1,1,g['inspector_org']),(5,1,3,g['inspector']),(5,1,4,'(인)')]
 
@@ -102,8 +113,19 @@ def compose(template_xml, report):
         if any(ord(c)<32 and c not in '\r\n\t' for c in value):
             raise ValueError('입력에 지원하지 않는 제어문자가 있습니다.')
         set_cell(table_cell(ts[ti],row,col),value,ti==4)
-    # Only the empty separator paragraphs get a fixed 3pt height. Text retains
-    # the template's original font and line spacing, without rewriting edits.
+    # Body runs are 10pt; empty separators alone use fixed 3pt line height.
+    chars=root.find('.//CHARSHAPELIST')
+    char_by_id={s.get('Id'):s for s in chars}
+    body_chars={}
+    for row in (1,2):
+        for text in table_cell(ts[4],row,1).iter('TEXT'):
+            source=text.get('CharShape')
+            if source not in body_chars:
+                clone=deepcopy(char_by_id[source]);new_id=str(max(int(s.get('Id')) for s in chars)+1)
+                clone.set('Id',new_id);clone.set('Height','1000')
+                chars.append(clone);body_chars[source]=new_id
+            text.set('CharShape',body_chars[source])
+    chars.set('Count',str(len(chars)))
     shapes=root.find('.//PARASHAPELIST')
     by_id={s.get('Id'):s for s in shapes}
     blank_shapes={}
@@ -139,9 +161,13 @@ def verify_xml(xml, report):
     if any(root.iter('PICTURE')) or any(root.iter('OLE')):
         raise ValueError('서명 또는 개체 잔류가 발견됐습니다.')
     shapes={p.get('Id'):p for p in root.iter('PARASHAPE')}
+    chars={p.get('Id'):p for p in root.iter('CHARSHAPE')}
     for row in (1,2):
         for p in table_cell(ts[4],row,1).findall('./PARALIST/P'):
-            if ''.join(p.itertext()).strip():continue
+            if ''.join(p.itertext()).strip():
+                if any(int(chars[t.get('CharShape')].get('Height'))!=1000 for t in p.iter('TEXT')):
+                    raise ValueError('저장 후 종합의견 본문 10pt 설정이 일치하지 않습니다.')
+                continue
             margin=shapes[p.get('ParaShape')].find('PARAMARGIN')
             if margin.get('LineSpacingType')!='Fixed' or int(margin.get('LineSpacing'))!=300:
                 raise ValueError('저장 후 문단 사이 빈 줄의 고정 3pt 설정이 일치하지 않습니다.')

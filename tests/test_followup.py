@@ -22,7 +22,7 @@ class FollowupTests(unittest.TestCase):
         report=Report('가상 시험',tuple((k,'가상 값') for k in GENERAL),'가상 설명임.',text,'')
         xml=compose(exporter.template_text(),report);verify_xml(xml,report)
         _,tables=parse_template(xml)
-        self.assertEqual(cell_text(table_cell(tables[4],2,1)),text)
+        self.assertEqual(cell_text(table_cell(tables[4],2,1)),text.replace('요청함. 일정','요청함.\n\n일정'))
         self.assertNotIn('확인할 사항',cell_text(table_cell(tables[4],2,1)))
 
     def test_legacy_confirmation_export_keeps_text_without_section_label(self):
