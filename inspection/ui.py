@@ -8,6 +8,7 @@ from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
 from . import api, vault, exporter, metadata, preferences
 from .date_picker import DatePicker
+from .report_format import visit_date,report_title
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf
 
@@ -30,6 +31,7 @@ class App:
         self.auto_general={};self._auto_write=False;self.general_scanned=False;self.document_revision=0;self.metadata_started=None
         self.editor_open=False;self.messages=[];self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
+        self.report_context={};self.auto_title=None
         self.name=self.title;self.folder=tk.StringVar()
         self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.general={k:tk.StringVar() for k in GENERAL}
@@ -51,7 +53,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.12')
+        root.title('AI 현장점검 결과서 · 0.4.13')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -120,6 +122,7 @@ class App:
             entry.grid(row=i,column=1,sticky='ew',pady=3)
             entry.bind('<FocusIn>',lambda e,key=k:self.reveal_general_evidence(key,e.widget))
             if k=='visit_date':
+                entry.bind('<FocusOut>',lambda e:self.general['visit_date'].set(visit_date(self.general['visit_date'].get())))
                 self.date_pickers.append(DatePicker(entry,self.general[k],host=lambda:self.calendar_host,anchor=lambda:self.calendar_anchor))
             if k in self.pinned:
                 pin=ttk.Checkbutton(self.general_body,text='고정',style='Pin.TCheckbutton',variable=self.pinned[k],command=self.persist_preferences)
@@ -479,7 +482,7 @@ class App:
     def get(self,t):return t.get('1.0','end-1c')
 
     def snapshot(self):
-        return Report(self.title.get(),tuple((k,v.get()) for k,v in self.general.items()),
+        return Report(self.title.get(),tuple((k,visit_date(v.get()) if k=='visit_date' else v.get()) for k,v in self.general.items()),
             self.get(self.findings),self.get(self.actions),'')
 
     def lock(self,value):
@@ -642,6 +645,9 @@ class App:
         finally:self._auto_write=False
 
     def clear_plan_general(self):
+        self.report_context.clear()
+        if self.auto_title and self.title.get()==self.auto_title:self.title.set('현장점검 결과서')
+        self.auto_title=None
         self._auto_write=True
         try:
             for key,value in self.auto_general.items():
@@ -656,7 +662,7 @@ class App:
         if not self.connected:
             self.status.set('API 설정에서 연결 확인 후 일반현황을 자동 인식합니다. 직접 입력도 가능합니다.');return
         if self.general_scanned and not force:return
-        fields=tuple(k for k in metadata.PLAN_FIELDS if not self.general[k].get().strip())
+        fields=tuple(k for k in metadata.PLAN_FIELDS if not self.general[k].get().strip())+tuple(k for k in metadata.TITLE_FIELDS if not self.report_context.get(k))
         if not fields:
             self.general_scanned=True;self.status.set('일반현황을 확인해 주세요.');return
         revision=self.document_revision;pdf=self.original_pdf_bytes;pages=self.pdf_page_count
@@ -674,14 +680,20 @@ class App:
                 self.status.set('PDF 첨부는 완료됐습니다. 일반현황 AI 인식 실패: '+result['error']+' 일반현황에서 다시 읽기 또는 직접 입력해 주세요.');return
             values,usage=result['data'];added=0
             for key,value in values.items():
+                if key in metadata.TITLE_FIELDS:
+                    if key in fields:self.report_context[key]=value
+                    continue
                 if key in fields and not self.general[key].get().strip():
                     self.set_plan_general(key,value);added+=1
                     evidence=getattr(values,'evidence',{}).get(key)
                     if evidence:self.general_evidence[key]=evidence
+            if self.report_context and (self.title.get()=='현장점검 결과서' or self.title.get()==self.auto_title):
+                self.auto_title=report_title(self.report_context.get('program_year',''),self.report_context.get('division',''))
+                self.title.set(self.auto_title)
             self.general_issues.update(getattr(values,'issues',{}))
             self.general_evidence_note.set('AI 인식 완료 · 항목을 선택해 근거 쪽수·인용문을 확인하고 검수해 주세요.')
             self.general_scanned=True
-            self.status.set('일반현황을 입력했습니다.')
+            self.status.set('일반현황을 입력했습니다.' if self.report_context.get('division') and self.report_context.get('program_year') else '사업연도 또는 분과가 확인되지 않았습니다. 결과서 제목을 확인·수정해 주세요.')
         self.background(task,done,'일반현황을 읽고 있습니다.')
 
     def ready(self):

@@ -7,6 +7,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import tkinter as tk
 from tkinter import ttk
 from inspection.ui import App
+from inspection.report_format import visit_date
 from inspection.date_picker import DatePicker
 
 class Clock(real_date):
@@ -40,7 +41,7 @@ with patch('inspection.date_picker.date',Clock):
     picker.move(1);assert highlighted()==[1]
     picker.close();assert picker._today_timer is None
     picker.open();assert highlighted()==[] # Selected old month is still October.
-    picker.today();assert app.general['visit_date'].get()=='2027-01-01' and picker._today_timer is None
+    picker.today();assert app.general['visit_date'].get()=='2027년 1월 1일' and picker._today_timer is None
     picker.open();assert highlighted()==[1]
     app.lock(True);assert picker.window is None and picker._today_timer is None
     app.lock(False)

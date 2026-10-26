@@ -5,6 +5,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import tkinter as tk
 from tkinter import ttk
 from inspection.ui import App
+from inspection.report_format import visit_date
 from inspection import preferences
 
 def dispose(root):
@@ -19,17 +20,17 @@ with tempfile.TemporaryDirectory(prefix='pin-tick-') as folder:
     assert 'Pin.indicator' in style.element_names()
     assert 'Pin.indicator' in str(style.layout('Pin.TCheckbutton'))
     pins=[w for w in app.general_body.winfo_children() if isinstance(w,ttk.Checkbutton)]
-    assert len(pins)==3 and all(w.cget('style')=='Pin.TCheckbutton' for w in pins)
+    assert len(pins)==2 and all(w.cget('style')=='Pin.TCheckbutton' for w in pins)
     for key,pin in zip(preferences.FIELDS,pins):
         app.general[key].set('가상 '+key)
         pin.invoke();assert app.pinned[key].get() and pin.instate(['selected'])
-    assert len(preferences.load(path))==3
+    assert len(preferences.load(path))==2
     # Native selection persists when processing disables and re-enables controls.
     app.lock(True);assert all(w.instate(['selected','disabled']) for w in pins)
     app.lock(False);assert all(w.instate(['selected','!disabled']) for w in pins)
-    pins[2].focus_force();root.update();pins[2].event_generate('<KeyPress-space>');pins[2].event_generate('<KeyRelease-space>');root.update()
-    assert not app.pinned['inspector'].get() and not pins[2].instate(['selected'])
-    pins[2].invoke();assert app.pinned['inspector'].get()
+    pins[1].focus_force();root.update();pins[1].event_generate('<KeyPress-space>');pins[1].event_generate('<KeyRelease-space>');root.update()
+    assert not app.pinned['inspector'].get() and not pins[1].instate(['selected'])
+    pins[1].invoke();assert app.pinned['inspector'].get()
     dispose(root)
     root=tk.Tk();app=App(root,restore_api=False,preferences_path=path);root.update()
     pins=[w for w in app.general_body.winfo_children() if isinstance(w,ttk.Checkbutton)]

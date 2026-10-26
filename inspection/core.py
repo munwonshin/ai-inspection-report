@@ -1,5 +1,6 @@
 """In-memory report data and approval-only export boundary."""
 from dataclasses import dataclass, field
+from .report_format import visit_date
 from pathlib import Path
 import hashlib
 import json
@@ -83,7 +84,7 @@ def targets(tables, report):
         (3,0,1,g['project']),(3,1,1,g['lead_org']),(3,1,3,g['partner_org']),
         (3,2,1,g['lead_person']),(3,2,3,g['partner_person']),
         (4,1,1,report.findings),(4,2,1,body),
-        (5,0,1,g['visit_date']),(5,0,3,g['visit_org']),
+        (5,0,1,visit_date(g['visit_date'])),(5,0,3,g['visit_org']),
         (5,1,1,g['inspector_org']),(5,1,3,g['inspector']),(5,1,4,'(인)')]
 
 def parse_template(xml):

@@ -6,6 +6,7 @@ from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import tkinter as tk
 from inspection.ui import App
+from inspection.report_format import visit_date
 from inspection import preferences
 
 def pump(root,seconds=.08):
@@ -25,12 +26,12 @@ with tempfile.TemporaryDirectory(prefix='calendar-pins-') as folder:
     picker.entry.event_generate('<ButtonRelease-1>',x=5,y=5);pump(root)
     assert picker.window and picker.window.winfo_exists()
     picker.year=2024;picker.month=2;picker.render();assert 29 in picker.day_buttons
-    picker.day_buttons[29].invoke();assert app.general['visit_date'].get()=='2024-02-29' and picker.window is None
+    picker.day_buttons[29].invoke();assert app.general['visit_date'].get()=='2024년 2월 29일' and picker.window is None
     checks.append('entry_click_leap_day')
     picker.open();picker.year=2025;picker.month=12;picker.move(1);assert (picker.year,picker.month)==(2026,1)
     picker.move(-1);assert (picker.year,picker.month)==(2025,12)
-    picker.close();assert app.general['visit_date'].get()=='2024-02-29'
-    picker.open();picker.today();assert app.general['visit_date'].get()==date.today().isoformat()
+    picker.close();assert app.general['visit_date'].get()=='2024년 2월 29일'
+    picker.open();picker.today();assert app.general['visit_date'].get()==visit_date(date.today())
     checks.append('month_year_navigation_cancel_today')
     picker.open();pump(root);picker.window.event_generate('<Escape>');pump(root)
     assert picker.window is None
@@ -48,10 +49,10 @@ with tempfile.TemporaryDirectory(prefix='calendar-pins-') as folder:
         next(w for w in frame.winfo_children() if isinstance(w,tk.ttk.Button) and '승인' in w.cget('text')).invoke()
     root.after(200,complete_missing)
     assert app.missing_dialog(['visit_date'])
-    assert app.general['visit_date'].get().endswith('-21') and not errors
+    assert app.general['visit_date'].get().endswith('21일') and not errors
     checks.append('escape_outside_click_and_embedded_approval_calendar')
 
-    values={'visit_org':'가상 방문기관','inspector_org':'가상 점검기관','inspector':'가상 점검자'}
+    values={'inspector_org':'가상 점검기관','inspector':'가상 점검자'}
     for k,v in values.items():app.general[k].set(v);app.pinned[k].set(True)
     app.persist_preferences()
     app.general['inspector'].set('가상 수정 점검자');pump(root,.6)
@@ -67,7 +68,7 @@ with tempfile.TemporaryDirectory(prefix='calendar-pins-') as folder:
     app.general['visit_org'].set('가상 새 방문기관');app.persist_preferences()
     dispose(root);root=tk.Tk();app=App(root,restore_api=False,preferences_path=path);pump(root)
     assert app.general['inspector'].get()=='' and not app.pinned['inspector'].get()
-    assert app.general['visit_org'].get()=='가상 새 방문기관'
+    assert app.general['visit_org'].get()==''
     checks.append('unpin_retains_current_only_and_restart_clears')
     app.general['visit_date'].set('2026-10-23')
     app.general['inspector'].set('가상 승인 점검자');app.pinned['inspector'].set(True)

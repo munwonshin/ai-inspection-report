@@ -11,7 +11,7 @@ class PreferencesChecks(unittest.TestCase):
             p=Path(folder)/'nested'/'preferences.json'
             self.assertEqual(preferences.load(p),{})
             preferences.save(p,{'inspector':'가상 점검자','visit_org':'가상 방문기관','project':'비공개 과제','visit_date':'2026-10-23','api_key':'never'})
-            self.assertEqual(preferences.load(p),{'inspector':'가상 점검자','visit_org':'가상 방문기관'})
+            self.assertEqual(preferences.load(p),{'inspector':'가상 점검자'})
             preferences.save(p,{'inspector':'가상 수정자'})
             self.assertEqual(preferences.load(p),{'inspector':'가상 수정자'})
             preferences.save(p,{})
@@ -24,7 +24,7 @@ class PreferencesChecks(unittest.TestCase):
             with self.assertRaises(ValueError):preferences.load(p)
             self.assertEqual(p.read_text(encoding='utf-8'),'{invalid')
             p.write_text(json.dumps({'version':1,'pinned':{'inspector':42,'inspector_org':'x'*2001,'visit_org':'가상'}}),encoding='utf-8')
-            self.assertEqual(preferences.load(p),{'visit_org':'가상'})
+            self.assertEqual(preferences.load(p),{})
 
     def test_failed_atomic_save_keeps_previous_values(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -3,6 +3,7 @@ import calendar
 from datetime import date
 import tkinter as tk
 from tkinter import ttk
+from .report_format import parse_visit_date,visit_date
 
 class DatePicker:
     def __init__(self, entry, variable, *, host=None, anchor=None):
@@ -31,10 +32,7 @@ class DatePicker:
             return
         if self.window is not None and self.window.winfo_exists():
             return 'break' if event and event.type == tk.EventType.KeyPress else None
-        try:
-            selected = date.fromisoformat(self.variable.get().strip())
-        except ValueError:
-            selected = date.today()
+        selected=parse_visit_date(self.variable.get()) or date.today()
         self.year, self.month, self.selected = selected.year, selected.month, selected
         self.container=self.host() if callable(self.host) else self.host
         self.target=self.anchor() if callable(self.anchor) else self.anchor
@@ -114,12 +112,12 @@ class DatePicker:
             self.day_buttons.get(1, self.today_button).focus_set()
 
     def choose(self, day):
-        self.variable.set(date(self.year,self.month,day).isoformat())
+        self.variable.set(visit_date(date(self.year,self.month,day)))
         self.close()
         self.entry.focus_set()
 
     def today(self):
-        self.variable.set(date.today().isoformat())
+        self.variable.set(visit_date(date.today()))
         self.close()
         self.entry.focus_set()
 

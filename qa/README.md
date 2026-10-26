@@ -52,3 +52,6 @@ today_checks.py: 가상 시계와 실제 Tk 타이머를 사용한 오늘 파란
 
 
 api_connection_checks.py: 실제 API 클라이언트의 전송 오류 분류·제한 재시도를 사용한 Tk 시작 연결/입력·키 보존 검사. tests/test_api_connection.py는 통신 오류 분류·연결 시험 재시도 제한·인증 오류 무재시도·HTTP 응답 비노출·부분 스트림 재요청 금지를 검사한다. main.py --api-check NEW_JSON은 실제 키를 표시/변경하지 않고 가상 OK 요청만 전송하는 개발자 진단이다(소량 과금). 정상 상태에서 72개 단위검사 후 verify_frozen.py PATH_TO_EXE(현재 13개 모듈)를 실행한다.
+
+
+division_checks.py: 가상 PDF 인식 결과의 제목 반영·교체·수동 제목 보존·연도/분과 미확인·두 고정값·날짜 스냅샷을 실제 Tk에서 검사. tests/test_division_date.py: 근거와 쪽수/분과 거부/한 번의 PDF 요청/한국어 날짜/이전 고정 설정 마이그레이션 검사. verify_frozen.py는 report_format 포함 현재 14개 모듈을 비교한다.

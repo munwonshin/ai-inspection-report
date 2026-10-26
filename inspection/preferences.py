@@ -4,7 +4,7 @@ import os
 import tempfile
 from pathlib import Path
 
-FIELDS = ('visit_org', 'inspector_org', 'inspector')
+FIELDS = ('inspector_org', 'inspector')
 
 def default_path():
     base = os.environ.get('LOCALAPPDATA')
@@ -19,8 +19,12 @@ def load(path):
         return {}
     if not isinstance(data, dict) or data.get('version') != 1 or not isinstance(data.get('pinned'), dict):
         raise ValueError('지원하지 않는 사용자 설정 형식입니다.')
-    return {k:v for k,v in data['pinned'].items()
+    values={k:v for k,v in data['pinned'].items()
             if k in FIELDS and isinstance(v,str) and len(v) <= 2000}
+    if 'visit_org' in data['pinned']:
+        try:save(path,values)
+        except OSError:pass  # Restore the two retained fields even on read-only settings.
+    return values
 
 def save(path, values):
     path = Path(path)

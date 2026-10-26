@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import tkinter as tk
 from inspection.ui import App
+from inspection.report_format import visit_date
 
 def pump(root):
     end=time.monotonic()+.12
@@ -37,7 +38,7 @@ for scaling in [None,2.0]:
         button=picker.day_buttons[29]
         button.event_generate('<Enter>');button.event_generate('<Button-1>',x=5,y=5)
         button.event_generate('<ButtonRelease-1>',x=5,y=5);pump(root)
-        assert app.general['visit_date'].get()=='2024-02-29' and picker.window is None
+        assert app.general['visit_date'].get()=='2024년 2월 29일' and picker.window is None
         assert not errors,errors
         rows.append({'geometry':[width,height],'scaling':float(root.tk.call('tk','scaling')),'embedded':True,'above_composer':True,'one_click':True})
     for timer in root.tk.call('after','info'):root.after_cancel(timer)
