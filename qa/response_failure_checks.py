@@ -19,7 +19,7 @@ bad={'findings':'교체되면 안 되는 가상 본문','actions':'가상','gene
 with patch('inspection.ui.vault.read',return_value='FAKE'),patch('inspection.api.request',return_value=(json.dumps(bad),{})),patch('inspection.ui.messagebox.showerror',side_effect=lambda *a,**kw:errors.append(a)),patch('inspection.ui.exporter.save') as export:
     app.chat.set('가상 수정 요청');app.submit_chat();settle()
     assert errors and app.snapshot()==before and app.chat.get()=='가상 수정 요청' and app.activity.get()==''
-    good={'findings':before.findings+'\n정상 가상 수정함.','actions':before.actions,'general':{}}
+    good={'findings':before.findings+'\n정상 가상 수정함.','actions':before.actions,'decision':'applied','notice':''}
     with patch('inspection.api.request',return_value=(json.dumps(good),{})):app.submit_chat();settle()
     assert '정상 가상 수정함.' in app.get(app.findings);export.assert_not_called()
 for timer in root.tk.call('after','info'):root.after_cancel(timer)

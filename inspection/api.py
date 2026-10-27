@@ -1,6 +1,7 @@
 import base64,json,time,urllib.request,urllib.error,socket,ssl,http.client
 from .core import GENERAL
 from .style import REPORT_STYLE
+from .revisions import revision_schema,REVISION_RULES,validate_revision
 MODEL='gpt-6-luna'  # Lowest measured cost among models passing the synthetic evaluation.
 ENDPOINT='https://api.openai.com/v1/responses'
 PRICE_DATE='2026-10-19'
@@ -124,10 +125,10 @@ def build_payload(plan,minutes,current,instruction,pdf_bytes=None,*,model=None,r
     draft={k:v for k,v in current.items() if v and (not isinstance(v,dict) or any(v.values()))}
     chars=sum(len(str(current.get(k,''))) for k in ['findings','actions','checks'])
     p={'model':model,'store':False,'max_output_tokens':min(24000,max(6000,chars*2+2000)),
-        'instructions':INSTRUCTIONS,'input':[{'role':'user','content':content},
+        'instructions':INSTRUCTIONS+('\n'+REVISION_RULES if revision else ''),'input':[{'role':'user','content':content},
             {'role':'user','content':'현재 직접 편집한 초안:'+json.dumps(draft,ensure_ascii=False,separators=(',',':'))},
             {'role':'user','content':'사용자 요청:'+instruction}],
-        'text':{'format':{'type':'json_schema','name':'inspection_report','strict':True,'schema':schema(fields)}}}
+        'text':{'format':{'type':'json_schema','name':'inspection_report','strict':True,'schema':revision_schema() if revision else schema(fields)}}}
     if model!='gpt-4.1-mini':p['reasoning']={'effort':'none'}
     return p
 
@@ -136,6 +137,7 @@ def generate(key,plan,minutes,current,instruction,pdf_bytes=None,*,model=None,re
     text,usage=request(key,payload,on_delta=on_delta) if on_delta is not None else request(key,payload)
     try:
         result=json.loads(text)
+        if revision:return validate_revision(result,current,instruction),usage
         if not isinstance(result,dict):raise ValueError()
         result.setdefault('checks','')  # Internal compatibility; not an AI output field.
         if not all(isinstance(result[k],str) for k in ['findings','actions','checks']):raise ValueError()

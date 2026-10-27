@@ -9,6 +9,7 @@ from pathlib import Path
 from . import api, vault, exporter, metadata, preferences
 from .date_picker import DatePicker
 from .report_format import visit_date,report_title
+from .revisions import DraftHistory,restore_intent
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf
 
@@ -29,7 +30,7 @@ class App:
         self.mailbox=queue.Queue();self.pdf_progress=queue.SimpleQueue();self.edits=[];self.buttons=[];self.entries=[]
         self.general_expanded=False
         self.auto_general={};self._auto_write=False;self.general_scanned=False;self.document_revision=0;self.metadata_started=None
-        self.editor_open=False;self.messages=[];self.revision=0;self.pending_request=None;self._conversation_timer=None
+        self.editor_open=False;self.messages=[];self.draft_history=DraftHistory();self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
         self.report_context={};self.auto_title=None
         self.name=self.title;self.folder=tk.StringVar()
@@ -53,7 +54,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.14')
+        root.title('AI 현장점검 결과서 · 0.4.15')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -399,10 +400,29 @@ class App:
         else:self.draft()
 
     def send_chat(self):
-        if self.busy or not self.chat.get().strip() or not self.ready():return
+        if self.busy or not self.chat.get().strip():return
+        intent=restore_intent(self.chat.get().strip())
+        if intent is not None:
+            self.restore_draft(intent);return
+        if not self.ready():return
         self.ai(self.chat.get().strip(),bool(self.get(self.findings).strip()),from_chat=True)
 
+    def restore_draft(self,intent):
+        instruction=self.chat.get().strip()
+        self.sync_latest_report()
+        report=self.draft_history.restore(self.snapshot(),**intent)
+        if report is None:
+            self.status.set('복원할 이전 초안이 없습니다. 현재 초안은 유지됩니다.');return
+        for widget,value in [(self.findings,report.findings),(self.actions,report.actions)]:
+            widget.delete('1.0','end');widget.insert('1.0',value);widget.edit_modified(False)
+        self.changed();self.revision+=1
+        self.messages.extend([{'kind':'user','text':instruction,'status':'completed','visible':True},
+            {'kind':'report','version':self.revision,'report':self.snapshot().as_dict(),'origin':'restore'}])
+        self.chat.set('');self.status.set('이전 초안 본문을 복원했습니다.')
+        self.render_conversation(follow=True)
+
     def sync_latest_report(self):
+        self.draft_history.record(self.snapshot())
         current=self.snapshot().as_dict()
         for message in reversed(self.messages):
             if message['kind']=='report':message['report']=current;return
@@ -438,6 +458,8 @@ class App:
                     if self.stream_visible:self.conversation.insert('end',self.stream_visible+' ▍\n','body')
                     self.conversation.mark_set('stream_end','end-1c');self.conversation.mark_gravity('stream_end','right')
                 elif message.get('status')=='failed':self.conversation.insert('end','요청을 처리하지 못했습니다. 이전 초안과 입력 내용은 유지됩니다.\n','error')
+            elif message['kind']=='notice':
+                self.conversation.insert('end',message['text']+'\n','hint')
             elif message['kind']=='report':
                 current=message is latest
                 report=self.snapshot().as_dict() if current else message['report']
@@ -732,6 +754,11 @@ class App:
             return api.generate(key,api_plan,minutes,current,instruction,pdf_bytes=self.pdf_bytes,revision=is_chat,on_delta=self.stream_queue.put)
         def done(data):
             result,usage=data
+            if result.get('_blocked'):
+                notice=result.get('_notice') or '요청을 반영하지 않았습니다. 현재 초안은 유지됩니다.'
+                if self.pending_request is not None:self.pending_request['status']='completed';self.pending_request=None
+                self.messages.append({'kind':'notice','text':notice});self.status.set(notice)
+                self.render_conversation(follow=True);return
             for t,k in [(self.findings,'findings'),(self.actions,'actions')]:
                 value=result[k]
                 if k=='actions' and result.get('checks','').strip():value+='\n\n'+result['checks']
@@ -741,7 +768,8 @@ class App:
                     if k in metadata.PLAN_FIELDS and result['general'][k].get('source')=='plan':self.set_plan_general(k,v)
                     else:self.general[k].set(v)
             self.changed()
-            self.status.set('작성을 마쳤습니다.')
+            self.draft_history.record(self.snapshot())
+            self.status.set(result.get('_notice') or '작성을 마쳤습니다.')
             if self.pending_request is not None:self.pending_request['status']='completed';self.pending_request=None
             self.revision+=1
             self.messages.append({'kind':'report','version':self.revision,'report':self.snapshot().as_dict(),'origin':'ai'})
