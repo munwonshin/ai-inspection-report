@@ -19,3 +19,9 @@ __pycache__/
 
 # Generated synthetic QA records
 qa/*checks.json
+
+# Local synthetic output-header verification artifacts
+/qa/header_native/
+/qa/header_roundtrip/
+/qa/report_header_roundtrip.json
+/qa/frozen_header.json

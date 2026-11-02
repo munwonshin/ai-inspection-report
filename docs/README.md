@@ -9,6 +9,7 @@
 | HWP 첨부·변환·AI 작성 연결 | [HWP 입력 검증](HWP_INPUT_VERIFICATION.md) |
 | PDF 전체 분석·분과·날짜 출력 | [전체 PDF](FULL_PDF_METADATA_VERIFICATION.md), [분과·날짜](DIVISION_DATE_VERIFICATION.md) |
 | 초안 수정·이전 초안 복원·90개 검사·22회 AI 시험 | [채팅 검증](CHAT_REVISION_VERIFICATION.md), [테스트 소스](../tests), [검사 도구](../qa) |
+| 별첨 제거·분과 제목·파일명 분리 | [출력 양식·제목 검증](REPORT_HEADER_VERIFICATION.md) |
 | 승인 저장·한글 결과 | [HWP 입출력](HWP_MEMORY_VERIFICATION.md), [본문·여백](BODY_SPACING_VERIFICATION.md) |
 | 소스/배포 EXE의 API 오류 해결 | [API 진단](API_CONNECTION_VERIFICATION.md), [TLS 빌드 훅](../hooks/hook-ssl.py) |
 | 단계별 자동 처리시간 | [3회 실측](WORKFLOW_TIMING_VERIFICATION.md) |

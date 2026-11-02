@@ -2,6 +2,15 @@
 import re
 from datetime import date
 
+DIVISIONS=('일반분과','반도체분과','소상공인분과','글로벌분과')
+
+def canonical_division(value):
+    value=re.sub(r'\s+','',value)
+    return value+'분과' if value in ('일반','반도체','소상공인','글로벌') else value
+
+def valid_document_context(year,division):
+    return bool(re.fullmatch(r'20\d{2}',year.strip()) and canonical_division(division) in DIVISIONS)
+
 def parse_visit_date(value):
     if isinstance(value,date):return value
     match=re.fullmatch(r'\s*(\d{4}|\d{2})\s*(?:년|-|\.|/)\s*(\d{1,2})\s*(?:월|-|\.|/)\s*(\d{1,2})\s*일?\.?\s*',value)

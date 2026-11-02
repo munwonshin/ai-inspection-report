@@ -8,7 +8,7 @@ from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
 from . import api, vault, exporter, metadata, preferences
 from .date_picker import DatePicker
-from .report_format import visit_date,report_title
+from .report_format import visit_date,report_title,DIVISIONS,canonical_division,valid_document_context
 from .revisions import DraftHistory,restore_intent
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf,prepare_hwp
@@ -33,6 +33,9 @@ class App:
         self.editor_open=False;self.messages=[];self.draft_history=DraftHistory();self.revision=0;self.pending_request=None;self._conversation_timer=None
         self.title=tk.StringVar(value='현장점검 결과서')
         self.report_context={};self.auto_title=None
+        self.document_context_vars={k:tk.StringVar() for k in metadata.TITLE_FIELDS}
+        for k,var in self.document_context_vars.items():
+            var.trace_add('write',lambda *a,key=k:self.document_context_changed(key))
         self.name=self.title;self.folder=tk.StringVar()
         self.ai_started=None;self.stream_queue=queue.SimpleQueue();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.general={k:tk.StringVar() for k in GENERAL}
@@ -54,7 +57,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.16')
+        root.title('AI 현장점검 결과서 · 0.4.17')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -130,6 +133,14 @@ class App:
                 pin.grid(row=i,column=2,sticky='e',padx=(6,0))
                 pin.bind('<FocusIn>',lambda e:self.reveal_general(e.widget))
                 self.buttons.append(pin)
+        self.document_context_entries={}
+        for row,(key,label) in enumerate([('program_year','사업연도'),('division','분과')],len(GENERAL)):
+            ttk.Label(self.general_body,text=label,style='Hint.TLabel').grid(row=row,column=0,sticky='w',padx=(0,8),pady=3)
+            entry=self.entry(self.general_body,self.document_context_vars[key],compact=True) if key=='program_year' else ttk.Combobox(self.general_body,textvariable=self.document_context_vars[key],values=DIVISIONS,width=14)
+            entry.grid(row=row,column=1,sticky='ew',pady=3)
+            entry.bind('<FocusIn>',lambda e:self.reveal_general(e.widget))
+            if key=='division':self.entries.append(entry)
+            self.document_context_entries[key]=entry
         for widget in [self.general_canvas,*self.general_body.winfo_children()]:
             widget.bind('<MouseWheel>',self.scroll_general)
         self.general_evidence_note=tk.StringVar(value='AI 인식값은 검수해 주세요 · 항목 선택 시 근거 쪽수 표시')
@@ -189,7 +200,7 @@ class App:
         save_header=self.heading(save,'','저장',small=True);save_header.grid(row=0,column=0,sticky='ew',pady=(0,9))
         fields=ttk.Frame(save,style='Card.TFrame');fields.grid(row=1,column=0,sticky='ew')
         for col,weight,size in [(0,3,240),(1,4,300)]:fields.columnconfigure(col,weight=weight,minsize=size)
-        for col,label,var in [(0,'결과서 제목 · 저장 파일명으로 사용',self.title)]:
+        for col,label,var in [(0,'저장 파일명',self.title)]:
             group=ttk.Frame(fields,style='Card.TFrame',padding=(0,0,12,0));group.grid(row=0,column=col,sticky='ew');group.columnconfigure(0,weight=1)
             ttk.Label(group,text=label,style='Hint.TLabel').grid(row=0,column=0,sticky='w',pady=(0,4))
             self.entry(group,var).grid(row=1,column=0,sticky='ew')
@@ -215,7 +226,7 @@ class App:
         footer.bind('<Configure>',lambda e:self.status_label.configure(wraplength=max(250,e.width-200)))
         self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
 
-        for v in [self.title,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
+        for v in [self.title,self.folder,*self.general.values(),*self.document_context_vars.values()]:v.trace_add('write',lambda *a:self.changed())
         for k,v in self.general.items():v.trace_add('write',lambda *a,key=k:self.general_edited(key))
         for text in self.edits:text.bind('<<Modified>>',lambda e:self.text_changed(e.widget))
         for k in preferences.FIELDS:
@@ -505,7 +516,7 @@ class App:
 
     def snapshot(self):
         return Report(self.title.get(),tuple((k,visit_date(v.get()) if k=='visit_date' else v.get()) for k,v in self.general.items()),
-            self.get(self.findings),self.get(self.actions),'')
+            self.get(self.findings),self.get(self.actions),'',report_title(self.report_context.get('program_year',''),canonical_division(self.report_context.get('division',''))))
 
     def lock(self,value):
         self.busy=value
@@ -673,8 +684,15 @@ class App:
         try:self.general[key].set(value);self.auto_general[key]=value
         finally:self._auto_write=False
 
+    def document_context_changed(self,key):
+        value=self.document_context_vars[key].get().strip()
+        if key=='division':value=canonical_division(value)
+        if value:self.report_context[key]=value
+        else:self.report_context.pop(key,None)
+
     def clear_plan_general(self):
         self.report_context.clear()
+        for value in self.document_context_vars.values():value.set('')
         if self.auto_title and self.title.get()==self.auto_title:self.title.set('현장점검 결과서')
         self.auto_title=None
         self._auto_write=True
@@ -710,7 +728,7 @@ class App:
             values,usage=result['data'];added=0
             for key,value in values.items():
                 if key in metadata.TITLE_FIELDS:
-                    if key in fields:self.report_context[key]=value
+                    if key in fields:self.document_context_vars[key].set(value)
                     continue
                 if key in fields and not self.general[key].get().strip():
                     self.set_plan_general(key,value);added+=1
@@ -722,7 +740,7 @@ class App:
             self.general_issues.update(getattr(values,'issues',{}))
             self.general_evidence_note.set('AI 인식 완료 · 항목을 선택해 근거 쪽수·인용문을 확인하고 검수해 주세요.')
             self.general_scanned=True
-            self.status.set('일반현황을 입력했습니다.' if self.report_context.get('division') and self.report_context.get('program_year') else '사업연도 또는 분과가 확인되지 않았습니다. 결과서 제목을 확인·수정해 주세요.')
+            self.status.set('일반현황을 입력했습니다.' if self.report_context.get('division') and self.report_context.get('program_year') else '일반현황에서 사업연도와 분과를 확인·입력해 주세요.')
         self.background(task,done,'일반현황을 읽고 있습니다.')
 
     def ready(self):
@@ -834,7 +852,12 @@ class App:
     def approve(self):
         if self.busy:return
         if not self.title.get().strip() or not self.get(self.findings).strip():
-            messagebox.showinfo('입력 확인','결과서 제목과 현장 점검 본문을 입력해 주세요.',parent=self.root);return
+            messagebox.showinfo('입력 확인','저장 파일명과 현장 점검 본문을 입력해 주세요.',parent=self.root);return
+        if not valid_document_context(self.report_context.get('program_year',''),self.report_context.get('division','')):
+            if not self.general_expanded:self.toggle_general()
+            key='program_year' if not valid_document_context(self.report_context.get('program_year',''),'일반분과') else 'division'
+            entry=self.document_context_entries[key];self.root.update_idletasks();self.reveal_general(entry);entry.focus_set()
+            messagebox.showinfo('문서 제목 확인','일반현황에서 사업연도와 분과를 확인해 주세요. 문서 제목은 이 값으로 생성하며 저장 파일명과 분리합니다.',parent=self.root);return
         # Pick a destination only when needed; cancellation leaves all inputs intact.
         if not self.folder.get().strip():
             self.choose_folder()

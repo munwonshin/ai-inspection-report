@@ -71,7 +71,7 @@ def worker(payload):
     if payload.get('approved') is not True:
         raise PermissionError('사용자 승인 전에는 저장할 수 없습니다.')
     d=payload['report']
-    report=Report(d['title'],tuple(d['general'].items()),d['findings'],d['actions'],d['checks'])
+    report=Report(d['title'],tuple(d['general'].items()),d['findings'],d['actions'],d['checks'],d.get('document_title',''))
     if report.missing() or not report.title.strip() or not report.findings.strip():
         raise ValueError('필수 입력이 없습니다.')
     raw=Path(payload['destination'])

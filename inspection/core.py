@@ -23,6 +23,7 @@ class Report:
     findings: str
     actions: str
     checks: str
+    document_title: str = ''
 
     def values(self):
         return dict(self.general)
@@ -31,8 +32,10 @@ class Report:
         return [label for k, label in GENERAL.items() if not self.values().get(k, '').strip()]
 
     def as_dict(self):
-        return dict(title=self.title, general=self.values(), findings=self.findings,
+        value=dict(title=self.title, general=self.values(), findings=self.findings,
                     actions=self.actions, checks=self.checks)
+        if self.document_title:value['document_title']=self.document_title
+        return value
 
 def filename(value):
     # Normalize the filesystem name only; preserve the approved report title.
@@ -91,7 +94,7 @@ def targets(tables, report):
     body=report.actions
     if report.checks.strip():
         body += ('\n\n' if body else '')+report.checks
-    return [(2,0,0,report.title),
+    return [(2,0,0,report.document_title or report.title),
         (3,0,1,g['project']),(3,1,1,g['lead_org']),(3,1,3,g['partner_org']),
         (3,2,1,g['lead_person']),(3,2,3,g['partner_person']),
         (4,1,1,spaced_body(report.findings)),(4,2,1,spaced_body(body)),
@@ -101,7 +104,12 @@ def targets(tables, report):
 def parse_template(xml):
     root=ET.fromstring(xml)
     ts=list(root.iter('TABLE'))
-    if [(t.get('RowCount'),t.get('ColCount')) for t in ts] != [('1','2'),('1','3'),('1','1'),('3','4'),('3','2'),('2','5')]:
+    shapes=[(t.get('RowCount'),t.get('ColCount')) for t in ts]
+    canonical=[('1','2'),('1','3'),('1','1'),('3','4'),('3','2'),('2','5')]
+    if shapes==canonical:pass
+    elif shapes==canonical[:1]+canonical[2:]:ts=[ts[0],None,*ts[1:]]
+    elif shapes==canonical[2:]:ts=[None,None,*ts]
+    else:
         raise ValueError('승인된 양식의 표 구조와 다릅니다. 저장하지 않았습니다.')
     if any(root.iter('PICTURE')) or any(root.iter('OLE')):
         raise ValueError('양식에 검증되지 않은 그림 또는 OLE 개체가 있습니다.')
@@ -109,6 +117,15 @@ def parse_template(xml):
 
 def compose(template_xml, report):
     root, ts=parse_template(template_xml)
+    if ts[1] is not None:
+        # Remove the annex banner's entire otherwise-empty body paragraph.
+        # Keep the original template on disk, header/footer and report tables.
+        parents={child:parent for parent in root.iter() for child in parent}
+        paragraph=ts[1]
+        while paragraph.tag!='P':paragraph=parents[paragraph]
+        if parents[paragraph].tag!='SECTION' or len(list(paragraph.iter('TABLE')))!=1:
+            raise ValueError('별첨 머리글의 위치가 승인된 양식과 다릅니다.')
+        parents[paragraph].remove(paragraph)
     for ti, row, col, value in targets(ts,report):
         if any(ord(c)<32 and c not in '\r\n\t' for c in value):
             raise ValueError('입력에 지원하지 않는 제어문자가 있습니다.')
@@ -155,6 +172,8 @@ def compose(template_xml, report):
 
 def verify_xml(xml, report):
     root,ts=parse_template(xml)
+    if ts[1] is not None:
+        raise ValueError('저장 후 별첨 머리글이 남아 있습니다. 최종 파일로 확정하지 않았습니다.')
     for ti,row,col,value in targets(ts,report):
         if normalize(cell_text(table_cell(ts[ti],row,col))) != normalize(value):
             raise ValueError('저장 후 편집 내용이 일치하지 않습니다. 최종 파일로 확정하지 않았습니다.')
