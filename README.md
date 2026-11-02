@@ -53,8 +53,10 @@ python -m venv .venv
 
 ## 검증 기록
 
-- [개발·테스트 기록](DEVELOPMENT_TEST_RECORD.md)
-- [채팅 수정·복원 검증](CHAT_REVISION_VERIFICATION.md)
-- [단계별 처리시간 실측](WORKFLOW_TIMING_VERIFICATION.md)
-- [API 연결·배포본 진단](API_CONNECTION_VERIFICATION.md)
+모델 선정·사용자 피드백 개선·API 오류 해결·단계별 실측 근거는 [문서 안내](docs/README.md)에 정리했습니다.
+
+- [개발·테스트 기록](docs/DEVELOPMENT_TEST_RECORD.md)
+- [채팅 수정·복원 검증](docs/CHAT_REVISION_VERIFICATION.md)
+- [단계별 처리시간 실측](docs/WORKFLOW_TIMING_VERIFICATION.md)
+- [API 연결·배포본 진단](docs/API_CONNECTION_VERIFICATION.md)
 - [제3자 소프트웨어 고지](THIRD_PARTY_NOTICES.md)

@@ -38,9 +38,9 @@
 
 ## 관련 구현
 
-- [PDF 준비](inspection/documents.py)
-- [일반현황 분석](inspection/metadata.py)
-- [초안 생성·수정](inspection/api.py)
-- [승인 저장·재입력](inspection/exporter.py)
+- [PDF 준비](../inspection/documents.py)
+- [일반현황 분석](../inspection/metadata.py)
+- [초안 생성·수정](../inspection/api.py)
+- [승인 저장·재입력](../inspection/exporter.py)
 
 API 키, 실제 기업자료, 회의록 원문과 생성 결과는 이 기록에 포함하지 않았습니다.

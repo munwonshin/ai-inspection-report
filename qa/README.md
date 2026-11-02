@@ -1,57 +1,29 @@
-# GUI 검증 스크립트
+# 검사 도구
 
-Windows 소스 실행 의존성을 설치한 후 이 폴더의 스크립트를 실행할 수 있습니다.
+저장소 루트에서 Windows용 의존성을 설치한 뒤 실행합니다.
 
-- chat_checks.py: 모의 API·HWP로 최초 채팅, 직접 편집, 수정, 오류 보존, 최신 초안만 승인 저장되는지 검사합니다.
-- chat_layout_checks.py: 기본·최소 창 크기, 100%·150% 글꼴 배율, 채팅·직접 편집 탭·일반현황 24조건 (0.4.0의 두 본문)의 배치를 검사합니다. 화면을 가리지 않는 투명 시험 창을 사용합니다.
-- ui_checks.py: 기존 채팅·API 오류·NAS 오류·재승인 상태 검사를 수행합니다. API·NAS 장애는 모의 시험입니다.
+```powershell
+.\.venv\Scripts\python.exe qa\run_unit_checks.py
+```
 
-이 스크립트는 실제 API를 호출하거나 실제 HWP 결과를 만들지 않습니다. 시험 JSON은 이 폴더에 작성합니다. 실제 API 및 한글 검증 범위는 DEVELOPMENT_TEST_RECORD.md를 확인하세요.
+90개 단위검사에는 승인 전 저장 차단, 수정 범위·검수 메모 보존, 이전 초안 복원 등이 포함됩니다. 실제 API·한글·NAS 통합 시험과 구분합니다.
 
-- pdf_drop_checks.py: 실제 TkDND 로드, PDF 파일명/드롭 입력 검증, 실패 시 기존 첨부 보존과 버튼 호환성을 확인합니다. 가상 PDF만 임시 생성하며 API/HWP는 호출하지 않습니다.
+## 도구 구분
 
-- pdf_drop_checks.py: 실제 TkDND 파일 첨부, × 해제, 메모리 제거, 재첨부, 원본/초안 보존을 검사합니다. 가상 자료만 쓰며 API/HWP는 호출하지 않습니다.
+| 대상 | 스크립트 |
+| --- | --- |
+| 채팅·편집·승인·입력 보존 | `chat_checks.py`, `ui_checks.py`, `workflow_checks.py`, `response_failure_checks.py` |
+| 화면 배치·진행 표시 | `chat_layout_checks.py`, `stream_checks.py`, `quiet_checks.py` |
+| 첨부·일반현황·저장 이름 | `pdf_drop_checks.py`, `metadata_checks.py`, `save_name_checks.py` |
+| 달력·고정·날짜·분과 | `calendar_pin_checks.py`, `inline_calendar_checks.py`, `pin_tick_checks.py`, `today_checks.py`, `division_checks.py` |
+| 연결·키 재사용의 모의 시험 | `api_connection_checks.py`, `remember_checks.py` |
+| PDF 로컬 성능·보존 대조 | `pdf_speed_benchmark.py`, `pdf_visual_verify.py`, `pdf_baseline.py`, `lightweight_benchmark.py` |
+| 배포 EXE의 소스 일치 | `verify_frozen.py PATH_TO_EXE` — 빌드 마지막에도 실행 |
+| 실제 AI 수정 검증 | `revision_checks.py` — 실행 옵션·비용·가상 자료 조건을 먼저 확인 |
+| 실제 한글 저장·재입력 | `hwp_memory_checks.py --approved EXISTING_TEST_FOLDER` — 가상 출력의 명시적 승인 필요 |
 
-- pdf_speed_benchmark.py: 기본 가상 PDF 또는 --pdf 경로를 로컬로 비교합니다. API 호출/문서 출력 없이 시간·보존 결과만 표시합니다. pdf_visual_verify.py는 메모리에서 원본과 부분 PDF의 모든 선택 페이지 글자·렌더링을 대조합니다. pdf_baseline.py는 개선 전 대조 함수입니다.
+GUI 회귀 검사는 실제 Tk 위젯과 모의 네트워크·저장을 사용합니다. 실제 API·한글을 이용하는 도구는 별도로 구분했으며, 전체 단위검사에서 자동 실행하지 않습니다. 시간에 민감한 GUI 검사는 순차 실행하세요.
 
-- stream_checks.py: 지연된 모의 스트림으로 경과 초·점진 표시·제목 연결·승인 차단·중단 보존을 실제 Tk 위젯에서 검사합니다. API/HWP 호출은 하지 않습니다.
+실제 API 시험은 비용이 발생합니다. 키는 Windows 자격 증명 저장소를 사용하며 업무자료 대신 명확한 가상 자료를 사용하세요. 시험 출력은 로컬 검증용이고 배포 프로그램의 업무 로그 기능이 아닙니다.
 
-- save_name_checks.py: 정리된 저장 이름 미리보기·승인 전달·제목/본문 보존·잘못된 이름 차단·충돌 후 보존을 실제 Tk 위젯에서 확인합니다. 저장은 모의 처리하며 실제 HWP/API 호출은 없습니다.
-
-- metadata_checks.py: 첨부 일반현황 자동 입력, 교체/삭제 시 자동값과 수동값 구분, 오류 보존·재시도를 모의 API와 실제 Tk 위젯으로 확인합니다. API·HWP 실호출 없음.
-
-
-0.4.0은 AI 결과 본문을 두 개로 통합했습니다. 과거 모의 응답의 checks 값은 호환 처리로 조치요청 본문에 합쳐집니다. 실제 AI 시험과 저장 모의 처리의 구분은 FOLLOWUP_VERIFICATION.md를 확인하세요.
-
-
-remember_checks.py: 합성 키로 시작 자동 연결·앱 재초기화·키 없음·실패 시 키 보존을 검증합니다. 기존 다른 QA는 자동 연결을 끄고 해당 기능만 시험하여 예기치 않은 실제 API 호출을 막습니다.
-
-
-hwp_memory_checks.py --approved EXISTING_TEST_FOLDER: 실제 한글로 가상 HWP를 저장·재입력하고 3pt 빈 줄까지 검사합니다. API를 호출하거나 보안 설정을 바꾸지 않습니다. 명시적인 승인 인자와 기존 시험 폴더가 필요하며 자동 빌드 검사에서는 실행하지 않습니다.
-
-
-workflow_checks.py: 실제 Tk 위젯에서 단일 입력창 초안/수정/재작성 취소, 승인 시 폴더 선택 취소·선택 완료 후 최신 스냅샷 한 번만 전달을 검사합니다. API·폴더 대화상자·HWP 저장은 모의 처리합니다.
-
-
-quiet_checks.py: 모의 API·보안 저장소·HWP로 자동 요청/역할·사용량·상태 문구 숨김, 직접 요청/결과 보존, 설정 창의 전송·비용 안내를 확인합니다. stream_checks.py는 대화 상단에 고정된 초와 로딩 점 3상태·점진 본문·실패 보존을 확인합니다.
-
-
-response_failure_checks.py: 네트워크만 모의 처리하고 실제 API 클라이언트 검증을 거쳐, 잘못된 중첩 응답에 대한 기존 편집/요청 보존·정상 재시도·무저장·화면 콜백 예외 없음을 확인합니다. 시간에 민감한 UI 검사는 순차 실행을 권장합니다. run_unit_checks.py는 전체 단위검사를 실행하고 시험용 임시 디렉터리 정리의 Windows 공유 잠금만 제한 재시도합니다. verify_frozen.py PATH_TO_EXE는 빌드한 10개 모듈과 저장 소스의 컴파일 일치를 검사하며 build.ps1 끝에서 자동 실행됩니다.
-
-
-calendar_pin_checks.py: 격리된 가상 사용자 설정을 사용한 실제 Tk 달력/승인 누락값/재실행 복원/고정 해제/오류 보존 검사. test_preferences.py: 허용된 수동 항목만 저장, 원자 저장 실패 시 기존 파일 보존, 손상 파일 읽기 검증. verify_frozen.py는 현재 12개 모듈(달력·고정 설정 포함)의 소스 일치를 검사한다.
-
-
-inline_calendar_checks.py: 별도 창 미생성, 앱 내부 채팅 입력 바로 위 배치, 6주 달력, 실제 버튼 press/release 한 번 반영을 네 가지 창 크기/배율 조합에서 검사한다.
-
-
-pin_tick_checks.py: 실제 Windows Tk에서 고정 전용 네이티브 indicator/스타일·선택 해제·Space 키·비활성화·고정 복원·해제 저장을 검사한다. 실제 사용자 설정과 보안 저장소는 사용하지 않는다.
-
-
-today_checks.py: 가상 시계와 실제 Tk 타이머를 사용한 오늘 파란 강조/날짜·월·연도 변경/입력 날짜 보존/타이머 정리 검사. 실제 업무 자료·API 키·외부 호출을 사용하지 않는다.
-
-
-api_connection_checks.py: 실제 API 클라이언트의 전송 오류 분류·제한 재시도를 사용한 Tk 시작 연결/입력·키 보존 검사. tests/test_api_connection.py는 통신 오류 분류·연결 시험 재시도 제한·인증 오류 무재시도·HTTP 응답 비노출·부분 스트림 재요청 금지를 검사한다. main.py --api-check NEW_JSON은 실제 키를 표시/변경하지 않고 가상 OK 요청만 전송하는 개발자 진단이다(소량 과금). 정상 상태에서 72개 단위검사 후 verify_frozen.py PATH_TO_EXE(현재 13개 모듈)를 실행한다.
-
-
-division_checks.py: 가상 PDF 인식 결과의 제목 반영·교체·수동 제목 보존·연도/분과 미확인·두 고정값·날짜 스냅샷을 실제 Tk에서 검사. tests/test_division_date.py: 근거와 쪽수/분과 거부/한 번의 PDF 요청/한국어 날짜/이전 고정 설정 마이그레이션 검사. verify_frozen.py는 report_format 포함 현재 14개 모듈을 비교한다.
+[검증 근거 안내](../docs/README.md) · [개발 이력](../docs/DEVELOPMENT_TEST_RECORD.md)
