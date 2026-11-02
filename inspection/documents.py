@@ -21,6 +21,10 @@ class PreparedDocument:
 
 DRAWING={b'Do',b'sh',b'S',b's',b'f',b'F',b'f*',b'B',b'B*',b'b',b'b*'}
 
+def prepare_hwp(path,progress=None):
+    from .hwp_input import convert_pdf
+    return convert_pdf(path,lambda pdf:prepare_pdf(pdf,progress=progress))
+
 def prepare_pdf(path,progress=None):
     from pypdf import PdfReader,PdfWriter
     from pypdf.errors import DependencyError

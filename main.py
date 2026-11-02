@@ -1,7 +1,10 @@
 import sys
 
 if __name__=='__main__':
-    if '--hwp-worker' in sys.argv:
+    if len(sys.argv)==4 and sys.argv[1]=='--hwp-input-worker':
+        from inspection.hwp_input import worker_main
+        worker_main()
+    elif '--hwp-worker' in sys.argv:
         from inspection.exporter import worker_main
         worker_main()
     elif len(sys.argv)==3 and sys.argv[1]=='--api-check':

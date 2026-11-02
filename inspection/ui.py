@@ -11,7 +11,7 @@ from .date_picker import DatePicker
 from .report_format import visit_date,report_title
 from .revisions import DraftHistory,restore_intent
 from .core import Report, GENERAL, evidenced_general, filename, destination
-from .documents import prepare_pdf
+from .documents import prepare_pdf,prepare_hwp
 
 BG='#F4F6F8'
 WHITE='#FFFFFF'
@@ -54,7 +54,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.15')
+        root.title('AI 현장점검 결과서 · 0.4.16')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -89,13 +89,13 @@ class App:
         pdf=tk.Frame(self.input_panel,bg='#F1F7F6',highlightbackground=LINE,highlightthickness=1)
         self.pdf_surface=pdf
         pdf.grid(row=0,column=0,sticky='ew',pady=(0,12));pdf.columnconfigure(0,weight=1)
-        ttk.Label(pdf,text='사업계획서 PDF',style='FieldTitle.TLabel').grid(row=0,column=0,sticky='w',padx=12,pady=(10,0))
+        ttk.Label(pdf,text='사업계획서 · PDF / HWP',style='FieldTitle.TLabel').grid(row=0,column=0,sticky='w',padx=12,pady=(10,0))
         pdf.rowconfigure(0,minsize=30)
         self.remove_pdf_button=self.button(pdf,'×',self.remove_pdf,style='Text.TButton')
         self.remove_pdf_button.configure(width=2,padding=(0,0),takefocus=True)
         self.remove_pdf_button.grid(row=0,column=1,sticky='ne',padx=(6,10),pady=(4,0))
         self.remove_pdf_button.grid_remove()
-        self.button(pdf,'PDF 첨부',self.attach,style='Quiet.TButton').grid(row=1,column=1,padx=(6,10),pady=(0,8))
+        self.button(pdf,'파일 첨부',self.attach,style='Quiet.TButton').grid(row=1,column=1,padx=(6,10),pady=(0,8))
         self.pdf_caption=tk.Label(pdf,textvariable=self.pdf_label,bg='#F1F7F6',fg=MUTED,font=('맑은 고딕',9),anchor='w',justify='left',wraplength=200,height=2)
         self.pdf_caption.grid(row=1,column=0,sticky='ew',padx=(12,4),pady=(3,8))
         pdf.bind('<Configure>',lambda e:self.pdf_caption.configure(wraplength=max(100,e.width-110)))
@@ -449,7 +449,7 @@ class App:
             self.conversation.insert('end','\n')
         if not self.messages and not self.get(self.findings).strip():
             self.conversation.insert('end','자료를 넣고, 아래에서 초안을 작성하세요.\n','welcome')
-            self.conversation.insert('end','PDF와 회의록을 입력한 뒤 아래 ‘초안 작성’을 누르세요.\n수정할 내용도 같은 입력창에서 요청하면 됩니다.\n\n최종 내용을 검수하고 ‘승인 및 한글 저장’을 누르세요.','hint')
+            self.conversation.insert('end','사업계획서(PDF·HWP)와 회의록을 입력한 뒤 아래 ‘초안 작성’을 누르세요.\n수정할 내용도 같은 입력창에서 요청하면 됩니다.\n\n최종 내용을 검수하고 ‘승인 및 한글 저장’을 누르세요.','hint')
         for message in self.messages:
             if message['kind']=='user':
                 if message.get('visible',True):self.conversation.insert('end',message['text']+'\n','user')
@@ -552,7 +552,7 @@ class App:
             while True:latest=self.pdf_progress.get_nowait()
         except queue.Empty:pass
         if latest is not None and self.busy:
-            self.set_status(f'PDF 읽는 중 · {latest[0]}/{latest[1]}쪽')
+            self.set_status(f'문서 읽는 중 · {latest[0]}/{latest[1]}쪽')
         try:
             done,ok,result=self.mailbox.get_nowait()
             if ok and self.ai_started is not None and self.stream_visible!=self.stream_target:
@@ -584,7 +584,7 @@ class App:
 
     def attach(self):
         if self.busy:return
-        p=filedialog.askopenfilename(parent=self.root,title='사업계획서 PDF',filetypes=[('PDF','*.pdf')])
+        p=filedialog.askopenfilename(parent=self.root,title='사업계획서 · PDF / HWP',filetypes=[('사업계획서','*.pdf *.hwp'),('PDF','*.pdf'),('한글 문서','*.hwp')])
         if not p:return
         self.load_pdf(p)
 
@@ -593,7 +593,7 @@ class App:
         self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         self.original_pdf_bytes=None;self.pdf_page_count=0
-        hint='PDF 첨부 또는 여기로 드래그 · 최대 30MB' if self.root.tk.call('package','provide','tkdnd') else 'PDF 파일을 첨부해 주세요 · 최대 30MB'
+        hint='PDF·HWP 첨부 또는 드래그 · 최대 30MB' if self.root.tk.call('package','provide','tkdnd') else 'PDF·HWP 파일을 첨부해 주세요 · 최대 30MB'
         self.pdf_label.set(hint)
         self.pdf_drag_leave()
         self.status.set('첨부를 해제했습니다.')
@@ -608,7 +608,7 @@ class App:
             widget.dnd_bind('<<DropEnter>>',self.pdf_drag_enter)
             widget.dnd_bind('<<DropLeave>>',self.pdf_drag_leave)
             widget.dnd_bind('<<Drop>>',self.pdf_drop)
-        self.pdf_label.set('PDF 첨부 또는 여기로 드래그 · 최대 30MB')
+        self.pdf_label.set('PDF·HWP 첨부 또는 드래그 · 최대 30MB')
 
     def pdf_drag_enter(self,event):
         if self.busy:return 'refuse_drop'
@@ -624,14 +624,18 @@ class App:
         if self.busy:return 'refuse_drop'
         try:paths=self.root.tk.splitlist(event.data)
         except tk.TclError:paths=()
-        if len(paths)!=1 or Path(paths[0]).suffix.lower()!='.pdf':
-            self.status.set('사업계획서 PDF 파일 1개만 놓아 주세요. 기존 첨부는 유지됩니다.')
+        if len(paths)!=1 or Path(paths[0]).suffix.lower() not in ('.pdf','.hwp'):
+            self.status.set('사업계획서 PDF 또는 HWP 파일 1개만 놓아 주세요. 기존 첨부는 유지됩니다.')
             return 'refuse_drop'
         self.load_pdf(paths[0])
         return 'copy'
 
     def load_pdf(self,p):
         if self.busy:return
+        suffix=Path(p).suffix.lower()
+        if suffix not in ('.pdf','.hwp'):
+            self.status.set('PDF 또는 HWP 파일을 첨부해 주세요. 기존 첨부는 유지됩니다.');return
+        is_hwp=suffix=='.hwp'
         def done(result):
             self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
             self.plan=result.local_text;self.api_plan=result.api_text
@@ -639,12 +643,14 @@ class App:
             self.original_pdf_bytes=result.original_bytes;self.pdf_page_count=result.page_count
             name=Path(p).name
             if len(name)>32:name=Path(p).stem[:27]+'…'+Path(p).suffix
-            self.pdf_label.set(f'{name}\n{result.page_count}쪽 · 첨부 완료')
+            kind='HWP 변환' if is_hwp else 'PDF'
+            self.pdf_label.set(f'{name}\n{kind} {result.page_count}쪽 · 첨부 완료')
             if self.connected:
-                self.status.set('PDF를 첨부했습니다.')
+                self.status.set('사업계획서를 첨부했습니다.')
                 self.recognize_general()
-            else:self.status.set('PDF를 첨부했습니다. API 설정에서 연결을 확인해 주세요.')
-        self.background(lambda:prepare_pdf(p,progress=lambda current,total:self.pdf_progress.put((current,total))),done,'PDF를 읽고 있습니다.')
+            else:self.status.set('사업계획서를 첨부했습니다. API 설정에서 연결을 확인해 주세요.')
+        prepare=prepare_hwp if is_hwp else prepare_pdf
+        self.background(lambda:prepare(p,progress=lambda current,total:self.pdf_progress.put((current,total))),done,'HWP를 읽고 PDF로 변환하고 있습니다.' if is_hwp else 'PDF를 읽고 있습니다.')
 
     def general_edited(self,key):
         if not self._auto_write:
@@ -657,7 +663,8 @@ class App:
         evidence=self.general_evidence.get(key)
         if evidence:
             quote=evidence['quote'];short=quote[:110]+('…' if len(quote)>110 else '')
-            self.general_evidence_note.set(f'{GENERAL[key]} · AI 제시 근거: 원본 PDF {evidence["page"]}쪽\n{short}')
+            source='HWP 변환 PDF' if Path(self.pdf_path).suffix.lower()=='.hwp' else '원본 PDF'
+            self.general_evidence_note.set(f'{GENERAL[key]} · AI 제시 근거: {source} {evidence["page"]}쪽\n{short}')
         elif key in self.general_issues:self.general_evidence_note.set(GENERAL[key]+' · '+self.general_issues[key])
         else:self.general_evidence_note.set('직접 입력·수정한 값 또는 AI 근거가 없는 항목입니다. 승인 전에 확인해 주세요.')
 
@@ -699,7 +706,7 @@ class App:
             self.metadata_started=None
             if revision!=self.document_revision:return
             if 'error' in result:
-                self.status.set('PDF 첨부는 완료됐습니다. 일반현황 AI 인식 실패: '+result['error']+' 일반현황에서 다시 읽기 또는 직접 입력해 주세요.');return
+                self.status.set('첨부는 완료됐습니다. 일반현황 AI 인식 실패: '+result['error']+' 일반현황에서 다시 읽기 또는 직접 입력해 주세요.');return
             values,usage=result['data'];added=0
             for key,value in values.items():
                 if key in metadata.TITLE_FIELDS:
@@ -722,7 +729,7 @@ class App:
         if not self.connected:
             messagebox.showinfo('API 연결 확인','API 설정에서 키를 저장하고 연결 확인을 먼저 해 주세요.',parent=self.root);return False
         if not self.pdf_path or not self.get(self.minutes).strip():
-            messagebox.showinfo('자료 확인','사업계획서 PDF와 회의록이 모두 필요합니다.',parent=self.root);return False
+            messagebox.showinfo('자료 확인','사업계획서(PDF·HWP)와 회의록이 모두 필요합니다.',parent=self.root);return False
         return True
 
     def draft(self):
@@ -900,7 +907,7 @@ class App:
         ttk.Button(f,text='키 삭제',style='Danger.TButton',command=remove).grid(row=3,column=1,pady=8)
         ttk.Button(f,text='연결 확인',style='Primary.TButton',command=check).grid(row=3,column=2,pady=8)
         ttk.Label(f,textvariable=state,style='Card.TLabel',wraplength=440).grid(row=4,column=0,columnspan=3,sticky='w',pady=(10,6))
-        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\nPDF 원본 전체·회의록·초안·수정 요청을 OpenAI로 전송합니다.\n사용량에 따른 API 비용이 발생하며 ChatGPT 구독과 별도입니다.\n키는 이 Windows 계정에 보관합니다. 다음 실행 시 자동 연결을 확인합니다(소량 과금).',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
+        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\n사업계획서 전체(PDF 원본·HWP는 PDF 변환본)와 회의록·초안·수정 요청을 OpenAI로 전송합니다.\nHWP 변환은 로컬 임시 폴더에서 처리하며 원본을 변경하지 않습니다.\n사용량에 따른 API 비용이 발생하며 ChatGPT 구독과 별도입니다.\n키는 이 Windows 계정에 보관합니다. 다음 실행 시 자동 연결을 확인합니다(소량 과금).',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
         w.protocol('WM_DELETE_WINDOW',lambda:None if self.busy else w.destroy())
         self.place_dialog(w);e.focus_set();e.selection_range(0,'end')
 

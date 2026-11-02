@@ -6,6 +6,7 @@
 | --- | --- |
 | 모델 선택·비용·출력 비교 | [모델 비교](MODEL_EVALUATION.md), [가상 응답·usage](../benchmarks/synthetic_results.json), [토큰·비용](../benchmarks/token_cost.csv) |
 | 날짜 선택·고정·오늘 강조 | [날짜·고정](CALENDAR_PIN_VERIFICATION.md), [앱 내부 달력](INLINE_CALENDAR_VERIFICATION.md), [오늘 날짜](TODAY_HIGHLIGHT_VERIFICATION.md) |
+| HWP 첨부·변환·AI 작성 연결 | [HWP 입력 검증](HWP_INPUT_VERIFICATION.md) |
 | PDF 전체 분석·분과·날짜 출력 | [전체 PDF](FULL_PDF_METADATA_VERIFICATION.md), [분과·날짜](DIVISION_DATE_VERIFICATION.md) |
 | 초안 수정·이전 초안 복원·90개 검사·22회 AI 시험 | [채팅 검증](CHAT_REVISION_VERIFICATION.md), [테스트 소스](../tests), [검사 도구](../qa) |
 | 승인 저장·한글 결과 | [HWP 입출력](HWP_MEMORY_VERIFICATION.md), [본문·여백](BODY_SPACING_VERIFICATION.md) |
