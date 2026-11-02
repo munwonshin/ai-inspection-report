@@ -57,7 +57,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.17')
+        root.title('AI 현장점검 결과서 · 0.4.18')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -73,6 +73,8 @@ class App:
         ttk.Label(brand,text='AI 현장점검 결과서',style='Brand.TLabel').pack(anchor='w')
         ttk.Label(brand,text='자료 입력 → 초안 검수 → 승인 저장',style='Subtle.TLabel').pack(anchor='w',pady=(2,0))
         self.button(header,'API 설정',self.settings,style='Quiet.TButton').pack(side='right')
+        self.reset_button=self.button(header,'초기화',self.reset_workspace,style='Text.TButton')
+        self.reset_button.pack(side='right',padx=(0,8))
         self.connection_badge=tk.Label(header,text='●  API 연결 확인 필요',font=('맑은 고딕',9),bg=BG,fg=MUTED)
         self.connection_badge.pack(side='right',padx=(10,14))
 
@@ -588,6 +590,48 @@ class App:
     def safe_error(self,e):
         if isinstance(e,(ValueError,RuntimeError,api.ApiFailure,PermissionError)):return str(e)
         return '작업을 완료하지 못했습니다. 파일·네트워크·접근 권한을 확인해 주세요. 입력 내용은 유지됩니다.'
+
+    def reset_workspace(self):
+        # A running API/conversion/save must finish before its input is discarded.
+        if self.busy:return False
+        # Persist the empty pins first. On failure keep the entire workspace.
+        if self.preferences_enabled:
+            try:preferences.save(self.preferences_path,{})
+            except (OSError,ValueError) as e:
+                messagebox.showerror('초기화 실패','고정 설정을 초기화하지 못했습니다. 입력 내용은 유지됩니다. '+self.safe_error(e),parent=self.root)
+                return False
+        if self._preferences_timer is not None:
+            self.root.after_cancel(self._preferences_timer);self._preferences_timer=None
+        enabled=self.preferences_enabled;self.preferences_enabled=False
+        try:
+            for picker in self.date_pickers:picker.close()
+            self._remembered={};self.preferences_error=False
+            for value in self.pinned.values():value.set(False)
+            self.clear_plan_general();self.document_revision+=1;self.revision+=1
+            self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
+            self.original_pdf_bytes=None;self.pdf_page_count=0;self.general_scanned=False
+            self.metadata_started=None;self.ai_started=None;self.pending_request=None
+            self.pdf_progress=queue.SimpleQueue();self.stream_queue=queue.SimpleQueue()
+            self.stream_json='';self.stream_visible='';self.stream_target='';self._stream_rendered=None
+            for value in self.general.values():value.set('')
+            for text in (self.minutes,self.findings,self.actions):
+                text.delete('1.0','end');text.edit_reset();text.edit_modified(False)
+            self.title.set('현장점검 결과서');self.folder.set('');self.chat.set('')
+            self.messages.clear();self.draft_history=DraftHistory()
+            self.last_saved=None;self.saved_current=False
+            self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
+            self.editor_open=False;self.editor_view.grid_remove();self.editor_view.select(0);self.chat_view.grid()
+            self.editor_button.configure(text='직접 편집')
+            if self.general_expanded:self.toggle_general()
+            self.general_canvas.yview_moveto(0)
+            hint='PDF·HWP 첨부 또는 드래그 · 최대 30MB' if self.root.tk.call('package','provide','tkdnd') else 'PDF·HWP 파일을 첨부해 주세요 · 최대 30MB'
+            self.pdf_label.set(hint);self.pdf_drag_leave()
+            self.progress.stop();self.progress.configure(mode='determinate',value=0)
+            self.render_conversation(follow=True);self.refresh_state()
+            self.status.set('초기화했습니다. API 설정은 유지됩니다.')
+            self.minutes.focus_set()
+        finally:self.preferences_enabled=enabled
+        return True
 
     def choose_folder(self):
         p=filedialog.askdirectory(parent=self.root,title='저장 폴더 선택 · 로컬 또는 NAS')
