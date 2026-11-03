@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/windows-release.yml'
       - '.gitattributes'
+      - 'inspection/desktop_shortcut.py'
 
 permissions:
   contents: read
