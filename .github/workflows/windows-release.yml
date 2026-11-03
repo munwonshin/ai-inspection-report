@@ -1,0 +1,84 @@
+name: Windows executable release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-executable-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Test and build Windows application
+        run: ./build.ps1
+      - name: Check bundled GUI and TLS runtime
+        timeout-minutes: 3
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $result = Join-Path $env:RUNNER_TEMP 'runtime-check.json'
+          $exe = (Resolve-Path 'dist/AIInspectionReport/AIInspectionReport.exe').Path
+          $process = Start-Process -FilePath $exe -ArgumentList '--runtime-check', $result -Wait -PassThru
+          if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $result)) { throw 'Bundled runtime check failed' }
+          $runtime = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json
+          if (-not $runtime.tkdnd -or -not $runtime.tls) { throw 'Missing bundled GUI/TLS dependency' }
+      - name: Package verified executable
+        id: package
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = & ./.venv/Scripts/python.exe -c "from inspection.desktop_shortcut import VERSION; print(VERSION)"
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          & ./.venv/Scripts/python.exe qa/package_release.py dist/AIInspectionReport $version
+          if ($LASTEXITCODE -ne 0) { throw 'Release package verification failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: release/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release
+      - name: Publish executable ZIP on GitHub Releases
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          sha256sum --check SHA256SUMS.txt
+          gh release create "v$VERSION" "AIInspectionReport-$VERSION-windows-x64.zip" SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "AI 현장점검 결과서 $VERSION · Windows 실행용" \
+            --notes-file RELEASE_NOTES.md --latest
