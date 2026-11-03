@@ -2,11 +2,11 @@
 
 사업계획서와 회의록으로 AI 초안을 만들고, 사용자가 검토·수정·승인한 내용을 기존 한글 양식에 저장하는 Windows 프로그램입니다.
 
-**버전 0.4.25** · 자료 입력 → AI 초안 → 검토·채팅 수정 → 승인 후 HWP 저장
+**버전 0.4.26** · 자료 입력 → AI 초안 → 검토·채팅 수정 → 승인 후 HWP 저장
 
 ## 다운로드
 
-**[Windows 실행용 ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.25/AIInspectionReport-0.4.25-windows-x64.zip)** · [전체 배포본](https://github.com/munwonshin/ai-inspection-report/releases)
+**[Windows 실행용 ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.26/AIInspectionReport-0.4.26-windows-x64.zip)** · [전체 배포본](https://github.com/munwonshin/ai-inspection-report/releases)
 
 ZIP 전체 압축 해제 → `AIInspectionReport` 폴더의 **바탕화면 아이콘 만들기.cmd** 실행 → 바탕화면 아이콘으로 실행합니다. EXE를 직접 실행해도 됩니다.
 
@@ -29,7 +29,7 @@ ZIP 전체 압축 해제 → `AIInspectionReport` 폴더의 **바탕화면 아�
 | 자료 입력 | PDF·HWP 첨부·드래그·삭제, 회의록 입력, 일반현황·연도·분과 자동 분석 |
 | 초안 생성 | 회의록 중심 작성, 문맥이 명확한 오타 정리, 생성 시간·진행 표시 |
 | 검토·수정 | 직접 편집, 원본과 현재 초안을 반영한 채팅 수정, 이전 초안 복원 |
-| 승인·저장 | 기존 표·서식에 HWP 저장, 파일·폴더 열기, 같은 이름 덮어쓰기 방지 |
+| 승인·저장 | 기존 표·서식에 HWP 저장, 임시 폴더 표시 제거, 파일·폴더 열기, 덮어쓰기 방지 |
 
 - 앱 내부 달력과 오늘 날짜 표시, 점검자 소속·이름 고정으로 반복 입력을 줄입니다.
 - HWP 첨부는 한글 실행·PDF 변환 없이 직접 읽습니다.
@@ -86,8 +86,8 @@ python -m venv .venv
 
 ## 검증 및 한계
 
-0.4.25는 **단위 검사 144개**, EXE와 소스 일치, GitHub Windows 빌드·GUI/TLS 실행·배포 ZIP 검사를 통과했습니다. GitHub에서 실제 ZIP을 다운로드해 파일 무결성과 바탕화면 아이콘 생성을 확인했습니다. 검사 건수는 업무 정확도나 사용자 만족도 수치가 아닙니다.
+0.4.26은 **단위 검사 151개**, EXE와 소스 일치, GitHub Windows 빌드·GUI/TLS 실행·배포 ZIP 검사를 통과했습니다. GitHub에서 실제 ZIP을 다운로드해 파일 무결성과 바탕화면 아이콘 생성을 확인했습니다. 검사 건수는 업무 정확도나 사용자 만족도 수치가 아닙니다.
 
-실제 AI 초안·부분 수정·직접 편집 보존·승인 후 HWP 저장·한글 재입력은 0.4.23의 가상 자료 시험에서 확인했습니다. 최신 배포본의 전체 흐름을 모든 PC에서 재검증한 의미는 아닙니다. 다른 한글 버전과 실제 NAS는 추가 검증이 필요합니다.
+실제 AI 초안·부분 수정·직접 편집 보존·승인 후 HWP 저장·한글 재입력은 0.4.23의 가상 자료 시험에서 확인했습니다. 0.4.26 배포본에서도 가상 HWP 저장·한글 재입력과 임시 폴더 미생성을 확인했습니다. 최신 배포본의 전체 흐름을 모든 PC에서 재검증한 의미는 아닙니다. 다른 한글 버전과 실제 NAS는 추가 검증이 필요합니다.
 
 [검증 문서](docs/README.md) · [모델 비교](docs/MODEL_EVALUATION.md) · [개발 기록](docs/DEVELOPMENT_TEST_RECORD.md) · [제3자 소프트웨어 고지](THIRD_PARTY_NOTICES.md)
