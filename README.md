@@ -4,6 +4,14 @@
 
 **버전 0.4.24** · `자료 입력 → AI 초안 생성 → 검토·채팅 수정 → 승인 후 HWP 저장`
 
+### 프로그램 다운로드
+
+**[Windows 실행용 ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.24/AIInspectionReport-0.4.24-windows-x64.zip)** · [배포 페이지](https://github.com/munwonshin/ai-inspection-report/releases/latest)
+
+ZIP 다운로드 → 전체 압축 해제 → `AIInspectionReport` 폴더의 **바탕화면 아이콘 만들기.cmd** 실행 → 바탕화면 아이콘으로 실행합니다. Python 설치는 필요 없으며, 한컴오피스와 사용자 본인의 OpenAI API 키는 필요합니다.
+
+**Code → Download ZIP과 Releases의 Source code (zip)은 개발용 소스입니다.** 설치하려면 위 실행용 ZIP을 선택하세요.
+
 ## 개발 배경
 
 현장방문 후 회의록과 사업계획서를 대조해 결과서를 작성하면서, 자료 확인·내용 정리·한글 양식 편집을 반복해야 했습니다. 이 과정을 줄이고 담당자가 사실 확인과 검토에 집중할 수 있도록 개발했습니다. 사업계획서는 배경·목표·일반현황 파악에, 회의록은 현장 진행상황과 안내·요청의 주된 근거로 사용합니다.
@@ -65,7 +73,7 @@ Codex를 활용해 개발했습니다. 코드 구현·테스트 실행·빌드�
 
 ### 실행용 ZIP과 소스 ZIP
 
-**GitHub의 Code → Download ZIP은 소스 코드이며 실행 파일(EXE)이 들어 있지 않습니다.** 프로그램을 설치해 사용하려면 별도로 배포한 **실행용 ZIP**이 필요합니다.
+**GitHub의 Code → Download ZIP은 소스 코드이며 실행 파일(EXE)이 들어 있지 않습니다.** 프로그램을 설치해 사용하려면 [Releases의 실행용 ZIP](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.24/AIInspectionReport-0.4.24-windows-x64.zip)을 받으세요.
 
 | 받은 파일 | 사용 방법 |
 | --- | --- |
