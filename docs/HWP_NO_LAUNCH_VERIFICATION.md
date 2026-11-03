@@ -27,7 +27,7 @@ HWP 5의 전체 본문·표·셀 병합·참조 그림·배경 그림·수식 �
 | 본문 후반 구역·표 주소·셀 병합·손상·보호·압축 크기 | [직접 읽기 검사](../tests/test_hwp_direct.py) |
 | PNG/BMP/JPEG/SVG의 API 입력, 수식·배경, 중복 이미지, 잘림, 외부 참조·프레임 제한 | [그림 검사](../tests/test_hwp_images.py) |
 | 변환 없는 첨부 분기 | [입력 경로 검사](../tests/test_hwp_input.py) |
-| API·Hancom 실행을 금지한 로컬 첨부 및 실패 보존 | [UI 검사 도구](../qa/local_hwp_ui_checks.py) |
+| API·Hancom 실행을 금지한 로컬 첨부 및 실패 보존 | [UI 검사 도구](https://github.com/munwonshin/ai-inspection-report/blob/35850bd0f59dd21bcfc9b78e4d3ee65a5bd88828/qa/local_hwp_ui_checks.py) |
 | 빌드된 모듈과 원본 소스의 일치 | [EXE 소스 대조](../qa/verify_frozen.py) |
 
 별도로 직접 만든 가상 HWP와 그림으로 실제 API 흐름을 검사했습니다. 그림에만 기재한 가상 책임자 인식 → 초안 생성 → 직접 편집 → 채팅 수정 → 승인 → HWP 저장·한글 재입력 대조를 통과했습니다. 편집한 검수 문구가 유지됐고 승인 전 출력 폴더가 비어 있음을 확인했습니다.
