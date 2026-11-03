@@ -8,6 +8,8 @@ on:
       - '.github/workflows/windows-release.yml'
       - '.gitattributes'
       - 'inspection/desktop_shortcut.py'
+      - 'install-support.cs'
+      - '바탕화면 아이콘 만들기.cmd'
 
 permissions:
   contents: read

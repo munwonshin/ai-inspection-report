@@ -25,6 +25,23 @@ interface IAirShellLinkW {
  void SetPath([MarshalAs(UnmanagedType.LPWStr)] string path);
 }
 public static class AirInstallLink {
+ [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+ static extern IntPtr CreateFile(string path, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
+ [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+ static extern uint GetFinalPathNameByHandle(IntPtr handle, StringBuilder path, uint length, uint flags);
+ [DllImport("kernel32.dll", SetLastError=true)]
+ static extern bool CloseHandle(IntPtr handle);
+ public static string Canonical(string path) {
+  IntPtr handle=CreateFile(path,0x80,7,IntPtr.Zero,3,0x02000000,IntPtr.Zero);
+  if (handle==new IntPtr(-1)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+  try {
+   var result=new StringBuilder(32768);
+   uint count=GetFinalPathNameByHandle(handle,result,(uint)result.Capacity,0);
+   if (count==0 || count>=result.Capacity) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+   return result.ToString();
+  } finally { CloseHandle(handle); }
+ }
+
  static object Create() { return Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00021401-0000-0000-C000-000000000046"))); }
  public static void Save(string file, string target, string directory, string description) {
   object obj=Create();

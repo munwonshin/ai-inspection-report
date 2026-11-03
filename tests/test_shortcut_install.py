@@ -50,6 +50,11 @@ class NativeInstallerTests(unittest.TestCase):
     def test_rerun_does_not_overwrite_old_install(self):
         with tempfile.TemporaryDirectory() as folder:
             source,base,desktop=self.fixture(folder)
+            base=base.with_name('programs with spaces');base.mkdir()
+            import ctypes
+            short=ctypes.create_unicode_buffer(32768)
+            if ctypes.windll.kernel32.GetShortPathNameW(str(base),short,len(short)):
+                base=Path(short.value)
             self.assertEqual(self.run_install(source,base,desktop).returncode,0)
             first=self.target(desktop/'AI 현장점검 결과서.lnk');(first.parent/'keep.txt').write_text('keep')
             self.assertEqual(self.run_install(source,base,desktop).returncode,0)

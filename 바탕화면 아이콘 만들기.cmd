@@ -27,9 +27,9 @@ powershell.exe -NoLogo -NoProfile -Command ^
  "[IO.Directory]::Move($stage,$installed); $stage=$null; $stageOwned=$false;" ^
  "};" ^
  "$target=Join-Path $installed 'AIInspectionReport.exe'; $name='AI 현장점검 결과서'; $link=Join-Path $desktop ($name+'.lnk');" ^
- "if (Test-Path -LiteralPath $link) { $ours=$false; try { $old=[IO.Path]::GetFullPath([AirInstallLink]::Target($link)); $ours=$old.StartsWith($base+'\',[StringComparison]::OrdinalIgnoreCase) } catch {}; if (-not $ours) { $link=Join-Path $desktop ($name+' '+$version+'.lnk'); $i=2; while (Test-Path -LiteralPath $link) { $link=Join-Path $desktop ($name+' '+$version+' ('+$i+').lnk'); $i++ } } };" ^
+ "if (Test-Path -LiteralPath $link) { $ours=$false; try { $old=[AirInstallLink]::Canonical([AirInstallLink]::Target($link)); $root=[AirInstallLink]::Canonical($base); $ours=$old.StartsWith($root+'\',[StringComparison]::OrdinalIgnoreCase) } catch {}; if (-not $ours) { $link=Join-Path $desktop ($name+' '+$version+'.lnk'); $i=2; while (Test-Path -LiteralPath $link) { $link=Join-Path $desktop ($name+' '+$version+' ('+$i+').lnk'); $i++ } } };" ^
  "[AirInstallLink]::Save($link,$target,$installed,$name);" ^
- "if ([AirInstallLink]::Target($link) -ne $target) { throw '바로가기 대상 검증에 실패했습니다.' };" ^
+ "if ([AirInstallLink]::Canonical([AirInstallLink]::Target($link)) -ne [AirInstallLink]::Canonical($target)) { throw '바로가기 대상 검증에 실패했습니다.' };" ^
  "Write-Host '바탕화면 아이콘을 만들었습니다. 이 아이콘으로 프로그램을 실행하세요.'; exit 0;" ^
  "} catch { Write-Host ('설치 실패: '+$_.Exception.Message); exit 1 } finally {" ^
  "if ($stageOwned -and $stage -and [IO.Path]::GetDirectoryName($stage) -eq $base -and [IO.Path]::GetFileName($stage).StartsWith('.install-')) { Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue };" ^
