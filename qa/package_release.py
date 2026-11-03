@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 if len(sys.argv)!=3:raise SystemExit('Usage: package_release.py BUILD_FOLDER VERSION')
 build=Path(sys.argv[1]).resolve();version=sys.argv[2]
 if not re.fullmatch(r'\d+\.\d+\.\d+',version):raise SystemExit('Invalid release version')
-for name in ('AIInspectionReport.exe','_internal','바탕화면 아이콘 만들기.cmd','THIRD_PARTY_NOTICES.md','licenses'):
+for name in ('AIInspectionReport.exe','_internal','바탕화면 아이콘 만들기.cmd','install-support.cs','THIRD_PARTY_NOTICES.md','licenses'):
     if not (build/name).exists():raise SystemExit('Missing distribution component: '+name)
 if (build/'AIInspectionReport.exe').read_bytes()[:2]!=b'MZ':raise SystemExit('Not a Windows executable')
 output=root/'release';output.mkdir(exist_ok=True)

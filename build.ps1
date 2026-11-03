@@ -15,3 +15,5 @@ if ($LASTEXITCODE -ne 0) { throw 'Frozen code differs from source. Rebuild witho
 Copy-Item -LiteralPath '바탕화면 아이콘 만들기.cmd' -Destination '.\dist\AIInspectionReport\'
 Copy-Item -LiteralPath 'THIRD_PARTY_NOTICES.md' -Destination '.\dist\AIInspectionReport\'
 Copy-Item -LiteralPath 'licenses' -Destination '.\dist\AIInspectionReport\' -Recurse -Force
+
+Copy-Item -LiteralPath 'install-support.cs' -Destination '.\dist\AIInspectionReport\'

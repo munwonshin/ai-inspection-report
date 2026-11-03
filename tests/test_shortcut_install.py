@@ -1,6 +1,6 @@
 """Exercise the actual installer commands against isolated paths, no EXE execution."""
 from pathlib import Path
-import os,subprocess,tempfile,unittest
+import os,shutil,subprocess,tempfile,unittest
 
 @unittest.skipUnless(os.name=='nt','Windows PowerShell and WScript.Shell required')
 class NativeInstallerTests(unittest.TestCase):
@@ -24,14 +24,18 @@ class NativeInstallerTests(unittest.TestCase):
         (source/'AIInspectionReport.exe').write_bytes(b'MZ synthetic non-executable fixture')
         (source/'_internal').mkdir();(source/'_internal/runtime.dll').write_bytes(b'synthetic runtime')
         (source/'private.hwp').write_bytes(b'private original')
+        shutil.copy2(Path(__file__).resolve().parents[1]/'install-support.cs',source/'install-support.cs')
         desktop=root/'바탕 화면';desktop.mkdir()
         return source,root/'programs',desktop
     def target(self,link):
-        import pythoncom,win32com.client
-        pythoncom.CoInitialize();shell=None
+        import pythoncom
+        from win32com.shell import shell
+        pythoncom.CoInitialize();shortcut=None;persist=None
         try:
-            shell=win32com.client.Dispatch('WScript.Shell');return Path(shell.CreateShortcut(str(link)).TargetPath)
-        finally:shell=None;pythoncom.CoUninitialize()
+            shortcut=pythoncom.CoCreateInstance(shell.CLSID_ShellLink,None,pythoncom.CLSCTX_INPROC_SERVER,shell.IID_IShellLink)
+            persist=shortcut.QueryInterface(pythoncom.IID_IPersistFile);persist.Load(str(link))
+            return Path(shortcut.GetPath(4)[0])
+        finally:persist=None;shortcut=None;pythoncom.CoUninitialize()
     def test_copies_payload_without_executing_it_and_preserves_source(self):
         with tempfile.TemporaryDirectory() as folder:
             source,base,desktop=self.fixture(folder);r=self.run_install(source,base,desktop)
@@ -60,13 +64,14 @@ class NativeInstallerTests(unittest.TestCase):
             self.assertEqual(list(base.iterdir()),[old]);self.assertEqual((old/'keep.txt').read_text(),'keep')
 
     def test_unrelated_shortcut_remains_unchanged(self):
-        import pythoncom,win32com.client
+        import pythoncom
+        from win32com.shell import shell
         with tempfile.TemporaryDirectory() as folder:
             source,base,desktop=self.fixture(folder);link=desktop/'AI 현장점검 결과서.lnk'
-            pythoncom.CoInitialize();shell=None;shortcut=None
+            pythoncom.CoInitialize();shortcut=None;persist=None
             try:
-                shell=win32com.client.Dispatch('WScript.Shell');shortcut=shell.CreateShortcut(str(link))
-                shortcut.TargetPath=os.environ['COMSPEC'];shortcut.Save()
-            finally:shortcut=None;shell=None;pythoncom.CoUninitialize()
+                shortcut=pythoncom.CoCreateInstance(shell.CLSID_ShellLink,None,pythoncom.CLSCTX_INPROC_SERVER,shell.IID_IShellLink)
+                shortcut.SetPath(os.environ['COMSPEC']);persist=shortcut.QueryInterface(pythoncom.IID_IPersistFile);persist.Save(str(link),0)
+            finally:persist=None;shortcut=None;pythoncom.CoUninitialize()
             before=link.read_bytes();self.assertEqual(self.run_install(source,base,desktop).returncode,0)
             self.assertEqual(link.read_bytes(),before);self.assertEqual(len(list(desktop.glob('*.lnk'))),2)
