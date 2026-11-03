@@ -5,7 +5,7 @@ import base64
 import binascii
 import json
 import os
-import shutil
+import uuid
 import subprocess
 import sys
 import tempfile
@@ -67,6 +67,36 @@ def publish_no_replace(source,dest):
             time.sleep(delays[attempt])
 
 
+def stage_bytes(folder,data):
+    # Create hidden from the first filesystem event; never create a result folder.
+    import ctypes,pywintypes,win32file,win32con
+    staged=Path(folder)/('.ai-inspection-'+uuid.uuid4().hex+'.tmp')
+    try:
+        handle=win32file.CreateFile(str(staged),win32con.GENERIC_WRITE,0,None,
+            win32con.CREATE_NEW,win32con.FILE_ATTRIBUTE_HIDDEN|win32con.FILE_ATTRIBUTE_TEMPORARY,None)
+    except pywintypes.error as error:
+        raise ctypes.WinError(error.winerror) from None
+    try:
+        win32file.WriteFile(handle,data)
+        win32file.FlushFileBuffers(handle)
+    except BaseException as error:
+        handle.Close()
+        try:staged.unlink()
+        except OSError:pass
+        if isinstance(error,pywintypes.error):raise ctypes.WinError(error.winerror) from None
+        raise
+    else:handle.Close()
+    return staged
+
+
+def prepare_publication(staged):
+    import ctypes,pywintypes,win32file,win32con
+    # Do this only after content verification, immediately before atomic rename.
+    # Failure here leaves the chosen final filename untouched.
+    try:win32file.SetFileAttributes(str(staged),win32con.FILE_ATTRIBUTE_ARCHIVE)
+    except pywintypes.error as error:raise ctypes.WinError(error.winerror) from None
+
+
 def worker(payload):
     if payload.get('approved') is not True:
         raise PermissionError('사용자 승인 전에는 저장할 수 없습니다.')
@@ -85,11 +115,8 @@ def worker(payload):
     import win32com.client
     pythoncom.CoInitialize()
     hwp=None
-    stage=None
+    staged=None
     try:
-        # Same-volume staging supports UNC paths and atomic no-replace publication.
-        stage=Path(tempfile.mkdtemp(prefix='.ai-inspection-',dir=str(dest.parent)))
-        staged=stage/'approved.hwp'
         hwp=win32com.client.DispatchEx('HWPFrame.HwpObject')
         hwp.XHwpWindows.Item(0).Visible=False
         # BSTR is UTF-16. An UTF-8 declaration makes older Hancom versions
@@ -99,7 +126,8 @@ def worker(payload):
             raise RuntimeError('한글에서 승인 본문을 변환하지 못했습니다. 편집 내용은 유지됩니다.')
         verify_xml(hwp.GetTextFile('HWPML2X',''),report)
         binary=native_hwp_bytes(hwp.GetTextFile('HWP',''))
-        with staged.open('xb') as f:f.write(binary)
+        # Same-directory file staging preserves same-volume no-replace semantics.
+        staged=stage_bytes(dest.parent,binary)
         # Re-read the bytes actually written, then reload in Hancom. The app
         # owns disk I/O; no Hancom Open/SaveAs, registry or security policy change.
         saved=staged.read_bytes()
@@ -112,14 +140,16 @@ def worker(payload):
         hwp.Clear(1);hwp.Quit();hwp=None
         # Windows rename fails if the target appeared during COM processing.
         # Do not use replace(), which would overwrite that target.
+        prepare_publication(staged)
         publish_no_replace(staged,dest)
         return {'ok':True,'path':str(dest),'pages':pages,'reopened':True}
     finally:
         if hwp is not None:
             try:hwp.Clear(1); hwp.Quit()
             except Exception:pass
-        if stage is not None:
-            shutil.rmtree(stage,ignore_errors=True)
+        if staged is not None:
+            try:staged.unlink(missing_ok=True)
+            except OSError:pass
         pythoncom.CoUninitialize()
 
 def worker_main():

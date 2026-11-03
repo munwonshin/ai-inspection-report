@@ -2,7 +2,7 @@
 from pathlib import Path
 import hashlib,shutil,sys,uuid
 
-VERSION='0.4.25'
+VERSION='0.4.26'
 NAME='AI 현장점검 결과서'
 
 def inside(path,parent):
@@ -31,7 +31,7 @@ def install(source,base,desktop,shell):
             # Copy only application payload, never work documents beside the EXE.
             shutil.copy2(exe,stage/exe.name)
             shutil.copytree(source/'_internal',stage/'_internal')
-            for name in ('바탕화면 아이콘 만들기.cmd','install-support.cs','THIRD_PARTY_NOTICES.md','사용안내_0.4.25.md'):
+            for name in ('바탕화면 아이콘 만들기.cmd','install-support.cs','THIRD_PARTY_NOTICES.md','사용안내_0.4.26.md'):
                 if (source/name).is_file():shutil.copy2(source/name,stage/name)
             if (source/'licenses').is_dir():shutil.copytree(source/'licenses',stage/'licenses')
             if hashlib.sha256(exe.read_bytes()).digest()!=hashlib.sha256((stage/exe.name).read_bytes()).digest():

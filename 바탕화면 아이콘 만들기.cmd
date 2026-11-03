@@ -11,7 +11,7 @@ if not exist "%APPDIR%_internal\" goto missing_runtime
 set "AIR_INSTALL_SOURCE=%APPDIR%"
 powershell.exe -NoLogo -NoProfile -Command ^
  "$ErrorActionPreference='Stop'; $stage=$null; $stageOwned=$false; try {" ^
- "$source=[IO.Path]::GetFullPath($env:AIR_INSTALL_SOURCE).TrimEnd([IO.Path]::DirectorySeparatorChar); $version='0.4.25';" ^
+ "$source=[IO.Path]::GetFullPath($env:AIR_INSTALL_SOURCE).TrimEnd([IO.Path]::DirectorySeparatorChar); $version='0.4.26';" ^
  "$support=Join-Path $source 'install-support.cs'; if (-not (Test-Path -LiteralPath $support -PathType Leaf)) { throw '설치 지원 파일이 없습니다. ZIP 전체를 다시 풀어 주세요.' }; Add-Type -Path $support;" ^
  "$base=Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\AIInspectionReport';" ^
  "$shell=New-Object -ComObject WScript.Shell; $desktop=$shell.SpecialFolders('Desktop');" ^
