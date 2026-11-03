@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/windows-release.yml'
+      - '.gitattributes'
 
 permissions:
   contents: read
