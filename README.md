@@ -2,11 +2,11 @@
 
 사업계획서와 회의록으로 AI 초안을 만들고, 사용자가 검토·수정·승인한 내용을 기존 한글 양식에 저장하는 Windows 프로그램입니다.
 
-**버전 0.4.24** · 자료 입력 → AI 초안 → 검토·채팅 수정 → 승인 후 HWP 저장
+**버전 0.4.25** · 자료 입력 → AI 초안 → 검토·채팅 수정 → 승인 후 HWP 저장
 
 ## 다운로드
 
-**[Windows 실행용 ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.24/AIInspectionReport-0.4.24-windows-x64.zip)** · [전체 배포본](https://github.com/munwonshin/ai-inspection-report/releases)
+**[Windows 실행용 ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.25/AIInspectionReport-0.4.25-windows-x64.zip)** · [전체 배포본](https://github.com/munwonshin/ai-inspection-report/releases)
 
 ZIP 전체 압축 해제 → `AIInspectionReport` 폴더의 **바탕화면 아이콘 만들기.cmd** 실행 → 바탕화면 아이콘으로 실행합니다. EXE를 직접 실행해도 됩니다.
 
@@ -86,7 +86,7 @@ python -m venv .venv
 
 ## 검증 및 한계
 
-0.4.24는 **단위 검사 140개**, EXE와 소스 일치, GitHub Windows 빌드·GUI/TLS 실행·배포 ZIP 검사를 통과했습니다. GitHub에서 실제 ZIP을 다운로드해 파일 무결성과 바탕화면 아이콘 생성을 확인했습니다. 검사 건수는 업무 정확도나 사용자 만족도 수치가 아닙니다.
+0.4.25는 **단위 검사 144개**, EXE와 소스 일치, GitHub Windows 빌드·GUI/TLS 실행·배포 ZIP 검사를 통과했습니다. GitHub에서 실제 ZIP을 다운로드해 파일 무결성과 바탕화면 아이콘 생성을 확인했습니다. 검사 건수는 업무 정확도나 사용자 만족도 수치가 아닙니다.
 
 실제 AI 초안·부분 수정·직접 편집 보존·승인 후 HWP 저장·한글 재입력은 0.4.23의 가상 자료 시험에서 확인했습니다. 최신 배포본의 전체 흐름을 모든 PC에서 재검증한 의미는 아닙니다. 다른 한글 버전과 실제 NAS는 추가 검증이 필요합니다.
 
