@@ -42,18 +42,26 @@ def accepted_general(data,page_count):
     return Recognition(values,evidence,issues)
 
 def extract(key,original_pdf,page_count,fields=EXTRACT_FIELDS):
+    from .hwp_direct import MARKER
+    direct=isinstance(original_pdf,bytes) and original_pdf.startswith(MARKER)
     fields=tuple(k for k in EXTRACT_FIELDS if k in fields)
     if not fields:return Recognition({}, {}, {}),{}
-    if not original_pdf or not original_pdf.startswith(b'%PDF-') or type(page_count) is not int or page_count<1:
+    if not original_pdf or (not direct and not original_pdf.startswith(b'%PDF-')) or type(page_count) is not int or page_count<1:
         raise ValueError('원본 PDF를 다시 첨부해 주세요.')
     item={'type':'object','additionalProperties':False,'properties':{
         'value':{'type':'string'},'evidence':{'type':'string'},'source':{'type':'string','enum':['plan','none']},
         'page':{'type':'integer'},'reason':{'type':'string'}},'required':['value','evidence','source','page','reason']}
     schema={'type':'object','additionalProperties':False,'properties':{k:item for k in fields},'required':list(fields)}
+    if direct:
+        from .hwp_direct import source_content
+        content=source_content(original_pdf)
+    else:content=[{'type':'input_file','filename':'original-business-plan.pdf',
+        'file_data':'data:application/pdf;base64,'+base64.b64encode(original_pdf).decode('ascii')}]
     payload={'model':api.MODEL,'store':False,'max_output_tokens':4000,'instructions':INSTRUCTIONS,
-        'input':[{'role':'user','content':[{'type':'input_file','filename':'original-business-plan.pdf',
-            'file_data':'data:application/pdf;base64,'+base64.b64encode(original_pdf).decode('ascii')}]}],
+        'input':[{'role':'user','content':content}],
         'text':{'format':{'type':'json_schema','name':'inspection_general','strict':True,'schema':schema}}}
+    if direct:
+        payload['instructions']=INSTRUCTIONS.replace('원본 PDF','원본 HWP').replace('PDF 물리적 쪽수','HWP 구역 번호').replace('물리적 쪽수','구역 번호')+'\n이번 자료는 HWP 전체 구역의 직접 추출 본문·표와 참조된 그림이다. [HWP 구역 N] 또는 그림 설명의 구역 번호 N을 page에 반환한다. 실제 쪽번호를 추정하지 않는다. 표의 행·열·병합 정보로 항목과 값을 연결한다. 구역은 페이지가 아니다. 그림은 본문과 함께 확인하며 페이지 배치·크기를 추정하지 않는다.'
     if api.MODEL!='gpt-4.1-mini':payload['reasoning']={'effort':'none'}
     text,usage=api.request(key,payload)
     try:

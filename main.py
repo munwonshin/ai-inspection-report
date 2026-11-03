@@ -1,9 +1,9 @@
 import sys
 
 if __name__=='__main__':
-    if len(sys.argv)==4 and sys.argv[1]=='--hwp-input-worker':
-        from inspection.hwp_input import worker_main
-        worker_main()
+    if len(sys.argv)==4 and sys.argv[1]=='--hwp-read-check':
+        from inspection.hwp_direct import check_main
+        check_main()
     elif '--hwp-worker' in sys.argv:
         from inspection.exporter import worker_main
         worker_main()

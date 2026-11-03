@@ -6,7 +6,7 @@ python -m venv .venv
 & '.\.venv\Scripts\python.exe' -m pip install -r requirements.txt
 & '.\.venv\Scripts\python.exe' qa/run_unit_checks.py
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
-& '.\.venv\Scripts\python.exe' -m PyInstaller --noconfirm --clean --windowed --onedir --name AIInspectionReport --add-data 'assets;assets' --additional-hooks-dir hooks --collect-all pypdfium2 --collect-all pypdfium2_raw --hidden-import win32timezone --exclude-module numpy --exclude-module PIL --exclude-module cryptography --exclude-module Crypto main.py
+& '.\.venv\Scripts\python.exe' -m PyInstaller --noconfirm --clean --windowed --onedir --name AIInspectionReport --add-data 'assets;assets' --additional-hooks-dir hooks --collect-all pypdfium2 --collect-all pypdfium2_raw --collect-all resvg_py --hidden-import win32timezone --exclude-module numpy --exclude-module cryptography --exclude-module Crypto main.py
 if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 
 & '.\.venv\Scripts\python.exe' qa/verify_frozen.py '.\dist\AIInspectionReport\AIInspectionReport.exe'

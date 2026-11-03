@@ -9,7 +9,7 @@ from .pdf_native import NativeVisualReader
 class PreparedDocument:
     local_text: str
     api_text: str
-    visual_pdf: bytes | None
+    visual_pdf: bytes | tuple | None
     page_count: int
     visual_pages: tuple
     original_bytes: bytes
@@ -22,8 +22,8 @@ class PreparedDocument:
 DRAWING={b'Do',b'sh',b'S',b's',b'f',b'F',b'f*',b'B',b'B*',b'b',b'b*'}
 
 def prepare_hwp(path,progress=None):
-    from .hwp_input import convert_pdf
-    return convert_pdf(path,lambda pdf:prepare_pdf(pdf,progress=progress))
+    from .hwp_direct import prepare
+    return prepare(path,progress)
 
 def prepare_pdf(path,progress=None):
     from pypdf import PdfReader,PdfWriter

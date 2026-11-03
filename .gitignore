@@ -25,3 +25,10 @@ qa/*checks.json
 /qa/header_roundtrip/
 /qa/report_header_roundtrip.json
 /qa/frozen_header.json
+
+# Local diagnostics and generated HWP-reading fixtures
+/qa/*workflow.json
+/qa/frozen_business_*.json
+/qa/release_package*.json
+/qa/isolated-*.json
+/qa/*_outputs/

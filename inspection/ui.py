@@ -57,7 +57,7 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.18')
+        root.title('AI 현장점검 결과서 · 0.4.20')
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -565,7 +565,7 @@ class App:
             while True:latest=self.pdf_progress.get_nowait()
         except queue.Empty:pass
         if latest is not None and self.busy:
-            self.set_status(f'문서 읽는 중 · {latest[0]}/{latest[1]}쪽')
+            self.set_status(f'문서 읽는 중 · {latest[0]}/{latest[1]}')
         try:
             done,ok,result=self.mailbox.get_nowait()
             if ok and self.ai_started is not None and self.stream_visible!=self.stream_target:
@@ -698,14 +698,17 @@ class App:
             self.original_pdf_bytes=result.original_bytes;self.pdf_page_count=result.page_count
             name=Path(p).name
             if len(name)>32:name=Path(p).stem[:27]+'…'+Path(p).suffix
-            kind='HWP 변환' if is_hwp else 'PDF'
-            self.pdf_label.set(f'{name}\n{kind} {result.page_count}쪽 · 첨부 완료')
+            from .hwp_direct import MARKER
+            direct=result.original_bytes.startswith(MARKER)
+            kind='HWP 직접 읽기' if direct else ('HWP' if is_hwp else 'PDF')
+            unit='구역' if direct else '쪽'
+            self.pdf_label.set(f'{name}\n{kind} {result.page_count}{unit} · 첨부 완료')
             if self.connected:
                 self.status.set('사업계획서를 첨부했습니다.')
                 self.recognize_general()
             else:self.status.set('사업계획서를 첨부했습니다. API 설정에서 연결을 확인해 주세요.')
         prepare=prepare_hwp if is_hwp else prepare_pdf
-        self.background(lambda:prepare(p,progress=lambda current,total:self.pdf_progress.put((current,total))),done,'HWP를 읽고 PDF로 변환하고 있습니다.' if is_hwp else 'PDF를 읽고 있습니다.')
+        self.background(lambda:prepare(p,progress=lambda current,total:self.pdf_progress.put((current,total))),done,'HWP 본문·표·그림을 직접 읽고 있습니다.' if is_hwp else 'PDF를 읽고 있습니다.')
 
     def general_edited(self,key):
         if not self._auto_write:
@@ -718,8 +721,11 @@ class App:
         evidence=self.general_evidence.get(key)
         if evidence:
             quote=evidence['quote'];short=quote[:110]+('…' if len(quote)>110 else '')
-            source='HWP 변환 PDF' if Path(self.pdf_path).suffix.lower()=='.hwp' else '원본 PDF'
-            self.general_evidence_note.set(f'{GENERAL[key]} · AI 제시 근거: {source} {evidence["page"]}쪽\n{short}')
+            from .hwp_direct import MARKER
+            direct=bool(self.original_pdf_bytes and self.original_pdf_bytes.startswith(MARKER))
+            source='HWP' if direct else ('HWP 변환 PDF' if Path(self.pdf_path).suffix.lower()=='.hwp' else '원본 PDF')
+            unit='구역' if direct else '쪽'
+            self.general_evidence_note.set(f'{GENERAL[key]} · AI 제시 근거: {source} {evidence["page"]}{unit}\n{short}')
         elif key in self.general_issues:self.general_evidence_note.set(GENERAL[key]+' · '+self.general_issues[key])
         else:self.general_evidence_note.set('직접 입력·수정한 값 또는 AI 근거가 없는 항목입니다. 승인 전에 확인해 주세요.')
 
@@ -974,7 +980,7 @@ class App:
         ttk.Button(f,text='키 삭제',style='Danger.TButton',command=remove).grid(row=3,column=1,pady=8)
         ttk.Button(f,text='연결 확인',style='Primary.TButton',command=check).grid(row=3,column=2,pady=8)
         ttk.Label(f,textvariable=state,style='Card.TLabel',wraplength=440).grid(row=4,column=0,columnspan=3,sticky='w',pady=(10,6))
-        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\n사업계획서 전체(PDF 원본·HWP는 PDF 변환본)와 회의록·초안·수정 요청을 OpenAI로 전송합니다.\nHWP 변환은 로컬 임시 폴더에서 처리하며 원본을 변경하지 않습니다.\n사용량에 따른 API 비용이 발생하며 ChatGPT 구독과 별도입니다.\n키는 이 Windows 계정에 보관합니다. 다음 실행 시 자동 연결을 확인합니다(소량 과금).',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
+        ttk.Label(f,style='Hint.TLabel',text=f'기본 모델: {api.MODEL}\n사업계획서 전체와 회의록·초안·수정 요청을 OpenAI로 전송합니다.\nHWP는 본문·표·지원 그림을 직접 읽습니다. 첨부 시 한글을 실행하거나 PDF로 변환하지 않습니다.\n사용량에 따른 API 비용이 발생하며 ChatGPT 구독과 별도입니다.\n키는 이 Windows 계정에 보관합니다. 다음 실행 시 자동 연결을 확인합니다(소량 과금).',wraplength=440).grid(row=5,column=0,columnspan=3,sticky='w',pady=(8,0))
         w.protocol('WM_DELETE_WINDOW',lambda:None if self.busy else w.destroy())
         self.place_dialog(w);e.focus_set();e.selection_range(0,'end')
 

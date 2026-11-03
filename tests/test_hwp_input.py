@@ -63,10 +63,10 @@ class HwpInputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'consumer failed'):self._simulate(worker,consumer_error=True)
         with self.assertRaisesRegex(RuntimeError,'PDF 변환본'):self._simulate(lambda req,res:res.write_text(json.dumps({'ok':True,'pages':2})))
 
-    def test_hwp_routes_converted_pdf_through_existing_preparation(self):
+    def test_hwp_routes_direct_only_without_pdf_fallback(self):
         expected=object()
-        with patch('inspection.hwp_input.convert_pdf',side_effect=lambda p,c:c(Path('converted.pdf'))) as convert,patch('inspection.documents.prepare_pdf',return_value=expected) as prepare:
+        with patch('inspection.hwp_direct.prepare',return_value=expected) as prepare,patch('inspection.hwp_input.convert_pdf') as convert:
             self.assertIs(documents.prepare_hwp('source.hwp'),expected)
-            convert.assert_called_once();prepare.assert_called_once_with(Path('converted.pdf'),progress=None)
+            convert.assert_not_called();prepare.assert_called_once_with('source.hwp',None)
 
 if __name__=='__main__':unittest.main()
