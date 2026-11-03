@@ -1,8 +1,10 @@
 """Decode embedded raster pictures in memory; never follow external links."""
 import base64,io,struct,warnings,re,xml.etree.ElementTree as ET
 
-MAX_IMAGE_PIXELS=24_000_000
+MAX_IMAGE_PIXELS=64_000_000
+MAX_SOURCE_IMAGE_BYTES=64*1024*1024
 MAX_IMAGE_BYTES=8*1024*1024
+MAX_IMAGE_EDGE=4096
 MAX_TOTAL_IMAGES=256
 
 def descriptor(payload):
@@ -55,26 +57,43 @@ def svg_png(data):
 
 def image_url(data,crop=None,extension=''):
     from PIL import Image
-    if len(data)>MAX_IMAGE_BYTES:raise ValueError('HWP 그림 한 개가 8MB를 초과합니다. PDF로 첨부해 주세요.')
-    if extension=='svg':data=svg_png(data)
+    if len(data)>MAX_SOURCE_IMAGE_BYTES:raise ValueError('HWP 내부 그림 데이터가 안전한 처리 범위를 초과합니다.')
+    if extension=='svg':
+        if len(data)>MAX_IMAGE_BYTES:raise ValueError('HWP의 SVG 그림 데이터가 너무 큽니다.')
+        data=svg_png(data)
     with warnings.catch_warnings():
         warnings.simplefilter('error',Image.DecompressionBombWarning)
         try:
             with Image.open(io.BytesIO(data)) as image:
                 if image.format not in ('PNG','JPEG','BMP','GIF','TIFF','WEBP'):raise ValueError('지원하지 않는 그림 형식입니다.')
-                if image.width*image.height>MAX_IMAGE_PIXELS or getattr(image,'n_frames',1)!=1:
-                    raise ValueError('다중 프레임 또는 너무 큰 그림입니다. PDF로 첨부해 주세요.')
+                if getattr(image,'n_frames',1)!=1:raise ValueError('여러 장으로 구성된 내부 그림입니다. 단일 그림 또는 PDF 사본으로 첨부해 주세요.')
+                if image.width*image.height>MAX_IMAGE_PIXELS:raise ValueError('HWP 내부 그림의 해상도가 안전한 처리 한도를 초과합니다.')
                 image.load()
+                changed=False
                 if crop is not None:
                     x0,y0,x1,y1=crop
                     if not 0<=x0<x1<=1 or not 0<=y0<y1<=1:raise ValueError('HWP 그림 잘림 범위를 확인할 수 없습니다. PDF로 첨부해 주세요.')
                     image=image.crop((round(image.width*x0),round(image.height*y0),round(image.width*x1),round(image.height*y1)))
-                elif image.format in ('PNG','JPEG'):
+                    changed=True
+                if max(image.size)>MAX_IMAGE_EDGE:
+                    image.thumbnail((MAX_IMAGE_EDGE,MAX_IMAGE_EDGE),Image.Resampling.LANCZOS,reducing_gap=3.0)
+                    changed=True
+                if not changed and len(data)<=MAX_IMAGE_BYTES and image.format in ('PNG','JPEG'):
                     mime='image/png' if image.format=='PNG' else 'image/jpeg'
                     return 'data:'+mime+';base64,'+base64.b64encode(data).decode('ascii')
-                output=io.BytesIO();image.convert('RGB').save(output,format='PNG');data=output.getvalue()
-                if len(data)>MAX_IMAGE_BYTES:raise ValueError('변환 그림이 8MB를 초과합니다. PDF로 첨부해 주세요.')
-                return 'data:image/png;base64,'+base64.b64encode(data).decode('ascii')
+                output=io.BytesIO();image.save(output,format='PNG');data=output.getvalue();mime='image/png'
+                if len(data)>MAX_IMAGE_BYTES:
+                    # Keep the entire picture. Flatten transparency on white before JPEG.
+                    rgb=Image.new('RGB',image.size,'white')
+                    if 'A' in image.getbands() or 'transparency' in image.info:
+                        rgba=image.convert('RGBA');rgb.paste(rgba,mask=rgba.getchannel('A'))
+                    else:rgb.paste(image.convert('RGB'))
+                    for quality in (92,85):
+                        output=io.BytesIO();rgb.save(output,format='JPEG',quality=quality);data=output.getvalue()
+                        if len(data)<=MAX_IMAGE_BYTES:break
+                    mime='image/jpeg'
+                if len(data)>MAX_IMAGE_BYTES:raise ValueError('내부 그림 최적화 후에도 전송 크기 한도를 초과합니다. PDF 사본으로 첨부해 주세요.')
+                return 'data:'+mime+';base64,'+base64.b64encode(data).decode('ascii')
         except ValueError:raise
         except Exception:raise ValueError('HWP 그림을 안전하게 읽지 못했습니다. PDF로 첨부해 주세요.') from None
 

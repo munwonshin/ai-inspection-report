@@ -1,7 +1,13 @@
 import sys
 
 if __name__=='__main__':
-    if len(sys.argv)==4 and sys.argv[1]=='--hwp-read-check':
+    if len(sys.argv)==2 and sys.argv[1]=='--desktop-shortcut':
+        from inspection.desktop_shortcut import main
+        main()
+    elif len(sys.argv)==4 and sys.argv[1]=='--local-input-check':
+        from inspection.input_probe import main
+        main()
+    elif len(sys.argv)==4 and sys.argv[1]=='--hwp-read-check':
         from inspection.hwp_direct import check_main
         check_main()
     elif '--hwp-worker' in sys.argv:

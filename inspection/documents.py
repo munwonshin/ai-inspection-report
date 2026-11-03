@@ -27,7 +27,7 @@ def prepare_hwp(path,progress=None):
 
 def prepare_pdf(path,progress=None):
     from pypdf import PdfReader,PdfWriter
-    from pypdf.errors import DependencyError
+    from pypdf.errors import DependencyError,PdfReadError
     if Path(path).stat().st_size>30*1024*1024:raise ValueError('PDF는 30MB 이하로 첨부해 주세요.')
     data=Path(path).read_bytes()
     if len(data)>30*1024*1024:raise ValueError('PDF는 30MB 이하로 첨부해 주세요.')
@@ -37,6 +37,8 @@ def prepare_pdf(path,progress=None):
         # pypdf can attempt an empty password before is_encrypted is exposed.
         # AES decryption is deliberately not bundled: encrypted input is refused.
         raise ValueError('암호화된 PDF입니다. 암호를 제거한 사본을 첨부해 주세요.') from None
+    except PdfReadError:
+        raise ValueError('PDF 구조를 읽지 못했습니다. 다운로드·PDF 저장이 끝난 파일인지 확인하고, 원본에서 PDF로 다시 저장해 첨부해 주세요.') from None
     if reader.is_encrypted:raise ValueError('암호화된 PDF입니다. 암호를 제거한 사본을 첨부해 주세요.')
     count=len(reader.pages)
     if count<1 or count>250:raise ValueError('PDF는 1~250쪽 범위로 첨부해 주세요.')
@@ -66,10 +68,19 @@ def prepare_pdf(path,progress=None):
     visual_data=None
     if visual:
         if len(visual)==count:visual_data=data
+        elif len(visual)*5>=count*4:
+            # Rebuilding almost the whole PDF saves little and can break resources.
+            # Retain the original bytes and map all original pages instead.
+            visual=list(range(1,count+1));api=[];visual_data=data
         else:
-            w=PdfWriter()
-            for i in visual:w.add_page(reader.pages[i-1])
-            b=io.BytesIO();w.write(b);visual_data=b.getvalue()
+            try:
+                w=PdfWriter()
+                for i in visual:w.add_page(reader.pages[i-1])
+                b=io.BytesIO();w.write(b);visual_data=b.getvalue()
+            except MemoryError:raise
+            except Exception:
+                # Preserve every page if resource cloning of a subset is unsupported.
+                visual=list(range(1,count+1));api=[];visual_data=data
         api.insert(0,'첨부 PDF 쪽→원본 쪽: '+','.join(f'{j}→{i}' for j,i in enumerate(visual,1)))
     api_text='\n\n'.join(api)
     if len(api_text)>450000:raise ValueError('PDF 텍스트가 너무 깁니다. 나눠 첨부해 주세요. 내용을 임의로 잘라 전송하지 않았습니다.')

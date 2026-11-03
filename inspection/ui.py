@@ -1,4 +1,5 @@
 import os
+import sys
 import queue
 import threading
 import time
@@ -57,7 +58,9 @@ class App:
         self.status=tk.StringVar(value='')
         self.pdf_label=tk.StringVar(value='끌어 놓거나 첨부하세요 · 최대 30MB')
         self.chat=tk.StringVar()
-        root.title('AI 현장점검 결과서 · 0.4.20')
+        root.title('AI 현장점검 결과서 · 0.4.24')
+        icon=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))/'assets'/'app.ico'
+        if icon.is_file():root.iconbitmap(default=str(icon))
         root.geometry('1320x880');root.minsize(1060,720)
         root.configure(bg=BG)
         self.configure_styles()
@@ -589,7 +592,7 @@ class App:
 
     def safe_error(self,e):
         if isinstance(e,(ValueError,RuntimeError,api.ApiFailure,PermissionError)):return str(e)
-        return '작업을 완료하지 못했습니다. 파일·네트워크·접근 권한을 확인해 주세요. 입력 내용은 유지됩니다.'
+        return '작업을 완료하지 못했습니다. 파일·네트워크·접근 권한을 확인해 주세요. 입력 내용은 유지됩니다. (오류 종류: '+type(e).__name__+')'
 
     def reset_workspace(self):
         # A running API/conversion/save must finish before its input is discarded.
