@@ -3,18 +3,20 @@ import re
 from dataclasses import replace
 
 class DraftHistory:
-    def __init__(self):self.versions=[]
-    def record(self,report):
-        if report.findings.strip() and (not self.versions or self.versions[-1]!=report):
-            self.versions.append(report)
-    def restore(self,current,*,first=False,fields=('findings','actions')):
-        self.record(current)
+    def __init__(self):
+        self.versions=[];self.sources=[];self.restored_source=None
+    def record(self,report,source=None):
+        if report.findings.strip() and (not self.versions or self.versions[-1]!=report or self.sources[-1]!=source):
+            self.versions.append(report);self.sources.append(source)
+    def restore(self,current,*,first=False,fields=('findings','actions'),current_source=None):
+        self.record(current,current_source)
         if len(self.versions)<2:return None
         target=self.versions[0] if first else self.versions[-2]
-        self.versions.pop()
-        if first:self.versions=self.versions[:1]
+        self.restored_source=self.sources[0] if first else self.sources[-2]
+        self.versions.pop();self.sources.pop()
+        if first:self.versions=self.versions[:1];self.sources=self.sources[:1]
         result=replace(current,**{k:getattr(target,k) for k in fields})
-        self.record(result)
+        self.record(result,self.restored_source)
         return result
 
 def restore_intent(text):

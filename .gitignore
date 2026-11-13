@@ -32,3 +32,8 @@ qa/*checks.json
 /qa/release_package*.json
 /qa/isolated-*.json
 /qa/*_outputs/
+
+# C1 raw evidence stays local; synthetic fixture definitions are public.
+/qa/c1_baseline/records/
+/qa/c1_acceptance/records/
+/qa/c1_native/records/

@@ -1,0 +1,23 @@
+{
+  "version": "C1-FIXTURE-v1",
+  "classification": "SYNTHETIC_ONLY_NO_REAL_COMPANY_OR_PERSON",
+  "program_year": "2026",
+  "division": "일반분과",
+  "filename": "synthetic_result",
+  "profiles": {
+    "A": {
+      "pdf_lines": ["SYNTHETIC ONLY - PLAN A", "Project: SYNTHETIC_PLAN_A", "Lead organization: Fictional Organization A", "Partner organization: Fictional Partner A", "Lead role: Fictional Lead Role A", "Partner role: Fictional Partner Role A", "Equipment: 3 demonstration devices", "Performance test: planned, not completed"],
+      "minutes": "[명확한 가상 자료 A] 가상 기관 A는 장치 3대의 시연을 설명함. 성능시험은 예정이며 완료 실적이 아님. 시연 기록을 보관하도록 안내함.",
+      "findings": "• [가상 A] 가상 기관 A가 장치 3대의 시연을 설명함. 성능시험은 예정이며 완료 실적으로 확인하지 않았음.",
+      "actions": "• [가상 A] 시연 기록을 보관하도록 안내함.",
+      "general": {"project": "가상 과제 A", "lead_org": "가상 주관기관 A", "partner_org": "가상 참여기관 A", "lead_person": "가상 주관 책임 역할 A", "partner_person": "가상 참여 책임 역할 A", "visit_date": "2026-11-12", "visit_org": "가상 방문기관 A", "inspector_org": "가상 점검기관", "inspector": "가상 검수 역할"}
+    },
+    "B": {
+      "pdf_lines": ["SYNTHETIC ONLY - PLAN B", "Project: SYNTHETIC_PLAN_B", "Lead organization: Fictional Organization B", "Partner organization: Fictional Partner B", "Lead role: Fictional Lead Role B", "Partner role: Fictional Partner Role B", "Equipment: 7 demonstration devices", "Performance test: undecided, not completed"],
+      "minutes": "[명확한 가상 자료 B] 가상 기관 B는 장치 7대의 시연을 설명함. 성능시험 일정은 미정이며 완료 실적이 아님. 시험 일정을 정한 뒤 다시 확인하기로 함.",
+      "findings": "• [가상 B] 가상 기관 B가 장치 7대의 시연을 설명함. 성능시험 일정은 미정이며 완료 실적으로 확인하지 않았음.",
+      "actions": "• [가상 B] 시험 일정이 정해지면 다시 확인하기로 함.",
+      "general": {"project": "가상 과제 B", "lead_org": "가상 주관기관 B", "partner_org": "가상 참여기관 B", "lead_person": "가상 주관 책임 역할 B", "partner_person": "가상 참여 책임 역할 B", "visit_date": "2026-11-12", "visit_org": "가상 방문기관 B", "inspector_org": "가상 점검기관", "inspector": "가상 검수 역할"}
+    }
+  }
+}

@@ -43,6 +43,7 @@ with patch('inspection.ui.vault.read',return_value='SYNTHETIC_KEY'),patch('inspe
     save.assert_not_called();assert app.snapshot()==before
     results.append('approval_folder_cancel_keeps_input_and_does_not_export')
     save.return_value={'path':r'C:\synthetic\가상.hwp','pages':1}
+    with patch('inspection.ui.messagebox.askyesno',return_value=True):app.review_button.invoke()
     with patch.object(app,'choose_folder',side_effect=lambda:app.folder.set(r'C:\synthetic')):app.approve();settle()
     assert save.call_count==1 and save.call_args.kwargs['approved']
     assert save.call_args.args[0]==before

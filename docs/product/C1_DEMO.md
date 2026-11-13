@@ -53,3 +53,7 @@ B 자료와 회의록은 장치7대지만, 직접 작성한 내용이 지워지�
 이는 실제 동작을 설명하는 자료이며 실제 HWP 저장·최종 재열기·C1 정식 배포의 증거가 아니다. 해당 시험은 전용 환경 준비 전 보류다.
 
 [사례 연구](PM_CASE_STUDY.md) · [PRD](PRD_PUBLIC.md) · [로드맵](ROADMAP_PUBLIC.md) · [결정 기록](DECISION_LOG_PUBLIC.md) · [검증 집계](EVIDENCE_SUMMARY.md)
+
+## 후속 실제 파일 검증
+
+위 화면은 당시 합성 응답·저장 대역 UI 시연으로 보존한다. 2026-11-13에는 별도로 [실제 HWP COM 저장·Open·전체 출력 검수](C1_E2E_REVIEW.md)와 [최종 품질 검증](QUALITY_REVIEW.md)을 완료했다. 파일 접근 승인은 사용자가 수행했으며 자동 보안 우회를 하지 않았다.
