@@ -12,6 +12,8 @@ app=App(root,restore_api=False)
 app.connected=True;app.pdf_path='synthetic.pdf';app.plan=app.api_plan='[가상] 사업계획'
 app.minutes.insert('1.0','[가상] 시연을 확인함. 시험은 예정임.')
 for k,v in fixture().general:app.general[k].set(v)
+app.document_context_vars['program_year'].set('2026')
+app.document_context_vars['division'].set('일반분과')
 results=[];requests=[]
 def settle():
     end=time.monotonic()+15
