@@ -13,6 +13,7 @@ from .report_format import visit_date,report_title,DIVISIONS,canonical_division,
 from .revisions import DraftHistory,restore_intent
 from .core import Report, GENERAL, evidenced_general, filename, destination
 from .documents import prepare_pdf,prepare_hwp
+from .review import ReviewState,prepared_identity
 
 BG='#F4F6F8'
 WHITE='#FFFFFF'
@@ -25,6 +26,8 @@ BLUE='#137C75'
 class App:
     def __init__(self,root,*,restore_api=True,preferences_path=None,restore_preferences=None):
         self.root=root
+        self.review_state=ReviewState();self._review_attachment=None
+        self._job_sequence=0;self._active_job=None
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         self.original_pdf_bytes=None;self.pdf_page_count=0;self.general_evidence={};self.general_issues={}
         self.busy=False;self.connected=False;self.last_saved=None;self.saved_current=False
@@ -220,10 +223,15 @@ class App:
         self.button(location,'폴더 선택',self.choose_folder,style='Quiet.TButton').grid(row=1,column=1)
         self.approve_button=self.button(fields,'승인 및 한글 저장',self.approve,primary=True)
         self.approve_button.grid(row=0,column=2,sticky='se')
-        progress_track=tk.Frame(save,height=3,bg='#ECF1F2');progress_track.grid(row=2,column=0,sticky='ew',pady=(10,8));progress_track.pack_propagate(False)
+        review_bar=ttk.Frame(save,style='Card.TFrame');review_bar.grid(row=2,column=0,sticky='ew',pady=(8,0));review_bar.columnconfigure(0,weight=1)
+        self.review_note=tk.StringVar()
+        ttk.Label(review_bar,textvariable=self.review_note,style='Hint.TLabel',wraplength=760).grid(row=0,column=0,sticky='w')
+        self.review_button=self.button(review_bar,'현재 자료 대조·검토 완료',self.review_current,style='Quiet.TButton')
+        self.review_button.grid(row=0,column=1,sticky='e',padx=(12,0))
+        progress_track=tk.Frame(save,height=3,bg='#ECF1F2');progress_track.grid(row=3,column=0,sticky='ew',pady=(10,8));progress_track.pack_propagate(False)
         self.progress=ttk.Progressbar(progress_track,style='Thin.Horizontal.TProgressbar',mode='determinate',maximum=100)
         self.progress.pack(fill='both',expand=True)
-        footer=ttk.Frame(save,style='Card.TFrame');footer.grid(row=3,column=0,sticky='ew');footer.columnconfigure(0,weight=1)
+        footer=ttk.Frame(save,style='Card.TFrame');footer.grid(row=4,column=0,sticky='ew');footer.columnconfigure(0,weight=1)
         self.status_label=ttk.Label(footer,textvariable=self.status,style='Hint.TLabel',wraplength=800,justify='left')
         self.status_label.grid(row=0,column=0,sticky='w',padx=(0,12))
         self.open_file=self.button(footer,'파일 열기',self.open_saved,style='Text.TButton');self.open_file.grid(row=0,column=1,padx=(0,8))
@@ -231,7 +239,7 @@ class App:
         footer.bind('<Configure>',lambda e:self.status_label.configure(wraplength=max(250,e.width-200)))
         self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
 
-        for v in [self.title,self.folder,*self.general.values(),*self.document_context_vars.values()]:v.trace_add('write',lambda *a:self.changed())
+        for v in [self.title,self.folder,*self.general.values()]:v.trace_add('write',lambda *a:self.changed())
         for k,v in self.general.items():v.trace_add('write',lambda *a,key=k:self.general_edited(key))
         for text in self.edits:text.bind('<<Modified>>',lambda e:self.text_changed(e.widget))
         for k in preferences.FIELDS:
@@ -381,6 +389,7 @@ class App:
             self.general_canvas.yview_moveto(max(0,y-6)/max(1,self.general_body.winfo_height()))
 
     def refresh_state(self):
+        self.refresh_review()
         if hasattr(self,'filename_hint'):
             try:
                 filename(self.title.get());self.filename_hint.set('');self.filename_hint_label.grid_remove()
@@ -398,6 +407,33 @@ class App:
             self.chat_button.configure(text=('수정 반영 ↑' if has_request else '다시 작성') if has_draft else '초안 작성')
             self.chat_title.configure(text='수정 요청' if has_draft else '추가 요청 (선택)')
         if not self.busy:self.progress.configure(value=100 if self.saved_current else 0)
+
+    def refresh_review(self):
+        self.review_state.observe(self._review_attachment,self.get(self.minutes),self.snapshot())
+        if not hasattr(self,'review_note'):return
+        has_body=bool(self.get(self.findings).strip())
+        if not has_body:note='초안을 작성하거나 직접 입력한 뒤 자료와 대조해 주세요.'
+        elif self.review_state.allowed:
+            note='현재 자료 대조·검토 완료' if self.review_state.kind=='REVIEWED' else '현재 자료 기준 초안 · 최종 확인 후 승인해 주세요.'
+        else:note=self.review_state.reason
+        self.review_note.set(note)
+        self.review_button.configure(state='disabled' if self.busy or not has_body else 'normal')
+
+    def review_current(self):
+        if self.busy:return False
+        self.refresh_review()
+        if not self.get(self.findings).strip():return False
+        token=self.review_state.token
+        if not messagebox.askyesno('현재 자료 재검수','현재 자료·회의록과 본문·일반현황·문서 제목을 대조했습니까? 이 확인은 현재 내용에만 적용됩니다.',parent=self.root):return False
+        self.refresh_review()
+        if token!=self.review_state.token:
+            self.status.set('검토 중 내용이 변경되었습니다. 현재 자료를 다시 재검수해 주세요.');return False
+        self.review_state.accept('REVIEWED');self.refresh_state()
+        return True
+
+    def request_is_current(self,token):
+        self.refresh_review()
+        return token==self.review_state.token
 
     def toggle_editor(self):
         if self.busy:return
@@ -426,19 +462,23 @@ class App:
     def restore_draft(self,intent):
         instruction=self.chat.get().strip()
         self.sync_latest_report()
-        report=self.draft_history.restore(self.snapshot(),**intent)
+        report=self.draft_history.restore(self.snapshot(),current_source=self.review_state.source_id,**intent)
         if report is None:
             self.status.set('복원할 이전 초안이 없습니다. 현재 초안은 유지됩니다.');return
         for widget,value in [(self.findings,report.findings),(self.actions,report.actions)]:
             widget.delete('1.0','end');widget.insert('1.0',value);widget.edit_modified(False)
         self.changed();self.revision+=1
+        origin=self.draft_history.restored_source
+        reason='다른 자료의 과거 초안을 복원했습니다. 현재 자료와 다시 재검수해 주세요.' if origin!=self.review_state.source_id else '과거 초안을 복원했습니다. 현재 자료와 다시 재검수해 주세요.'
+        self.review_state.invalidate(reason);self.refresh_state()
         self.messages.extend([{'kind':'user','text':instruction,'status':'completed','visible':True},
             {'kind':'report','version':self.revision,'report':self.snapshot().as_dict(),'origin':'restore'}])
         self.chat.set('');self.status.set('이전 초안 본문을 복원했습니다.')
         self.render_conversation(follow=True)
 
     def sync_latest_report(self):
-        self.draft_history.record(self.snapshot())
+        self.refresh_review()
+        self.draft_history.record(self.snapshot(),self.review_state.source_id)
         current=self.snapshot().as_dict()
         for message in reversed(self.messages):
             if message['kind']=='report':message['report']=current;return
@@ -536,10 +576,11 @@ class App:
 
     def background(self,fn,done,status):
         if self.busy:return
+        self._job_sequence+=1;job=self._job_sequence;self._active_job=job
         self.lock(True);self.status.set(status)
         def execute():
-            try:self.mailbox.put((done,True,fn()))
-            except Exception as e:self.mailbox.put((done,False,e))
+            try:self.mailbox.put((job,done,True,fn()))
+            except Exception as e:self.mailbox.put((job,done,False,e))
         threading.Thread(target=execute,daemon=False).start()
 
     def set_status(self,text):
@@ -570,12 +611,14 @@ class App:
         if latest is not None and self.busy:
             self.set_status(f'문서 읽는 중 · {latest[0]}/{latest[1]}')
         try:
-            done,ok,result=self.mailbox.get_nowait()
-            if ok and self.ai_started is not None and self.stream_visible!=self.stream_target:
+            job,done,ok,result=self.mailbox.get_nowait()
+            if job!=self._active_job:pass
+            elif ok and self.ai_started is not None and self.stream_visible!=self.stream_target:
                 # Keep the approval gate closed while the last received characters
                 # drain, avoiding a final jump from a partial to the entire report.
-                self.mailbox.put((done,ok,result))
+                self.mailbox.put((job,done,ok,result))
             else:
+                self._active_job=None
                 self.ai_started=None
                 self.lock(False)
                 if ok:done(result)
@@ -621,6 +664,7 @@ class App:
                 text.delete('1.0','end');text.edit_reset();text.edit_modified(False)
             self.title.set('현장점검 결과서');self.folder.set('');self.chat.set('')
             self.messages.clear();self.draft_history=DraftHistory()
+            self._review_attachment=None;self.review_state.reset();self._active_job=None
             self.last_saved=None;self.saved_current=False
             self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
             self.editor_open=False;self.editor_view.grid_remove();self.editor_view.select(0);self.chat_view.grid()
@@ -648,6 +692,7 @@ class App:
 
     def remove_pdf(self):
         if self.busy:return
+        self._review_attachment=None
         self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
         self.plan='';self.api_plan='';self.pdf_path='';self.pdf_bytes=None
         self.original_pdf_bytes=None;self.pdf_page_count=0
@@ -695,7 +740,11 @@ class App:
             self.status.set('PDF 또는 HWP 파일을 첨부해 주세요. 기존 첨부는 유지됩니다.');return
         is_hwp=suffix=='.hwp'
         def done(result):
-            self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
+            identity=prepared_identity(result)
+            same=identity==self._review_attachment
+            self._review_attachment=identity
+            if not same:
+                self.clear_plan_general();self.document_revision+=1;self.general_scanned=False
             self.plan=result.local_text;self.api_plan=result.api_text
             self.pdf_bytes=result.visual_pdf;self.pdf_path=p
             self.original_pdf_bytes=result.original_bytes;self.pdf_page_count=result.page_count
@@ -742,6 +791,8 @@ class App:
         if key=='division':value=canonical_division(value)
         if value:self.report_context[key]=value
         else:self.report_context.pop(key,None)
+        # Observe the updated context, not the previous value in a sibling trace.
+        if hasattr(self,'review_note'):self.changed()
 
     def clear_plan_general(self):
         self.report_context.clear()
@@ -766,6 +817,7 @@ class App:
         if not fields:
             self.general_scanned=True;self.status.set('일반현황을 확인해 주세요.');return
         revision=self.document_revision;pdf=self.original_pdf_bytes;pages=self.pdf_page_count
+        self.refresh_review();request_token=self.review_state.token
         self.metadata_started=time.monotonic()
         def task():
             try:
@@ -775,7 +827,8 @@ class App:
             except Exception as e:return {'error':self.safe_error(e)}
         def done(result):
             self.metadata_started=None
-            if revision!=self.document_revision:return
+            if revision!=self.document_revision or not self.request_is_current(request_token):
+                self.status.set('자료나 입력이 변경되어 이전 일반현황 응답을 적용하지 않았습니다.');return
             if 'error' in result:
                 self.status.set('첨부는 완료됐습니다. 일반현황 AI 인식 실패: '+result['error']+' 일반현황에서 다시 읽기 또는 직접 입력해 주세요.');return
             values,usage=result['data'];added=0
@@ -820,17 +873,24 @@ class App:
         self.sync_latest_report()
         self.ai_started=time.monotonic();self.stream_json="";self.stream_visible="";self.stream_target="";self._stream_rendered=None
         self.stream_queue=queue.SimpleQueue()
+        stream_sink=self.stream_queue.put
         self.pending_request={'kind':'user','text':instruction,'status':'pending','visible':bool(is_chat or from_chat)}
         self.messages.append(self.pending_request)
         if self.editor_open:self.toggle_editor()
         self.render_conversation(follow=True)
         current=self.snapshot().as_dict()
-        plan=self.plan;api_plan=self.api_plan;minutes=self.get(self.minutes)
+        request_token=self.review_state.token;request_message=self.pending_request
+        plan=self.plan;api_plan=self.api_plan;minutes=self.get(self.minutes);visual=self.pdf_bytes
         def task():
             key=vault.read()
             if not key:raise ValueError('저장된 API 키가 없습니다.')
-            return api.generate(key,api_plan,minutes,current,instruction,pdf_bytes=self.pdf_bytes,revision=is_chat,on_delta=self.stream_queue.put)
+            return api.generate(key,api_plan,minutes,current,instruction,pdf_bytes=visual,revision=is_chat,on_delta=stream_sink)
         def done(data):
+            if not self.request_is_current(request_token):
+                request_message['status']='stale'
+                if self.pending_request is request_message:self.pending_request=None
+                self.status.set('자료나 입력이 변경되어 이전 AI 응답을 적용하지 않았습니다. 재검수 후 다시 요청해 주세요.')
+                self.render_conversation(follow=True);return
             result,usage=data
             if result.get('_blocked'):
                 notice=result.get('_notice') or '요청을 반영하지 않았습니다. 현재 초안은 유지됩니다.'
@@ -846,7 +906,9 @@ class App:
                     if k in metadata.PLAN_FIELDS and result['general'][k].get('source')=='plan':self.set_plan_general(k,v)
                     else:self.general[k].set(v)
             self.changed()
-            self.draft_history.record(self.snapshot())
+            if not is_chat:
+                self.review_state.accept('CURRENT');self.refresh_state()
+            self.draft_history.record(self.snapshot(),self.review_state.source_id)
             self.status.set(result.get('_notice') or '작성을 마쳤습니다.')
             if self.pending_request is not None:self.pending_request['status']='completed';self.pending_request=None
             self.revision+=1
@@ -919,14 +981,26 @@ class App:
         except ValueError as e:messagebox.showerror('저장 설정',str(e),parent=self.root);return
         missing=[k for k in GENERAL if not self.general[k].get().strip()]
         if missing and not self.missing_dialog(missing):return
+        self.refresh_review()
+        if not self.review_state.allowed:
+            messagebox.showinfo('자료 재검수 필요',self.review_state.reason+' 현재 자료 대조·검토 완료를 선택한 뒤 승인해 주세요.',parent=self.root);return
         self.sync_latest_report();self.render_conversation()
         snapshot=self.snapshot();folder=self.folder.get();name=self.name.get()
+        approval_token=self.review_state.token
+        # A failed repeat save must not retain the previous attempt's success UI.
+        # Keep the report and last successful path; only done() may mark success.
+        self.saved_current=False
+        self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
         def done(result):
             self.last_saved=result['path']
             self.saved_current=True
             self.open_file.configure(state='normal');self.open_folder.configure(state='normal')
             self.status.set('저장했습니다.')
-        self.background(lambda:exporter.save(snapshot,folder,name,approved=True),done,
+        def task():
+            if approval_token!=self.review_state.token or not self.review_state.allowed:
+                raise ValueError('승인 대상이 변경되었습니다. 현재 자료를 다시 재검수해 주세요.')
+            return exporter.save(snapshot,folder,name,approved=True)
+        self.background(task,done,
             '한글 파일을 저장하고 있습니다.')
 
     def open_saved(self):
