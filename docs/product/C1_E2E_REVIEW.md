@@ -25,19 +25,19 @@ Windows 11 build 22631, Python 3.12.14 x64, 한글 2018 COM Version 10,0,0,7888�
 
 ### A와 B
 
-![실제 HWP A 출력: 가상 장치 3대](../images/c1/native-hwp/a.png)
+![실제 HWP A 출력: 가상 장치 3대](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/a.png)
 
-![실제 HWP B 출력: 가상 장치 7대·일정 미정](../images/c1/native-hwp/b.png)
+![실제 HWP B 출력: 가상 장치 7대·일정 미정](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/b.png)
 
 ### 장문 4쪽 전체
 
-![장문 1쪽: 01부터 14](../images/c1/native-hwp/long-01.png)
+![장문 1쪽: 01부터 14](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/long-01.png)
 
-![장문 2쪽: 14의 이어지는 문장부터 34](../images/c1/native-hwp/long-02.png)
+![장문 2쪽: 14의 이어지는 문장부터 34](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/long-02.png)
 
-![장문 3쪽: 35부터 55](../images/c1/native-hwp/long-03.png)
+![장문 3쪽: 35부터 55](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/long-03.png)
 
-![장문 4쪽: 55의 이어지는 문장부터 60·마지막 표](../images/c1/native-hwp/long-04.png)
+![장문 4쪽: 55의 이어지는 문장부터 60·마지막 표](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/long-04.png)
 
 ## 후속 재검증과 승인 대기
 
@@ -45,4 +45,4 @@ Windows 11 build 22631, Python 3.12.14 x64, 한글 2018 COM Version 10,0,0,7888�
 
 최초 실행기 오류·중단·감시기 미완료는 로컬에 보존하고 통과 분모에 넣지 않았다. 키트의 사람 수동 확인 서명을 자동으로 꾸며내지 않았으며, 자동화 기능 검사와 사용자 파일 접근 승인이 결합된 실제 COM 검증으로 기록했다.
 
-[최종 품질 판정·미검증 범위](QUALITY_REVIEW.md) · [수용/회귀·실패 기록](EVIDENCE_SUMMARY.md) · [재현 방법](../../qa/c1_native/README.md)
+[최종 품질 판정·미검증 범위](QUALITY_REVIEW.md) · [수용/회귀·실패 기록](EVIDENCE_SUMMARY.md) · [재현 방법](https://github.com/munwonshin/ai-inspection-report/blob/codex/c1-source-review/qa/c1_native/README.md)

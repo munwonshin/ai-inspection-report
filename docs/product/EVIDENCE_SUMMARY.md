@@ -38,4 +38,4 @@ Open 호출 시간에는 **사용자의 한글 파일 접근 승인 대기**가 
 
 기존 원시 증거 57개 SHA-256 일치를 확인했고 기존 Baseline·실패·새 로그는 로컬에 보존했다. 원시 로그·HWP·호스트 경로·PID·기존 로컬 Git 이력은 공개하지 않는다. 공개 요약·합성 fixture·재현 코드·안전한 렌더 이미지로 근거를 연결한다.
 
-[실제 출력](C1_E2E_REVIEW.md) · [최종 판정과 범위](QUALITY_REVIEW.md) · [재현 명령](../../qa/c1_native/README.md)
+[실제 출력](C1_E2E_REVIEW.md) · [최종 판정과 범위](QUALITY_REVIEW.md) · [재현 명령](https://github.com/munwonshin/ai-inspection-report/blob/codex/c1-source-review/qa/c1_native/README.md)
