@@ -1,0 +1,216 @@
+{
+  "schema": "c1-public-quality-v1",
+  "date": "2026-11-13",
+  "verdict": "C1 기능 품질 검증 완료",
+  "scope": "Source-run C1 functional quality; synthetic fixtures; user performs Hancom file-access security approval; not a release/EXE/commercial-stability certification",
+  "base_main_commit": "290fc6a6681f85ab7dc21e38ed33bc232addf2f0",
+  "native_e2e": {
+    "result": "PASS",
+    "cases": {
+      "A_save": "PASS",
+      "B_unreviewed_block": "PASS",
+      "B_review_save": "PASS",
+      "rename": "PASS",
+      "collision": "PASS",
+      "long_60": "PASS"
+    },
+    "generated_hwp": 4,
+    "native_open_repeats": 3,
+    "native_open_calls": 12,
+    "native_open_result": "PASS",
+    "rendered_pages_reviewed": 7,
+    "long_report_pages": 4,
+    "long_markers": 60
+  },
+  "core48": {
+    "cases": 16,
+    "repeats": 3,
+    "observations": 48,
+    "unreviewed_entered": 0,
+    "unreviewed_denominator": 18,
+    "normal_blocked": 0,
+    "normal_denominator": 30,
+    "result": "PASS"
+  },
+  "acceptance": {
+    "run": 26,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "existing_native_units": {
+    "run": 151,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "ShellLink_IStorage": "native",
+    "Hancom_in_unit_tests": false
+  },
+  "gui_qa": {
+    "passed": 4,
+    "total": 4
+  },
+  "harness_units": {
+    "passed": 8,
+    "total": 8
+  },
+  "synthetic_pdf_qa": "PASS",
+  "approval_wait_clarification": {
+    "origin": "User confirmed manual Hancom file-access approval waiting",
+    "prior_observations_include_approval_wait_seconds": [
+      43,
+      119.8
+    ],
+    "pure_processing_time_measured": false,
+    "performance_defect_or_improvement_claim": false,
+    "automatic_security_approval": false
+  },
+  "preservation": {
+    "previous_raw_records_sha256_unchanged": 57,
+    "baseline_and_failures_preserved_locally": true,
+    "old_local_git_history_uploaded": false,
+    "raw_logs_or_HWP_uploaded": false
+  },
+  "remaining": [
+    "Frozen EXE/package validation",
+    "Commercial and multi-version stability",
+    "Existing user Hancom coexistence",
+    "Forced COM hang recovery",
+    "Explorer double-click association",
+    "Actual AI quality and real user review time"
+  ],
+  "source_fingerprints": {
+    "inspection/review.py": {
+      "sha256_lf": "de87b5fed008c000da5540e59dc688688f5419866ae9342cb3ada3a5c7d3006b",
+      "git_blob_lf": "1089f6230fdd94233be1c15d0364cd31ace2e33e"
+    },
+    "inspection/revisions.py": {
+      "sha256_lf": "325f9a123f47da3704239c436d5a3f89a108aa85546c93dc3da196ffb660c2b4",
+      "git_blob_lf": "5a797f813e4916f12f1199b305179f2a86f091bd"
+    },
+    "inspection/ui.py": {
+      "sha256_lf": "3c069eea00a65d6c124e947bde6feee9fb733e31fc2d15b743973d155d043d66",
+      "git_blob_lf": "3898d0bce307c25185ed4a9794b4fcd1f980b3dd"
+    },
+    "qa/workflow_checks.py": {
+      "sha256_lf": "8704e6881b574b90ec16f50f39d9efedf441e361c6da05558852fe408707f123",
+      "git_blob_lf": "506a1dd86fa869e1fec0159c4a464e10a6037396"
+    },
+    "qa/c1_baseline/fixtures.json": {
+      "sha256_lf": "7064ca1aee48b4773b0ce56fed841b7a1e0ca29852b9c3517da298fa766dfc8e",
+      "git_blob_lf": "f8db8270a39f8ad09c0c0c1788c468bb1986bd7d"
+    },
+    "qa/c1_baseline/run_baseline.py": {
+      "sha256_lf": "b7e64ebec50371d1b930d5c6ad72d9cf7a2435f02829f4edd2084ff6e4f684ae",
+      "git_blob_lf": "2936c4f234cca891ae00d66cc6fee99f9e5bf887"
+    },
+    "qa/c1_baseline/run_regressions.py": {
+      "sha256_lf": "db7073ed3cfb51d530e3aee5667409fdaa51b9c027bd058bf65cd6cc761418a5",
+      "git_blob_lf": "39516a85ee0f43622138b10388af7ed7b664e2ed"
+    },
+    "qa/c1_baseline/scenarios.json": {
+      "sha256_lf": "1812574772879c2bcb06f517534fc265bd560906daf2cce69fb05867ac0afd20",
+      "git_blob_lf": "bfe4532f9e2314d4e67bc59d297ea4922dd4ff7b"
+    },
+    "qa/c1_baseline/test_measurement.py": {
+      "sha256_lf": "a437a181122d7ac920476445e9f2f98da308326dd06d47784e3d4114c12faf93",
+      "git_blob_lf": "a3e8af44652859ae744984980d4cd521b4a93db7"
+    },
+    "qa/c1_acceptance/adapter.py": {
+      "sha256_lf": "85d9f2814fba313b581a4882d03955da3d0c3dfe98e29615dd4f7b7dd4c363f9",
+      "git_blob_lf": "47b6edfdfaef71dcfc7638e0e7c4809ffc3cd25f"
+    },
+    "qa/c1_acceptance/run_checks.py": {
+      "sha256_lf": "b1f30728e90330a81305bccb0f198ff8c7b75547e08815a909bed0dbc7ff1a78",
+      "git_blob_lf": "0b28b78988199b62f090616631ca184647228541"
+    },
+    "qa/c1_acceptance/run_local_qa.py": {
+      "sha256_lf": "c68bb5230ef058fe68045e963ed958ffb99660e87c587b9ac138517bec805221",
+      "git_blob_lf": "bc466e7973af4dd06b2b07a07fb245bd6fa0429b"
+    },
+    "qa/c1_acceptance/storage_double.py": {
+      "sha256_lf": "36c4b908179491cda17d1fc5bb0d41bfabc18882f4d04270a42ec9f61d116098",
+      "git_blob_lf": "21083abdb208cd96eb9e0aa3496dd498ccb9a682"
+    },
+    "qa/c1_acceptance/test_review.py": {
+      "sha256_lf": "6ee85de9fe241df517f89129b7fefb72d586ed19e7f126d65da2c5dadf99e921",
+      "git_blob_lf": "6845cb23714ccb15643e1237df6f8bd5d665d0dc"
+    },
+    "qa/c1_acceptance/test_ui.py": {
+      "sha256_lf": "efc3876be071affb99a74441a9f71a6d8107fb6653c239428aa5e9b5e66024ad",
+      "git_blob_lf": "4709004c58d08befddb7d57161993dc1848ab7b1"
+    },
+    "qa/c1_native/measure_open.py": {
+      "sha256_lf": "d34c4360908e103c1435c51c174935b174c5ad84a8af3980319649b08e036b43",
+      "git_blob_lf": "de3feda45891e1492a7468a097415d3fe5b52706"
+    },
+    "qa/c1_native/run_e2e.py": {
+      "sha256_lf": "2fc9263df0277130aabfa822a94336ce85c75c5c6510c14940043a067e1f430b",
+      "git_blob_lf": "3885fe8e89f518ce422f6702f5318d27eef4a2e1"
+    },
+    "qa/c1_native/run_native_units.py": {
+      "sha256_lf": "9287e6f536f1c74e2b4104f252c8d18d4c21a959b7ddf4b6e66efad415c434b2",
+      "git_blob_lf": "b8da96f6ff10054398f310ae6500e56d1476985d"
+    },
+    "qa/c1_native/worker.py": {
+      "sha256_lf": "facb0f9a26e99225c67a87059c008dc5a27f2b9d2b4d6ba6c7d773d2b667e140",
+      "git_blob_lf": "1bd21204947d64e9b4d185eb98774bb371400275"
+    }
+  },
+  "images": [
+    {
+      "path": "docs/images/c1/native-hwp/a.png",
+      "sha256": "fff424d17ca1afa0801548e679ea9b82da6d2d9f1291553603daaed72faf839b",
+      "pixels_unchanged": true,
+      "size": [
+        794,
+        1123
+      ]
+    },
+    {
+      "path": "docs/images/c1/native-hwp/b.png",
+      "sha256": "ef302b32c4e2fe3d0e6e33d14750b3d7efb4791b791c0762e74d71bc229ad792",
+      "pixels_unchanged": true,
+      "size": [
+        794,
+        1123
+      ]
+    },
+    {
+      "path": "docs/images/c1/native-hwp/long-01.png",
+      "sha256": "3236a12c980e41d0654ae050e89711b258dd1cd8112731f0ed6776eab657e605",
+      "pixels_unchanged": true,
+      "size": [
+        794,
+        1123
+      ]
+    },
+    {
+      "path": "docs/images/c1/native-hwp/long-02.png",
+      "sha256": "b73001b053d77cc2cdcdc4fe597cad4bf99f7c4ef846defa0307ca62ce1dca6d",
+      "pixels_unchanged": true,
+      "size": [
+        794,
+        1123
+      ]
+    },
+    {
+      "path": "docs/images/c1/native-hwp/long-03.png",
+      "sha256": "77af6832bc7a0b30887b697a531b87dc0a47fbaa077f15273ec80ca090c9c9ef",
+      "pixels_unchanged": true,
+      "size": [
+        794,
+        1123
+      ]
+    },
+    {
+      "path": "docs/images/c1/native-hwp/long-04.png",
+      "sha256": "1d1dad8646b7c294e5ba2dc1938f73c76bfdc1f2bfa8b52ef24a6976919a2b71",
+      "pixels_unchanged": true,
+      "size": [
+        794,
+        1123
+      ]
+    }
+  ]
+}
