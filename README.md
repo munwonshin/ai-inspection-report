@@ -1,105 +1,85 @@
-# AI 현장점검 결과서 자동화 | PM 제품 개선 사례
+# AI 현장점검 결과서 자동화 | PM Case Study
 
-**반복 업무를 줄이는 도구를 만든 뒤, 자료 변경 시 잘못된 결과서가 승인될 수 있는 위험을 발견해 재검수 기능을 기획·검증한 프로젝트입니다.**
+**반복적인 결과서 작성 문제를 해결한 뒤, 자료 변경 시 잘못된 내용이 승인될 수 있는 위험을 발견해 C1 재검수 기능을 기획·개선·정식 배포한 프로젝트입니다.**
 
-> **PM 관점의 핵심:** 사용자 문제 발견 → 개선안 비교·우선순위 결정 → PRD·사용자 흐름 설계 → 구현·피드백 반영 → 품질 검증 → 출시 판단
+**v0.4.27 정식 출시 · 2026-11-16** · [Windows Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [PM 사례 연구](docs/product/PM_CASE_STUDY.md) · [실제 UI 시연](docs/product/C1_DEMO.md)
 
-**프로젝트 결과: 2026-11-16 v0.4.27 Windows 정식 배포 완료** · [정식 Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [실제 EXE E2E·배포 증거](docs/product/EXE_RELEASE_REVIEW.md)
-
-**[PM 사례 연구 먼저 읽기](docs/product/PM_CASE_STUDY.md)** · [실제 UI 시연](docs/product/C1_DEMO.md) · [PRD·목표·수용 기준](docs/product/PRD_PUBLIC.md) · [제품 로드맵](docs/product/ROADMAP_PUBLIC.md)
-
-## 1. 프로젝트와 담당 역할
+## 1. 프로젝트 개요와 담당 역할
 
 | 항목 | 내용 |
 | --- | --- |
-| 배경·사용자 | AI바우처 현장점검 결과서를 작성·검수하는 실무자. 작성자 본인의 업무 경험을 중심으로 문제를 발견 |
-| 제품 | 사업계획서(PDF·HWP)·회의록 입력 → AI 초안 → 사용자 검수·직접 수정/채팅 수정 → 승인 → 기존 HWP 양식 저장 |
-| 내가 한 일 | 업무 문제·사용자 목표 정의, C1/C2/C3 우선순위 결정, MVP·PRD·수용 기준 설정, Codex 기반 구현·시험 검토, 실제 EXE 배포 판단·Release 완료 |
-| 작업 방식 | 1인 업무 개선 프로젝트. 분석·구현·테스트·문서화에 Codex 등 AI 도구를 활용. 별도 개발·디자인 스쿼드 리딩 경험은 아님 |
-| 사용 환경 | Python/Tkinter 기반 Windows 앱, OpenAI API, 한글 COM |
+| **사용자·문제** | AI바우처 현장점검 결과서를 작성·검수하는 담당자. 본인의 업무 경험에서 작성 비효율과 승인 위험 발견 |
+| **제품 흐름** | PDF·HWP 사업계획서/회의록 → AI 초안 → 사람 검토·직접/채팅 수정 → 승인 → 기존 HWP 양식 저장 |
+| **내 역할** | 문제·사용자 목표 정의, 개선안 우선순위, MVP·PRD·수용 기준 설정, 구현·QA 검토, 출시 판단 |
+| **진행 방식** | 1인 업무 개선 프로젝트. Codex를 활용해 분석·구현·테스트를 진행했으며 별도 개발·디자인팀 리딩 경험은 아님 |
 
-## 2. 사용자 문제와 개선 방향
+## 2. 사용자 문제를 발견하고 해결 방향을 정하다
 
-**첫 번째 문제 — 작성 비효율.** 사업계획서·회의록을 읽고 한글 결과서 양식에 옮기는 작업이 건당 평균 약 60분 걸렸다. 단순 AI 문장 생성이 아니라 **검수·수정·승인·HWP 저장까지** 업무 흐름을 묶어 초기 도구를 만들었다.
+**처음 해결한 문제 — 작성 비효율.** 사업계획서와 회의록을 확인하고 한글 결과서에 옮기는 데 건당 약 60분이 걸렸다. AI 초안만 만드는 대신 **자료 입력부터 사람의 최종 검토·HWP 저장까지** 연결하는 업무 도구를 구현했다. 초기 본인 업무 3건 이상에서 평균 약 **60분→3분(95% 단축)**을 자체 측정했다. 건별 원기록·대조군은 없어 다른 사용자에게 일반화하지 않는다.
 
-**두 번째 문제 — 승인 품질.** 기존 도구는 자료 A로 작성한 본문을 남겨둔 채 자료 B를 첨부해도 재검수를 요구하지 않았다. 편집 내용을 지우면 작업물이 손실되므로, **본문은 보존하되 현재 자료와 다시 대조하기 전에는 저장을 막는 C1 기능**을 선택했다. 실제 운영 사고가 발생했다는 주장이 아니라 코드와 합성 시나리오에서 재현한 위험이다.
+**다음에 발견한 문제 — 잘못된 승인 위험.** 자료 A로 작성한 초안을 남겨둔 상태에서 자료 B를 첨부해도, 기존 제품은 새 자료와 이전 본문의 재검토를 요구하지 않았다. 이 위험은 **기존 코드와 합성 사례로 확인**했으며 실제 제출 사고가 발생했다고 주장하지 않는다.
 
-![B 자료와 기존 A 본문이 함께 있는 상태에서 재검수 전 저장을 차단하는 C1 UI](docs/images/c1/03-unreviewed-blocked.jpg)
+> **핵심 제품 판단:** 자료 변경 시 본문을 삭제하면 사용자의 편집물이 사라지고, 그대로 승인하면 다른 자료의 내용이 남을 위험이 있다. 따라서 **본문은 보존하되 현재 자료를 다시 검토하기 전에는 저장을 차단**하는 C1을 설계했다.
 
-*실제 C1 로컬 앱 화면을 합성 A/B 자료·고정 AI 응답·저장 대역으로 시연. 이 화면은 정식 배포본 또는 실제 HWP 저장 검증 사진이 아니다.* [화면 전체 시연](docs/product/C1_DEMO.md)
+![자료 B를 첨부한 뒤 이전 A 본문이 남아 있어 재검수 전 저장을 차단하는 실제 C1 로컬 UI](docs/images/c1/03-unreviewed-blocked.jpg)
 
-## 한눈에 보는 제품 방향
+*개인정보 없는 합성 A/B 자료와 고정 AI 응답으로 실행한 실제 C1 로컬 화면. 이미지 자체는 배포 EXE 또는 실제 HWP 저장 시험 결과가 아니다.* [전체 6단계 UI 흐름](docs/product/C1_DEMO.md)
 
-**제품 목표:** 현장점검 결과서를 빠르게 작성하는 것에서 나아가, **현재 자료와 본문을 검토한 뒤 안전하게 확정**하는 작업 흐름을 만든다.
+## 3. 무엇을 먼저 해결할지 결정하다
 
-**Released · C1 v0.4.27 (2026-11-16)** → **Now · 실제 사용자 검수 부담·지원 환경 검증** → **Next 후보 · C3 수정 전후 비교** → **Later 후보 · C2 HWP 저장 복구**
-
-C1 정식 배포와 실제 EXE 핵심 검증은 완료했다. 반면 **C3·C2는 미착수**, 사용자 행동·검수시간은 미측정이며 Next/Later에 확정 일정은 없다. 어떤 문제를 먼저 해결할지, 성공을 어떻게 판단하고 무엇을 위험으로 관리하는지는 [**시각적 제품 로드맵·전략·지표·의존성**](docs/product/ROADMAP_PUBLIC.md)에서 확인할 수 있다.
-
-## 3. 무엇을 먼저 만들지 결정하다
-
-| 우선순위 | 개선 후보 | 판단 |
+| 개선 후보 | 선택·보류 이유 | 결과 |
 | --- | --- | --- |
-| **1. C1 재검수** | 자료와 남아 있는 본문이 불일치해 잘못 승인될 위험 | 코드·합성 재현 가능, 승인 경계에서 명확히 검증할 수 있어 먼저 구현 |
-| **2. C3 수정 차이 확인** | AI의 수정 내용을 찾는 검수 부담 | 기존 복원 기능으로 일부 대응 가능해 다음 단계로 분리 |
-| **3. C2 HWP 저장 복구** | 저장 실패·완료 불명 위험 | 영향은 크지만 장애 빈도 미확인, COM·파일 보호 실환경 검증 부담으로 보류 |
+| **C1 · 자료 변경 후 재검수** | 승인 위험을 재현했고 제한된 범위에서 오류 차단·정상 업무 보존을 함께 검증 가능 | **v0.4.27 출시 완료** |
+| **C3 · AI 수정 차이 확인** | 검수 부담을 줄일 수 있지만 기존 초안 복원 기능으로 일부 대응 가능 | 후속 후보·미착수 |
+| **C2 · HWP 저장 복구** | 영향이 크지만 실제 장애 빈도와 COM·파일 보호의 안전한 복구 조건 미확인 | 후속 후보·미착수 |
 
-영향도·시급성·개발 부담(각 1~5)을 비교해 **C1→C3→C2**를 결정했다. 현재 C1은 출시 완료했고, 출시 후 사용자 검증을 먼저 진행한 뒤 C3·C2 순위를 다시 평가한다. 점수는 상대 판단이며 실제 사용자 조사나 ROI가 아니다. [의사결정 근거](docs/product/DECISION_LOG_PUBLIC.md) · [시각적 로드맵과 리스크](docs/product/ROADMAP_PUBLIC.md)
+영향도·시급성·개발 부담을 상대 평가해 **C1→C3→C2**로 결정했다. 이는 실측 ROI나 사용자 설문 점수가 아닌 제품 위험과 검증 가능성에 따른 판단이다. [의사결정 기록](docs/product/DECISION_LOG_PUBLIC.md) · [제품 로드맵](docs/product/ROADMAP_PUBLIC.md)
 
-## 4. 요구사항과 실행
+## 4. 요구사항을 제품으로 연결하다
 
-**업무 목표:** 다른 기업의 내용이 검토 없이 확정될 위험을 줄이면서 사용자의 기존 편집을 보호한다. **기능 설계의 선택:** 자료 변경 후 본문은 유지하고 재검토 전 저장을 차단한다. 제품 목표는 조직 KPI·실제 운영 사고 감소율로 측정한 결과가 아니라 개선의 방향이다. [Business/User/Non-Goals·Must/Should/Could·기술 제약](docs/product/PRD_PUBLIC.md)
+- **목표:** 기존 작성 내용은 잃지 않으면서, 변경된 자료의 검토가 끝나기 전에는 저장되지 않도록 하기
+- **MVP:** 처리 자료 식별 → 변경·재검수 안내 → 명시 검토 → 복원·지연 응답 보호 → 승인 전 차단
+- **완료 기준:** 5개 User Story를 14개 수용 기준(AC01~AC14)에 연결하고, 잘못된 저장 차단뿐 아니라 정상 저장이 막히지 않는지도 검사
+- **실행:** Windows/Tkinter와 기존 HWP COM 양식을 유지하며 개발·실제 UI·회귀 검증·배포로 연결
 
+**실제 사용자 피드백 반영 사례:** 기존 제품에서 동료가 날짜 입력이 불편하다는 의견을 전달해 **달력 선택 기능**을 추가했다. 이는 실제 기능 변경 경험이지만 C1 사용자 인터뷰나 사용성 효과 측정 사례는 아니다.
 
-C1 MVP는 **처리 자료 식별 → 변경 안내 → 명시 검토 → 복원·지연 응답 보호 → 승인 전 차단**의 5개 범위로 제한했다. 같은 자료 재첨부나 파일명 변경은 정상 흐름을 유지하고, 본문·자료 내용 변경 후에는 재검수를 요구하도록 구분했다.
+[PRD·Goals·User Story·수용 기준](docs/product/PRD_PUBLIC.md) · [기능 백로그](docs/product/PRODUCT_BACKLOG.md) · [PM 사례 연구 상세](docs/product/PM_CASE_STUDY.md)
 
-- **[PRD·User Story·AC01~AC14](docs/product/PRD_PUBLIC.md)**: 사용자 기대 동작, 예외·저장 조건, 수용 기준
-- **[실제 UI·상태 전이 시연](docs/product/C1_DEMO.md)**: 검토 전 차단과 명시 검토 흐름
-- **[기능별 백로그](docs/product/PRODUCT_BACKLOG.md)**: 사용자 가치·우선순위·인수 조건·현재 상태
+## 5. 결과를 검증하고 출시하다
 
-기존 제품에서는 동료의 **날짜 입력 불편 의견**을 듣고 달력 선택 기능을 반영했다. 이는 실제 피드백 반영 사례이며, 별도 C1 인터뷰·사용성 테스트를 진행했다는 의미는 아니다.
-
-## 5. 결과를 무엇으로 검증했는가
-
-| 구분 | 확인된 결과 | 해석 범위 |
+| 검증 대상 | 결과 | 증거 범위 |
 | --- | --- | --- |
-| **초기 개인 업무 적용** | 본인 업무 3건 이상, 평균 약 **60분→3분(약 95% 단축)** | 개인 적용·자체 측정. 건별 원기록·대조군 없음. **C1 효과가 아님** |
-| **C1 미검토 승인 차단** | 같은 합성 조건에서 저장 함수 진입 **18/18→0/18** | 6개 유형×3회. 운영 사고 감소율 아님 |
-| **정상 작업 유지** | 정상 저장 오차단 **0/30 유지** | 10개 유형×3회. 실제 사용자 30명이 아님 |
-| **수용·회귀 검증** | 신규 **26/26**, 기존 단위 **151/151**, GUI QA **4/4** | 정의한 소스·시험 환경 내 통과 |
-| **실제 파일 검증** | 한글 COM 기반 HWP **4개** 저장·재열기·내용/서식 확인, 전체 7쪽 검수 | 합성 업무 자료를 사용한 실제 HWP 검증. 정식 배포 확인과 별개 |
+| **초기 작성 효율** | 개인 업무 평균 **60분→3분** | 본인 업무 3건 이상 자체 측정. **C1 개선 효과와 별개** |
+| **C1 승인 보호** | 미검토 저장 함수 진입 **18/18→0/18**, 정상 저장 오차단 **0/30 유지** | 16개 합성 시나리오×3회=48회. 운영 사고율 아님 |
+| **품질 검증** | 수용 **26/26**, 기존 단위 **151/151**, GUI QA **4/4** | 정의된 기능·회귀 검증 |
+| **실제 Windows EXE** | HWP 저장·재열기·내용/서식·60문단 장문·동명 파일 보호 PASS | 합성 업무 자료, 한글 COM 기반 핵심 E2E |
+| **정식 출시** | 검증된 동일 ZIP을 재빌드 없이 **v0.4.27로 게시**, 공개 파일 해시·압축 무결성 확인 | 2026-11-16 GitHub Release |
 
-**제품 판단:** 잘못된 승인을 막는 것뿐 아니라 정상 작업을 막지 않는지도 함께 측정했다. 모의 저장 경계의 합성 48회와 실제 HWP COM 시험은 별도 증거이며 서로 합산하지 않는다. [정량 근거](docs/product/EVIDENCE_SUMMARY.md) · [실제 HWP E2E](docs/product/C1_E2E_REVIEW.md) · [품질 판정](docs/product/QUALITY_REVIEW.md)
+**판단 기준:** 기능 테스트 통과와 실제 사용자 가치 입증은 다르다. C1은 정식 배포됐지만 **실사용자의 안내 이해도·추가 검수시간·운영 사고 감소율**은 아직 측정하지 않았다.
 
-## 6. 출시 판단과 다음 개선
+[EXE 배포·무결성 근거](docs/product/EXE_RELEASE_REVIEW.md) · [품질·실패 기록](docs/product/EVIDENCE_SUMMARY.md)
 
-- **C1 v0.4.27 정식 배포 완료(2026-11-16):** PR #1 main 병합, 실제 배포 EXE 핵심 HWP E2E 통과, 검증한 동일 ZIP 게시·다운로드 해시 확인.
-- **별도 미검증:** 다중 한글 버전·상용 환경 안정성·기존 한글 세션 공존·NAS·강제 COM 멈춤 복구. [배포 검증 근거](docs/product/EXE_RELEASE_REVIEW.md)
-- **다음 검증:** 제한 사용자에게 재검수 안내 이해도·활성 검수시간을 관찰. 이후 C3 수정 차이 표시, C2 저장 장애 조사 순으로 재평가.
+## 6. 회고와 다음 제품 판단
 
-현재 문서 중 [사용자 여정](docs/product/USER_RESEARCH_JOURNEY.md)과 [UX·Figma 제작 명세](docs/product/UX_PROTOTYPE_SPEC.md)는 실제 경험·현재 UI를 구조화한 자료이며, **C1 사용자 인터뷰·Figma 클릭형 프로토타입·사용성 테스트·퍼널 측정은 미실행**이다. [향후 사용자 검증 계획](docs/product/USABILITY_KPI_PLAN.md)에서 별도로 다룬다. [출시 게이트](docs/product/RELEASE_REVIEW_PUBLIC.md)
+이 프로젝트에서 가장 중요했던 선택은 **더 많은 기능을 만드는 대신, 기존 작업물을 보호하면서 잘못된 최종 승인을 막는 작은 범위부터 해결한 것**이다. 재검수 기능이 정상 업무까지 차단하지 않도록 반대 지표도 함께 확인했고, 소스 검증 이후 배포 EXE를 별도로 검증해 정식 출시했다.
 
-## 더 깊이 살펴보기
+**Released · C1 v0.4.27 → Now · 사용자 검수 부담·지원 환경 검증 → Next 후보 · C3 → Later 후보 · C2**
 
-| 궁금한 것 | 문서 |
-| --- | --- |
-| 왜 이 문제를 발견하고 C1을 선택했나? | [PM 사례 연구](docs/product/PM_CASE_STUDY.md) · [의사결정 기록](docs/product/DECISION_LOG_PUBLIC.md) |
-| 사용자 요구를 어떤 기능으로 바꿨나? | [PRD](docs/product/PRD_PUBLIC.md) · [사용자 여정](docs/product/USER_RESEARCH_JOURNEY.md) |
-| 화면과 실행 작업은 어떻게 연결되나? | [실제 UI](docs/product/C1_DEMO.md) · [UX 화면 명세](docs/product/UX_PROTOTYPE_SPEC.md) · [백로그](docs/product/PRODUCT_BACKLOG.md) |
-| 구현·검증 결과는 재현 가능한가? | [품질 검토](docs/product/QUALITY_REVIEW.md) · [검증 집계](docs/product/EVIDENCE_SUMMARY.md) |
-| 출시 후 사용자 검증과 남은 환경 위험은? | [사용성·KPI 계획](docs/product/USABILITY_KPI_PLAN.md) · [로드맵](docs/product/ROADMAP_PUBLIC.md) · [배포 근거](docs/product/EXE_RELEASE_REVIEW.md) |
+향후 제한된 실무자 관찰을 통해 재검수 안내 이해도와 활성 검수시간을 확인하고, 실제 장애·검수 부담의 근거에 따라 다음 우선순위를 재평가할 계획이다. **C1 사용자 인터뷰·사용성 테스트는 미실행**, 다중 한글 버전·기존 세션 공존·NAS·강제 COM 멈춤 복구도 별도 미검증이다.
+
+[로드맵·의존성·리스크](docs/product/ROADMAP_PUBLIC.md) · [사용성·KPI 측정 계획](docs/product/USABILITY_KPI_PLAN.md)
 
 <details>
-<summary>기술 사용·설치 및 개발 기록</summary>
+<summary>상세 문서 및 설치·개발 안내</summary>
 
-**현재 배포본 v0.4.27과 main에는 C1 재검수 기능이 포함됩니다.** 기존 v0.4.26 배포본도 보존했습니다.
+**기획·검증:** [PM 사례 연구](docs/product/PM_CASE_STUDY.md) · [PRD](docs/product/PRD_PUBLIC.md) · [사용자 여정·향후 조사 설계](docs/product/USER_RESEARCH_JOURNEY.md) · [UX 화면 명세](docs/product/UX_PROTOTYPE_SPEC.md) · [의사결정 기록](docs/product/DECISION_LOG_PUBLIC.md) · [실제 HWP E2E](docs/product/C1_E2E_REVIEW.md) · [출시 검토](docs/product/RELEASE_REVIEW_PUBLIC.md)
 
-**실행 환경:** Windows 64비트, 한글 COM을 지원하는 한컴오피스, OpenAI API 키 및 인터넷 연결.
+**실행 환경:** Windows 64비트, 한글 COM 지원 한컴오피스, OpenAI API 키 및 인터넷 연결.
 
-- [v0.4.27 Windows ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.27/AIInspectionReport-0.4.27-windows-x64.zip) · [릴리스·체크섬](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [이전 v0.4.26](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.26)
-- ZIP을 전체 압축 해제한 뒤 `AIInspectionReport` 폴더의 **바탕화면 아이콘 만들기.cmd**로 실행합니다. API 설정→자료 입력→검수·승인 저장 순서로 사용합니다.
-- Python은 별도로 설치하지 않아도 됩니다. `Code → Download ZIP`은 개발용 소스입니다.
-- 문서와 회의록 내용이 OpenAI로 전송되며 API 비용이 발생할 수 있습니다. 사용자가 사실·수치를 최종 확인해야 합니다.
-- [사용 및 소스 실행·빌드 안내](docs/USAGE.md) · [개발 검증 기록](docs/DEVELOPMENT_TEST_RECORD_PUBLIC.md) · [버전 변경 이력](docs/CHANGELOG.md)
+- [v0.4.27 Windows ZIP](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.27/AIInspectionReport-0.4.27-windows-x64.zip) · [릴리스·체크섬](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [이전 v0.4.26](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.26)
+- ZIP 전체를 압축 해제한 뒤 `AIInspectionReport` 폴더에서 **바탕화면 아이콘 만들기.cmd**를 실행합니다. Python 별도 설치는 필요하지 않습니다.
+- 업무 문서를 OpenAI API에 전송하며 비용이 발생할 수 있으므로 정보 취급 기준을 확인하고 최종 사실·수치를 사람이 검수해야 합니다.
+- [사용·빌드 안내](docs/USAGE.md) · [개발 검증 이력](docs/DEVELOPMENT_TEST_RECORD_PUBLIC.md) · [버전 변경 이력](docs/CHANGELOG.md)
 
 </details>
