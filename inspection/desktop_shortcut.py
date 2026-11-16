@@ -2,7 +2,7 @@
 from pathlib import Path
 import hashlib,shutil,sys,uuid
 
-VERSION='0.4.26'
+VERSION='0.4.27'
 NAME='AI 현장점검 결과서'
 
 def inside(path,parent):

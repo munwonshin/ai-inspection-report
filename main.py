@@ -11,8 +11,15 @@ if __name__=='__main__':
         from inspection.hwp_direct import check_main
         check_main()
     elif '--hwp-worker' in sys.argv:
+        import os
+        if os.environ.get('AIR_C1_FROZEN_PROBE'):
+            from inspection.c1_probe import install_worker_guard
+            install_worker_guard()
         from inspection.exporter import worker_main
         worker_main()
+    elif len(sys.argv)==4 and sys.argv[1]=='--c1-frozen-check':
+        from inspection.c1_probe import main
+        main()
     elif len(sys.argv)==3 and sys.argv[1]=='--api-check':
         from inspection.api_probe import main
         main()
