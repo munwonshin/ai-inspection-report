@@ -42,7 +42,7 @@
 
 **본문:** 재저장 실패에도 이전 성공 표시가 남는 결함을 실패 검사로 재현·수정했다. 이전 실패·중단·제외를 삭제하지 않고 네이티브 단위151개와 실제 COM으로 범위를 넓혀 검증했다. Open 호출의 긴 시간은 사용자가 파일 접근 승인을 늦게 누른 대기가 포함된 것임을 확인해 성능 결함이나 개선으로 주장하지 않았다. 사용자가 보안 승인에 참여한 E2E이며 자동 보안 우회는 하지 않았다.
 
-**권장 시각자료:** [실제 B HWP](../images/c1/native-hwp/b.png)와 [장문 마지막 쪽](../images/c1/native-hwp/long-04.png), 위 전후 표, 다음 완료/별도 범위 카드.
+**권장 시각자료:** [실제 B HWP](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/b.png)와 [장문 마지막 쪽](https://raw.githubusercontent.com/munwonshin/ai-inspection-report/codex/c1-source-review/docs/images/c1/native-hwp/long-04.png), 위 전후 표, 다음 완료/별도 범위 카드.
 
 | C1 품질 완료 | 별도 미검증·승인 대기 |
 | --- | --- |
