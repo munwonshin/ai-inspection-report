@@ -49,6 +49,21 @@ PDF·HWP 첨부, 일반현황 분석, 채팅 수정·이전 초안 복원, 기�
 
 [최종 품질 판정](docs/product/QUALITY_REVIEW.md) · [실제 HWP 출력·E2E](docs/product/C1_E2E_REVIEW.md) · [수용·회귀·실패 기록](docs/product/EVIDENCE_SUMMARY.md)
 
+## PM 관점으로 보는 프로젝트 산출물
+
+기존 프로젝트를 **문제 발견 → 사용자 여정 → 우선순위 → PRD/User Story → 화면·백로그 → 검증 → 회고** 순서로 탐색할 수 있도록 정리했습니다.
+
+| 단계 | 확인할 자료 | 증거·상태 |
+| --- | --- | --- |
+| 1. 문제·제품 분석 | [PM 사례 연구](docs/product/PM_CASE_STUDY.md) | 본인 업무 적용·코드 근거 |
+| 2. 사용자 리서치 | [사용자 여정·인터뷰 설계](docs/product/USER_RESEARCH_JOURNEY.md) | 업무 경험·합성 여정, C1 인터뷰 미실행 |
+| 3. 우선순위·전략 | [로드맵](docs/product/ROADMAP_PUBLIC.md) · [의사결정](docs/product/DECISION_LOG_PUBLIC.md) | C1→C3→C2 비교 |
+| 4. 기능 기획 | [PRD·User Story·AC](docs/product/PRD_PUBLIC.md) | AC01~AC14와 구현 범위 |
+| 5. UX·협업 | [화면/프로토타입 명세](docs/product/UX_PROTOTYPE_SPEC.md) · [백로그](docs/product/PRODUCT_BACKLOG.md) | 기존 UI 근거와 제작 계획, Figma 실제 파일 없음 |
+| 6. KPI·검증 | [사용성·KPI 계획](docs/product/USABILITY_KPI_PLAN.md) · [기능 품질 검증](docs/product/QUALITY_REVIEW.md) | 합성·HWP E2E 완료 / 사용자 테스트·퍼널 미측정 |
+
+**범위 안내:** 문서화한 사용자 여정·Figma 화면 명세·사용성 테스트 계획은 실제 인터뷰·Figma 프로토타입 제작·사용자 실험 완료와 다릅니다.
+
 ## 상세 문서
 
 [PM 사례 연구](docs/product/PM_CASE_STUDY.md) · [PRD](docs/product/PRD_PUBLIC.md) · [ROADMAP](docs/product/ROADMAP_PUBLIC.md) · [DECISION_LOG](docs/product/DECISION_LOG_PUBLIC.md) · [검증 집계](docs/product/EVIDENCE_SUMMARY.md) · [출시 검토](docs/product/RELEASE_REVIEW_PUBLIC.md)
