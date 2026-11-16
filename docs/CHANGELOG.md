@@ -43,8 +43,10 @@
 | 0.4.25 | EXE 실행에 의존하지 않는 바로가기 설치·한글 경로 호환 보완 |
 | 0.4.26 | 저장 중 임시 폴더 표시 제거·숨김 임시파일로 검증 후 HWP 저장 |
 
-## C1 로컬 개선 — 미출시
+## v0.4.27 — C1 재검수 정식 배포 (2026-11-16)
 
-자료 변경 후 재검수 기능은 별도 로컬 브랜치에서 구현·합성 검증했습니다. 실제 HWP 저장·재열기 검증과 정식 출시·기능 main 병합은 보류 상태입니다. 위의 배포 버전 이력에 C1 출시 버전을 추가하지 않습니다.
+자료 변경 시 기존 본문을 보존하고 명시 검토 전 저장을 차단합니다. 과거 초안·지연 응답 보호와 재저장 실패 시 성공 표시 해제를 포함합니다. 실제 배포 EXE의 HWP 저장·재열기·내용/서식·동명 보호·60문단 검증을 통과했고 PR #1을 main에 병합했습니다. 단위151/151·수용26/26·GUI4/4, 합성48회 0/18·0/30을 확인했습니다. 재빌드 없이 검증한 동일 ZIP을 게시하고 다운로드 해시를 확인했습니다. 기존 38개 이력과 v0.4.26 자산은 보존합니다.
+
+[Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [배포 검증과 미검증 범위](product/EXE_RELEASE_REVIEW.md)
 
 [PM 사례 연구](product/PM_CASE_STUDY.md) · [검증 집계](product/EVIDENCE_SUMMARY.md) · [개발·검증 기록](DEVELOPMENT_TEST_RECORD.md) · [검증 문서 안내](README.md) · [전체 커밋 이력](https://github.com/munwonshin/ai-inspection-report/commits/main/)

@@ -2,7 +2,7 @@
   "schema": "c1-frozen-release-evidence-v1",
   "date": "2026-11-16",
   "version": "0.4.27",
-  "state": "EXE_VERIFIED_AWAITING_PUBLISH",
+  "state": "RELEASED_DOWNLOAD_VERIFIED",
   "source_commit": "be34dfe98954227660ae55c062f7be4e9f44d986",
   "workflow_run_id": 43779042677,
   "artifact_id": 14187512766,
@@ -81,10 +81,10 @@
   "core48": {
     "U_entered": 0,
     "U_valid": 18,
-    "M01_percent": 0.0,
+    "M01_percent": 0,
     "N_blocked": 0,
     "N_valid": 30,
-    "M02_percent": 0.0,
+    "M02_percent": 0,
     "planned_U": 18,
     "planned_N": 30,
     "infra_errors": 0,
@@ -103,5 +103,16 @@
     "Actual AI API response quality and real-user outcomes"
   ],
   "old_evidence_preserved": true,
-  "raw_logs_or_hwp_published": false
+  "raw_logs_or_hwp_published": false,
+  "publication": {
+    "release_url": "https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27",
+    "merge_commit": "7f339d517a7647e25147fbc1ff75ba56d5c81cf3",
+    "workflow_run_id": 43782553378,
+    "rebuilt": false,
+    "public_download": "PASS",
+    "zip_crc": "PASS",
+    "zip_sha256_match": true,
+    "inner_exe_sha256_match": true,
+    "previous_v026_assets_unchanged": true
+  }
 }

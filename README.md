@@ -60,8 +60,8 @@ C1 MVP는 **처리 자료 식별 → 변경 안내 → 명시 검토 → 복원�
 
 ## 6. 출시 판단과 다음 개선
 
-- **C1 작업 브랜치:** 소스 기능 개발·정의한 E2E·품질 검증 **완료**.
-- **미완료:** C1 배포 EXE·상용 환경·기존 한글 세션 공존 검증, 정식 릴리스와 `main` 병합.
+- **C1 v0.4.27 정식 배포 완료(2026-11-16):** PR #1 main 병합, 실제 배포 EXE 핵심 HWP E2E 통과, 검증한 동일 ZIP 게시·다운로드 해시 확인.
+- **별도 미검증:** 다중 한글 버전·상용 환경 안정성·기존 한글 세션 공존·NAS·강제 COM 멈춤 복구. [배포 검증 근거](docs/product/EXE_RELEASE_REVIEW.md)
 - **다음 검증:** 제한 사용자에게 재검수 안내 이해도·활성 검수시간을 관찰. 이후 C3 수정 차이 표시, C2 저장 장애 조사 순으로 재평가.
 
 현재 문서 중 [사용자 여정](docs/product/USER_RESEARCH_JOURNEY.md)과 [UX·Figma 제작 명세](docs/product/UX_PROTOTYPE_SPEC.md)는 실제 경험·현재 UI를 구조화한 자료이며, **C1 사용자 인터뷰·Figma 클릭형 프로토타입·사용성 테스트·퍼널 측정은 미실행**이다. [향후 사용자 검증 계획](docs/product/USABILITY_KPI_PLAN.md)에서 별도로 다룬다. [출시 게이트](docs/product/RELEASE_REVIEW_PUBLIC.md)
@@ -79,11 +79,11 @@ C1 MVP는 **처리 자료 식별 → 변경 안내 → 명시 검토 → 복원�
 <details>
 <summary>기술 사용·설치 및 개발 기록</summary>
 
-**기존 공개 배포본은 v0.4.26이며 C1 기능은 포함하지 않습니다.** C1은 별도 작업 브랜치에서 검토 중입니다.
+**현재 배포본 v0.4.27과 main에는 C1 재검수 기능이 포함됩니다.** 기존 v0.4.26 배포본도 보존했습니다.
 
 **실행 환경:** Windows 64비트, 한글 COM을 지원하는 한컴오피스, OpenAI API 키 및 인터넷 연결.
 
-- [v0.4.26 Windows ZIP](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.26/AIInspectionReport-0.4.26-windows-x64.zip) · [전체 릴리스](https://github.com/munwonshin/ai-inspection-report/releases)
+- [v0.4.27 Windows ZIP 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.27/AIInspectionReport-0.4.27-windows-x64.zip) · [릴리스·체크섬](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [이전 v0.4.26](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.26)
 - ZIP을 전체 압축 해제한 뒤 `AIInspectionReport` 폴더의 **바탕화면 아이콘 만들기.cmd**로 실행합니다. API 설정→자료 입력→검수·승인 저장 순서로 사용합니다.
 - Python은 별도로 설치하지 않아도 됩니다. `Code → Download ZIP`은 개발용 소스입니다.
 - 문서와 회의록 내용이 OpenAI로 전송되며 API 비용이 발생할 수 있습니다. 사용자가 사실·수치를 최종 확인해야 합니다.

@@ -1,8 +1,13 @@
 # C1 Windows EXE 배포 검증
 
-2026-11-16 · v0.4.27 · **실제 배포 EXE 검증 PASS, 병합·게시 게이트 승인 기록 생성**
+2026-11-16 · v0.4.27 · **실제 배포 EXE 검증·main 병합·v0.4.27 정식 배포 완료**
 
-소스 실행 검증과 구분해, GitHub Windows Actions가 만든 실제 onedir EXE를 내려받아 실행했다. 테스트 후 ZIP/EXE 바이트가 그대로임을 확인했으며, 이 파일을 재빌드 없이 승격한다. 현재 게시 대기 상태이며 실제 Release 확인 뒤 배포 완료 상태로 갱신한다.
+소스 실행 검증과 구분해, GitHub Windows Actions가 만든 실제 onedir EXE를 내려받아 실행했다. 테스트 후 ZIP/EXE 바이트가 그대로임을 확인했으며, 이 파일을 재빌드 없이 승격했다. PR #1을 main에 병합하고 정식 Release를 게시했다. 공개 ZIP을 다시 내려받아 ZIP CRC와 ZIP·내부 EXE의 SHA-256 일치를 확인했다.
+
+- [v0.4.27 정식 Release·다운로드](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27)
+- [병합 PR #1](https://github.com/munwonshin/ai-inspection-report/pull/1), 병합 커밋 `7f339d517a7647e25147fbc1ff75ba56d5c81cf3`
+- [동일 파일 게시 실행](https://github.com/munwonshin/ai-inspection-report/actions/runs/43782553378): publish PASS, build SKIPPED
+- v0.4.26 ZIP·체크섬 asset ID와 SHA-256이 이전 기록과 동일함을 재확인했다.
 
 | 필수 게이트 | 실제 결과 |
 | --- | --- |
