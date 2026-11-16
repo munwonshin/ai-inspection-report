@@ -1,0 +1,107 @@
+{
+  "schema": "c1-frozen-release-evidence-v1",
+  "date": "2026-11-16",
+  "version": "0.4.27",
+  "state": "EXE_VERIFIED_AWAITING_PUBLISH",
+  "source_commit": "be34dfe98954227660ae55c062f7be4e9f44d986",
+  "workflow_run_id": 43779042677,
+  "artifact_id": 14187512766,
+  "zip_sha256": "a2babeb229f8aa8c5f42c0a8ccb1ea49dbc21c41c09e6aa2a2ee534f5b1ef5e4",
+  "exe_sha256": "2841333ac8baf363c0d7998612b7eeb5933e41835fc31f9cbc8918b6a7b73512",
+  "build": "PASS",
+  "frozen_source_modules": 23,
+  "runtime": {
+    "tkdnd": "2.9.5",
+    "tls": "OpenSSL 3.0.16 11 Feb 2025",
+    "pdf_error": null
+  },
+  "frozen": {
+    "frozen": true,
+    "bundled_modules": {
+      "ui": true,
+      "exporter": true,
+      "review": true
+    },
+    "cases": {
+      "C1_A": "PASS",
+      "B_unreviewed_block": "PASS",
+      "C1_B": "PASS",
+      "duplicate_and_failure_state": "PASS",
+      "C1_RENAMED": "PASS",
+      "C1_LONG": "PASS"
+    },
+    "reopened": [
+      {
+        "name": "C1_A",
+        "pages": 1,
+        "sha256": "3ed7590a759ec4c4b6ecf8d03f710f081f7189fb36c9853c85e3501ce80d1b21",
+        "status": "PASS"
+      },
+      {
+        "name": "C1_B",
+        "pages": 1,
+        "sha256": "e111e4bcb25a3d8734052046e1fd395d3c72e154ac9d2ece238e04e154231f49",
+        "status": "PASS"
+      },
+      {
+        "name": "C1_RENAMED",
+        "pages": 1,
+        "sha256": "ff2d5cd02d42c9d958fb88b4b0f0cbf451f4c29d6b6c313ef188a95e864f0edf",
+        "status": "PASS"
+      },
+      {
+        "name": "C1_LONG",
+        "pages": 4,
+        "sha256": "491ad64a7415647cc672a141fbbee04029bab9ff547c8c635c14111c34f5ad22",
+        "status": "PASS"
+      }
+    ],
+    "AI_calls": 0,
+    "credentials_read": 0,
+    "security_approval": "left to user when prompted, never automated",
+    "test_dialog_replies": "mocked; actual App buttons and worker/COM used",
+    "export_entries": 5
+  },
+  "unit_tests": {
+    "run": 151,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "acceptance": {
+    "run": 26,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "gui_qa": {
+    "pass": 4,
+    "total": 4
+  },
+  "core48": {
+    "U_entered": 0,
+    "U_valid": 18,
+    "M01_percent": 0.0,
+    "N_blocked": 0,
+    "N_valid": 30,
+    "M02_percent": 0.0,
+    "planned_U": 18,
+    "planned_N": 30,
+    "infra_errors": 0,
+    "duplicate_entry_cases": 0,
+    "report_mismatches": 0,
+    "measurement_complete": true,
+    "contract_passes": 48,
+    "contract_failures": 0,
+    "all_contracts_pass": true
+  },
+  "remaining": [
+    "Multi-version and commercial stability",
+    "Existing user Hancom coexistence",
+    "NAS",
+    "Forced COM hang recovery",
+    "Actual AI API response quality and real-user outcomes"
+  ],
+  "old_evidence_preserved": true,
+  "raw_logs_or_hwp_published": false
+}

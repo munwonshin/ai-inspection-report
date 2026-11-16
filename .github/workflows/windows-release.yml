@@ -3,11 +3,17 @@ name: Windows executable release
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, codex/c1-source-review]
     paths:
       - '.github/workflows/windows-release.yml'
       - '.gitattributes'
-      - 'inspection/desktop_shortcut.py'
+      - 'main.py'
+      - 'inspection/**'
+      - 'hooks/**'
+      - 'build.ps1'
+      - 'requirements.txt'
+      - 'qa/verify_frozen.py'
+      - 'qa/package_release.py'
       - 'install-support.cs'
       - '바탕화면 아이콘 만들기.cmd'
 
@@ -15,15 +21,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: windows-executable-release
+  group: windows-executable-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
+    if: github.ref != 'refs/heads/main'
     runs-on: windows-latest
     timeout-minutes: 30
-    outputs:
-      version: ${{ steps.package.outputs.version }}
     defaults:
       run:
         shell: pwsh
@@ -43,17 +48,15 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $result = Join-Path $env:RUNNER_TEMP 'runtime-check.json'
           $exe = (Resolve-Path 'dist/AIInspectionReport/AIInspectionReport.exe').Path
-          $process = Start-Process -FilePath $exe -ArgumentList '--runtime-check', $result -Wait -PassThru
+          $process = Start-Process -FilePath $exe -ArgumentList '--runtime-check', $result -Wait -PassThru -WindowStyle Hidden
           if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $result)) { throw 'Bundled runtime check failed' }
           $runtime = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json
           if (-not $runtime.tkdnd -or -not $runtime.tls) { throw 'Missing bundled GUI/TLS dependency' }
-      - name: Package verified executable
-        id: package
+      - name: Package candidate (does not publish)
         run: |
           $ErrorActionPreference = 'Stop'
           $version = & ./.venv/Scripts/python.exe -c "from inspection.desktop_shortcut import VERSION; print(VERSION)"
           if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version' }
-          "version=$version" >> $env:GITHUB_OUTPUT
           & ./.venv/Scripts/python.exe qa/package_release.py dist/AIInspectionReport $version
           if ($LASTEXITCODE -ne 0) { throw 'Release package verification failed' }
       - uses: actions/upload-artifact@v4
@@ -64,25 +67,41 @@ jobs:
           retention-days: 7
 
   publish:
-    needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: write
+      actions: read
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: windows-release
-          path: release
-      - name: Publish executable ZIP on GitHub Releases
-        working-directory: release
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate tested candidate and publish exact bytes
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.build.outputs.version }}
         run: |
           set -euo pipefail
+          test -f release/approved.json
+          test -f release/NOTES.md
+          jq -e '.schema == "c1-tested-release-v1" and .frozen_e2e == "PASS" and .unit_tests == 151 and .acceptance_tests == 26 and .gui_qa == 4' release/approved.json >/dev/null
+          SOURCE=$(jq -r .source_commit release/approved.json)
+          RUN=$(jq -r .workflow_run_id release/approved.json)
+          VERSION=$(jq -r .version release/approved.json)
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git cat-file -e "$SOURCE^{commit}"
+          git diff --exit-code "$SOURCE" HEAD -- main.py inspection requirements.txt build.ps1 hooks assets qa/verify_frozen.py qa/package_release.py install-support.cs '바탕화면 아이콘 만들기.cmd'
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN" > /tmp/candidate-run.json
+          jq -e --arg source "$SOURCE" '.head_sha == $source and .conclusion == "success" and .head_branch == "codex/c1-source-review"' /tmp/candidate-run.json >/dev/null
+          mkdir verified-release
+          gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name windows-release --dir verified-release
+          cd verified-release
+          ZIP="AIInspectionReport-$VERSION-windows-x64.zip"
+          EXPECTED=$(jq -r .zip_sha256 ../release/approved.json)
+          printf '%s  %s\n' "$EXPECTED" "$ZIP" | sha256sum --check -
           sha256sum --check SHA256SUMS.txt
-          gh release create "v$VERSION" "AIInspectionReport-$VERSION-windows-x64.zip" SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "AI 현장점검 결과서 $VERSION · Windows 실행용" \
-            --notes-file RELEASE_NOTES.md --latest
+          EXPECTED_EXE=$(jq -r .exe_sha256 ../release/approved.json)
+          ACTUAL_EXE=$(unzip -p "$ZIP" AIInspectionReport/AIInspectionReport.exe | sha256sum | cut -d' ' -f1)
+          test "$EXPECTED_EXE" = "$ACTUAL_EXE"
+          gh release create "v$VERSION" "$ZIP" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "AI 현장점검 결과서 $VERSION · C1 재검수" --notes-file ../release/NOTES.md --latest

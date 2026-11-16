@@ -1,0 +1,16 @@
+{
+  "schema": "c1-tested-release-v1",
+  "version": "0.4.27",
+  "source_commit": "be34dfe98954227660ae55c062f7be4e9f44d986",
+  "workflow_run_id": 43779042677,
+  "artifact_id": 14187512766,
+  "zip_sha256": "a2babeb229f8aa8c5f42c0a8ccb1ea49dbc21c41c09e6aa2a2ee534f5b1ef5e4",
+  "exe_sha256": "2841333ac8baf363c0d7998612b7eeb5933e41835fc31f9cbc8918b6a7b73512",
+  "frozen_e2e": "PASS",
+  "unit_tests": 151,
+  "acceptance_tests": 26,
+  "gui_qa": 4,
+  "frozen_modules_match": 23,
+  "approval_date": "2026-11-16",
+  "approval_scope": "User authorized merge and release after mandatory frozen validation. Hancom file-access approval performed by user."
+}
