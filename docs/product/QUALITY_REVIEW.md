@@ -42,6 +42,6 @@ Python 3.12/PDF 라이브러리의 첫 OS 조회가 시험 중 subprocess 금지
 
 ## 증거·재현
 
-[E2E 결과와 실제 출력](C1_E2E_REVIEW.md) · [집계·실패 이력](EVIDENCE_SUMMARY.md) · [기계 판독 요약](C1_QUALITY_EVIDENCE.json) · [PRD](PRD_PUBLIC.md) · [재현 명령](../../qa/c1_native/README.md)
+[E2E 결과와 실제 출력](C1_E2E_REVIEW.md) · [집계·실패 이력](EVIDENCE_SUMMARY.md) · [기계 판독 요약](C1_QUALITY_EVIDENCE.json) · [PRD](PRD_PUBLIC.md) · [재현 명령](https://github.com/munwonshin/ai-inspection-report/blob/codex/c1-source-review/qa/c1_native/README.md)
 
 원시 입력/로그·HWP·PID·호스트 경로와 기존 로컬 Git 이력은 공개하지 않는다. 최신 공개 main을 기준으로 검수한 코드·합성 fixture·공개 문서·렌더 이미지만 별도 작업 브랜치에 반영한다. 기존 원본 이력은 로컬에 보존한다.
