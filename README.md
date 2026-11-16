@@ -4,7 +4,9 @@
 
 > **PM 관점의 핵심:** 사용자 문제 발견 → 개선안 비교·우선순위 결정 → PRD·사용자 흐름 설계 → 구현·피드백 반영 → 품질 검증 → 출시 판단
 
-**[PM 사례 연구 먼저 읽기](docs/product/PM_CASE_STUDY.md)** · [6단계 실제 UI 시연](docs/product/C1_DEMO.md) · [PRD](docs/product/PRD_PUBLIC.md) · [제품 로드맵](docs/product/ROADMAP_PUBLIC.md)
+**프로젝트 결과: 2026-11-16 v0.4.27 Windows 정식 배포 완료** · [정식 Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [실제 EXE E2E·배포 증거](docs/product/EXE_RELEASE_REVIEW.md)
+
+**[PM 사례 연구 먼저 읽기](docs/product/PM_CASE_STUDY.md)** · [실제 UI 시연](docs/product/C1_DEMO.md) · [PRD·목표·수용 기준](docs/product/PRD_PUBLIC.md) · [제품 로드맵](docs/product/ROADMAP_PUBLIC.md)
 
 ## 1. 프로젝트와 담당 역할
 
@@ -12,7 +14,7 @@
 | --- | --- |
 | 배경·사용자 | AI바우처 현장점검 결과서를 작성·검수하는 실무자. 작성자 본인의 업무 경험을 중심으로 문제를 발견 |
 | 제품 | 사업계획서(PDF·HWP)·회의록 입력 → AI 초안 → 사용자 검수·직접 수정/채팅 수정 → 승인 → 기존 HWP 양식 저장 |
-| 내가 한 일 | 반복 업무 및 승인 위험 분석, MVP 설정, C1/C2/C3 우선순위 비교, PRD·User Story·수용 기준 정의, 기능 구현·검증 결과 검토, 출시 범위 판단 |
+| 내가 한 일 | 업무 문제·사용자 목표 정의, C1/C2/C3 우선순위 결정, MVP·PRD·수용 기준 설정, Codex 기반 구현·시험 검토, 실제 EXE 배포 판단·Release 완료 |
 | 작업 방식 | 1인 업무 개선 프로젝트. 분석·구현·테스트·문서화에 Codex 등 AI 도구를 활용. 별도 개발·디자인 스쿼드 리딩 경험은 아님 |
 | 사용 환경 | Python/Tkinter 기반 Windows 앱, OpenAI API, 한글 COM |
 
@@ -37,6 +39,9 @@
 영향도·시급성·개발 부담(각 1~5)을 비교하고 **C1→C3→C2**로 정했다. 점수는 상대적 판단이며 실제 사용자 조사나 ROI 계산이 아니다. [판단 근거](docs/product/DECISION_LOG_PUBLIC.md) · [로드맵](docs/product/ROADMAP_PUBLIC.md)
 
 ## 4. 요구사항과 실행
+
+**업무 목표:** 다른 기업의 내용이 검토 없이 확정될 위험을 줄이면서 사용자의 기존 편집을 보호한다. **기능 설계의 선택:** 자료 변경 후 본문은 유지하고 재검토 전 저장을 차단한다. 제품 목표는 조직 KPI·실제 운영 사고 감소율로 측정한 결과가 아니라 개선의 방향이다. [Business/User/Non-Goals·Must/Should/Could·기술 제약](docs/product/PRD_PUBLIC.md)
+
 
 C1 MVP는 **처리 자료 식별 → 변경 안내 → 명시 검토 → 복원·지연 응답 보호 → 승인 전 차단**의 5개 범위로 제한했다. 같은 자료 재첨부나 파일명 변경은 정상 흐름을 유지하고, 본문·자료 내용 변경 후에는 재검수를 요구하도록 구분했다.
 
@@ -74,7 +79,7 @@ C1 MVP는 **처리 자료 식별 → 변경 안내 → 명시 검토 → 복원�
 | 사용자 요구를 어떤 기능으로 바꿨나? | [PRD](docs/product/PRD_PUBLIC.md) · [사용자 여정](docs/product/USER_RESEARCH_JOURNEY.md) |
 | 화면과 실행 작업은 어떻게 연결되나? | [실제 UI](docs/product/C1_DEMO.md) · [UX 화면 명세](docs/product/UX_PROTOTYPE_SPEC.md) · [백로그](docs/product/PRODUCT_BACKLOG.md) |
 | 구현·검증 결과는 재현 가능한가? | [품질 검토](docs/product/QUALITY_REVIEW.md) · [검증 집계](docs/product/EVIDENCE_SUMMARY.md) |
-| 남은 사용자 검증과 출시 조건은? | [사용성·KPI 계획](docs/product/USABILITY_KPI_PLAN.md) · [로드맵](docs/product/ROADMAP_PUBLIC.md) |
+| 출시 후 사용자 검증과 남은 환경 위험은? | [사용성·KPI 계획](docs/product/USABILITY_KPI_PLAN.md) · [로드맵](docs/product/ROADMAP_PUBLIC.md) · [배포 근거](docs/product/EXE_RELEASE_REVIEW.md) |
 
 <details>
 <summary>기술 사용·설치 및 개발 기록</summary>
