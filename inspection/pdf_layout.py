@@ -9,14 +9,32 @@ from collections import OrderedDict
 
 def layout_text_and_operations(page, font_cache):
     from pypdf import __version__
-    from pypdf._font import Font
-    from pypdf._text_extraction import _layout_mode
-    from pypdf.generic import ContentStream
     if __version__ != '6.10.0':
-        # Keep the public API as a correctness fallback after dependency changes.
-        text=(page.extract_text(extraction_mode='layout') or '').strip()
-        stream=page.get_contents()
-        return text,stream.operations if stream is not None else []
+        return public_layout(page)
+    try:
+        from pypdf._font import Font
+        from pypdf._text_extraction import _layout_mode
+        from pypdf.generic import ContentStream
+        for name in ('text_show_operations','y_coordinate_groups','fixed_char_width','fixed_width_page'):
+            if not callable(getattr(_layout_mode,name,None)):return public_layout(page)
+        if not callable(getattr(Font,'from_font_resource',None)):return public_layout(page)
+    except (ImportError,AttributeError):
+        return public_layout(page)
+    try:return pinned_layout(page,font_cache,Font,_layout_mode,ContentStream)
+    except (ImportError,AttributeError,TypeError):
+        # Incompatible internals must not make an otherwise readable PDF fail.
+        font_cache.clear()
+        return public_layout(page)
+
+
+def public_layout(page):
+    try:text=page.extract_text(extraction_mode='layout') or ''
+    except TypeError:text=page.extract_text() or ''
+    stream=page.get_contents()
+    return text.strip(),stream.operations if stream is not None else []
+
+
+def pinned_layout(page,font_cache,Font,_layout_mode,ContentStream):
     fonts={};node=page
     # Match pypdf's resource inheritance and alias overwrite order exactly.
     while node is not None:

@@ -6,7 +6,7 @@ if len(sys.argv)!=2:raise SystemExit('Usage: python qa/verify_frozen.py PATH_TO_
 root=Path(__file__).resolve().parents[1]
 archive=CArchiveReader(str(Path(sys.argv[1]).resolve())).open_embedded_archive('PYZ.pyz')
 names=['input_probe','desktop_shortcut','hwp_images','hwp_direct','hwp_input','revisions','report_format','api_probe','preferences','date_picker','ui','api','style','metadata','core','streaming','exporter','vault','documents','runtime_probe']
-names+=['review','c1_probe','pdf_native']
+names+=['review','c1_probe','pdf_native','pdf_layout','hwp_process','save_job','async_tasks','save_flow']
 for name in names:
     actual=archive.extract('inspection.'+name)
     expected=compile((root/'inspection'/f'{name}.py').read_bytes(),actual.co_filename,'exec')

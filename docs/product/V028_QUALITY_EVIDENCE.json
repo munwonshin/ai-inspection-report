@@ -1,0 +1,134 @@
+{
+  "schema": "v028-quality-v1",
+  "date": "2026-11-17",
+  "version": "0.4.28",
+  "state": "VERIFIED_AWAITING_PUBLICATION",
+  "source_commit": "25fa1e8c09e3db7328e0bb962e4be8b3ec37cee5",
+  "build_run_id": 44026313371,
+  "artifact_id": 14303595913,
+  "zip_sha256": "7a07be0d5ef3b3508a62b95232f4e6664bafb503c64d32d106a2acee15dd5019",
+  "exe_sha256": "a519b3389f10673920b69b2e57c2dbb788a494a39c0ff5804c198875d31b8b8a",
+  "frozen_modules_match": 28,
+  "units": {
+    "passed": 163,
+    "total": 163,
+    "skipped": 0
+  },
+  "acceptance": {
+    "passed": 28,
+    "total": 28
+  },
+  "gui_qa": {
+    "passed": 4,
+    "total": 4
+  },
+  "harness": {
+    "passed": 8,
+    "total": 8
+  },
+  "core48": {
+    "U_entered": 0,
+    "U_valid": 18,
+    "M01_percent": 0.0,
+    "N_blocked": 0,
+    "N_valid": 30,
+    "M02_percent": 0.0,
+    "planned_U": 18,
+    "planned_N": 30,
+    "infra_errors": 0,
+    "duplicate_entry_cases": 0,
+    "report_mismatches": 0,
+    "measurement_complete": true,
+    "contract_passes": 48,
+    "contract_failures": 0,
+    "all_contracts_pass": true
+  },
+  "native_recovery": [
+    {
+      "mode": "stall",
+      "expected_success": false,
+      "status": "PASS",
+      "seconds": 20.91
+    },
+    {
+      "mode": "normal",
+      "expected_success": true,
+      "status": "PASS",
+      "seconds": 20.78
+    },
+    {
+      "mode": "failure",
+      "expected_success": false,
+      "status": "PASS",
+      "seconds": 18.48
+    },
+    {
+      "mode": "normal",
+      "expected_success": true,
+      "status": "PASS",
+      "seconds": 16.23
+    }
+  ],
+  "frozen_cases": {
+    "C1_A": "PASS",
+    "B_unreviewed_block": "PASS",
+    "C1_B": "PASS",
+    "duplicate_and_failure_state": "PASS",
+    "C1_RENAMED": "PASS",
+    "C1_LONG": "PASS",
+    "timeout_cleanup": "PASS",
+    "C1_TIMEOUT": "PASS",
+    "failure_protection": "PASS",
+    "C1_RECOVERY": "PASS"
+  },
+  "actual_reopened_files": [
+    {
+      "name": "C1_A",
+      "pages": 1,
+      "sha256": "59e89a4048238e54fe5c3d3569122026318395fcbd8b62ef428255acec24fbe0",
+      "status": "PASS"
+    },
+    {
+      "name": "C1_B",
+      "pages": 1,
+      "sha256": "c68b3c83e1d645e94fe74b1af8d2c947507dcb4cc7bac71ccfe900d1adb646f7",
+      "status": "PASS"
+    },
+    {
+      "name": "C1_RENAMED",
+      "pages": 1,
+      "sha256": "5a1b707640eafc1ba3cf24c97242d569d157dbd0a1531c60e1c21d4b038ef7c7",
+      "status": "PASS"
+    },
+    {
+      "name": "C1_LONG",
+      "pages": 4,
+      "sha256": "82cc4a763df69ade3a154d19ea143c9ea373ad7d9ea425ac15de58e89524555f",
+      "status": "PASS"
+    },
+    {
+      "name": "C1_TIMEOUT",
+      "pages": 4,
+      "sha256": "3aebceadddbd95869b56eb52f199e26741b6bb850b316ebbd2fd53e17396bc09",
+      "status": "PASS"
+    },
+    {
+      "name": "C1_RECOVERY",
+      "pages": 4,
+      "sha256": "c0216e5eb3b9089357e1e0ca23d2dc70022fa2885586bb00aa9c0172e78075f2",
+      "status": "PASS"
+    }
+  ],
+  "api_calls": 0,
+  "credentials_read": 0,
+  "test_dialog_replies": "mocked; real Tk controls and COM used",
+  "stall_scope": "Injected delay and false return at real COM reimport, 20-second test override; production default120 seconds. Not exhaustive real COM deadlock coverage.",
+  "remaining": [
+    "Other Windows/Hancom versions and existing user session coexistence",
+    "NAS and storage outages",
+    "Unknown ownership during DispatchEx stall",
+    "Actual AI response quality and real-user outcomes"
+  ],
+  "original_evidence_preserved": true,
+  "raw_logs_or_hwp_published": false
+}
