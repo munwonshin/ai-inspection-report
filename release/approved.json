@@ -1,16 +1,16 @@
 {
   "schema": "c1-tested-release-v1",
-  "version": "0.4.27",
-  "source_commit": "be34dfe98954227660ae55c062f7be4e9f44d986",
-  "workflow_run_id": 43779042677,
-  "artifact_id": 14187512766,
-  "zip_sha256": "a2babeb229f8aa8c5f42c0a8ccb1ea49dbc21c41c09e6aa2a2ee534f5b1ef5e4",
-  "exe_sha256": "2841333ac8baf363c0d7998612b7eeb5933e41835fc31f9cbc8918b6a7b73512",
+  "version": "0.4.28",
+  "source_commit": "25fa1e8c09e3db7328e0bb962e4be8b3ec37cee5",
+  "workflow_run_id": 44026313371,
+  "artifact_id": 14303595913,
+  "zip_sha256": "7a07be0d5ef3b3508a62b95232f4e6664bafb503c64d32d106a2acee15dd5019",
+  "exe_sha256": "a519b3389f10673920b69b2e57c2dbb788a494a39c0ff5804c198875d31b8b8a",
   "frozen_e2e": "PASS",
-  "unit_tests": 151,
-  "acceptance_tests": 26,
+  "unit_tests": 163,
+  "acceptance_tests": 28,
   "gui_qa": 4,
-  "frozen_modules_match": 23,
-  "approval_date": "2026-11-16",
-  "approval_scope": "User authorized merge and release after mandatory frozen validation. Hancom file-access approval performed by user."
+  "frozen_modules_match": 28,
+  "approval_date": "2026-11-17",
+  "approval_scope": "User authorized main merge and release only after mandatory native and frozen validation; security approval remains manual."
 }
