@@ -1,10 +1,12 @@
 # AI 현장점검 결과서 자동화 | 제품 기획·개발·개선 사례
 
-**현장점검 결과서 작성에 걸리는 반복 업무를 줄이기 위해 직접 기획한 Windows 제품입니다.** 업무 흐름을 MVP로 만들고, 실제 업무 적용과 사용자 피드백을 바탕으로 검수·입력·편집·저장 경험을 개선해 **v0.4.27 정식 배포**까지 진행했습니다.
+**현장점검 결과서 작성에 걸리는 반복 업무를 줄이기 위해 직접 기획한 Windows 제품입니다.** 업무 흐름을 MVP로 만들고, 실제 업무 적용과 사용자 피드백을 바탕으로 검수·입력·편집·저장 경험을 개선해 **v0.4.28 정식 배포**까지 진행했습니다.
 
-**핵심 결과:** 초기 개인 업무 적용 **3건 이상**, 작성시간 평균 약 **60분 → 3분(95% 단축)** 자체 측정 · [최신 v0.4.27 Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [버전별 개선 이력](docs/CHANGELOG.md)
+**핵심 결과:** 초기 개인 업무 적용 **3건 이상**, 작성시간 평균 약 **60분 → 3분(95% 단축)** 자체 측정 · [최신 v0.4.28 Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.28) · [버전별 개선 이력](docs/CHANGELOG.md)
 
 > **PM 관점에서 보여주려는 경험:** 실무 문제 발견 → 사용자 작업 흐름 정의 → MVP 범위 결정 → 업무 적용 → 피드백·오류 기반 반복 개선 → 품질 검증·배포 → 다음 개선 과제 선정
+
+**최신 개선 · v0.4.28(2026-11-17):** HWP 저장 기본120초 제한·작업 소유 프로세스 정리·실패 후 편집 보존/재시도, PDF 공개 API 대체, UI 비동기·승인 저장 모듈 분리. 단위 **163/163**, 수용 **28/28**, GUI QA **4/4**, 실제 EXE **10분기·HWP6개 재열기**를 확인했습니다. [새 버전 검증·한계](docs/product/V028_QUALITY_REVIEW.md) · [저장·복구 안내](docs/SAVE_JOB_RECOVERY.md)
 
 ## 1. 프로젝트 개요와 나의 역할
 
@@ -67,7 +69,7 @@
 - **실제 피드백과 기존 동작 보존이 개선 기준이 됐다.** 날짜 입력, 수정·복원, 자료 지원과 저장 안전성을 개선하면서 기존 작업물이 사라지거나 정상 흐름이 막히지 않도록 확인했다.
 - **출시 이후 확인할 지표를 정했다.** v0.4.27의 기능·배포 검증을 마쳤고, 다음 단계에서는 현장점검 실무자가 재검수 안내를 이해하고 업무를 완료하는지, 검수에 얼마나 시간이 추가되는지 관찰할 계획이다. 실제 사고 감소 효과는 운영 사례가 확보되면 별도로 평가한다. [측정 계획](docs/product/USABILITY_KPI_PLAN.md)
 
-**제품 로드맵:** Released · C1(v0.4.27) → Now · 사용성·지원 환경 검증 → Next 후보 · C3 수정 비교 → Later 후보 · C2 저장 복구. Next/Later는 확정 일정이 아니며 실제 사용·장애 근거에 따라 다시 판단한다.
+**제품 로드맵:** Released · C1(v0.4.27)·저장 제한/재시도 및 PDF 보강(v0.4.28) → Now · 사용성·지원 환경 검증 → Next 후보 · C3 수정 비교 → Later 후보 · C2 복구 범위 확장. Next/Later는 확정 일정이 아니며 실제 사용·장애 근거에 따라 다시 판단한다.
 
 [시각적 제품 로드맵·리스크](docs/product/ROADMAP_PUBLIC.md) · [사용자 조사·KPI 계획(미실행)](docs/product/USABILITY_KPI_PLAN.md)
 
@@ -78,7 +80,7 @@
 
 **최신 개선 심화 자료:** [PM 사례 연구](docs/product/PM_CASE_STUDY.md) · [PRD](docs/product/PRD_PUBLIC.md) · [의사결정 기록](docs/product/DECISION_LOG_PUBLIC.md) · [UX 화면 명세(별도 Figma 미제작)](docs/product/UX_PROTOTYPE_SPEC.md) · [사용자 여정·조사 설계(인터뷰 미실행)](docs/product/USER_RESEARCH_JOURNEY.md) · [실제 HWP E2E](docs/product/C1_E2E_REVIEW.md)
 
-**Windows 설치:** [v0.4.27 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.27/AIInspectionReport-0.4.27-windows-x64.zip) · [Release·체크섬](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [이전 v0.4.26](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.26)
+**Windows 설치:** [v0.4.28 다운로드](https://github.com/munwonshin/ai-inspection-report/releases/download/v0.4.28/AIInspectionReport-0.4.28-windows-x64.zip) · [Release·체크섬](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.28) · [이전 v0.4.27](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [v0.4.26](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.26)
 
 Windows 64비트, 한글 COM 지원 한컴오피스, OpenAI API 키·인터넷 연결이 필요하다. ZIP 전체를 압축 해제하고 `AIInspectionReport` 폴더의 **바탕화면 아이콘 만들기.cmd**를 실행한다. Python 별도 설치는 필요 없다. 실제 업무 문서가 OpenAI API에 전송되며 비용이 발생할 수 있으므로 자료 취급 기준을 준수하고 결과를 사람이 최종 검수해야 한다.
 

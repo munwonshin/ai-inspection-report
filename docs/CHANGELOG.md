@@ -50,3 +50,16 @@
 [Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.27) · [배포 검증과 미검증 범위](product/EXE_RELEASE_REVIEW.md)
 
 [PM 사례 연구](product/PM_CASE_STUDY.md) · [검증 집계](product/EVIDENCE_SUMMARY.md) · [개발·검증 기록](DEVELOPMENT_TEST_RECORD.md) · [검증 문서 안내](README.md) · [전체 커밋 이력](https://github.com/munwonshin/ai-inspection-report/commits/main/)
+
+
+## v0.4.28 — 저장 작업 제한·실패 복구와 PDF 호환성 (2026-11-17)
+
+- HWP worker 기본120초 제한, 검증한 신규 작업 프로세스만 정리·UI 해제·본문 보존·사용자 재시도
+- 부모만 검증된 파일을 no-replace 게시: 시간 초과 뒤 늦은 저장과 기존 파일 덮어쓰기 방지
+- pypdf 버전 확인 후 내부 API import, 불가 시 공개 API 대체
+- 기존 화면을 유지하며 비동기 큐와 승인 저장을 async_tasks/save_flow로 분리
+- EXE 시험에서 발견한 동명 사전 검사 안내 회귀 수정
+
+단위163/163·수용28/28·GUI4/4·합성48회0/18·0/30, 실제 EXE10분기·6 HWP Open/내용/서식 확인 후 PR #2 main 병합·정식 게시. 지연/실패는 실제 COM 재입력 단계에 주입한 시험이며 모든 실제 교착 재현이 아니다. 실패 후보와 기존 기록/자산은 보존했다.
+
+[Release](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.28) · [검증 결과와 한계](product/V028_QUALITY_REVIEW.md)

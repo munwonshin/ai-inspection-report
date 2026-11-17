@@ -2,7 +2,7 @@
   "schema": "v028-quality-v1",
   "date": "2026-11-17",
   "version": "0.4.28",
-  "state": "VERIFIED_AWAITING_PUBLICATION",
+  "state": "RELEASED_DOWNLOAD_VERIFIED",
   "source_commit": "25fa1e8c09e3db7328e0bb962e4be8b3ec37cee5",
   "build_run_id": 44026313371,
   "artifact_id": 14303595913,
@@ -29,10 +29,10 @@
   "core48": {
     "U_entered": 0,
     "U_valid": 18,
-    "M01_percent": 0.0,
+    "M01_percent": 0,
     "N_blocked": 0,
     "N_valid": 30,
-    "M02_percent": 0.0,
+    "M02_percent": 0,
     "planned_U": 18,
     "planned_N": 30,
     "infra_errors": 0,
@@ -130,5 +130,17 @@
     "Actual AI response quality and real-user outcomes"
   ],
   "original_evidence_preserved": true,
-  "raw_logs_or_hwp_published": false
+  "raw_logs_or_hwp_published": false,
+  "publication": {
+    "release_url": "https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.28",
+    "merge_commit": "442095be7ecd6818eee5ddef7960cea82727700e",
+    "publish_run_id": 44027903375,
+    "rebuilt": false,
+    "public_download": "PASS",
+    "zip_crc": "PASS",
+    "zip_sha256_match": true,
+    "exe_sha256_match": true,
+    "checksum_sha256": "b5bdde20828a380cfaf3ec28e841dae62e66b9456c5cd921618b162d71c50991",
+    "v026_v027_assets_unchanged": true
+  }
 }

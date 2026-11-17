@@ -1,6 +1,6 @@
 # v0.4.28 최종 검증과 배포 검토
 
-2026-11-17 · **소스·실제 배포 EXE 필수 검증 PASS, main 병합·정식 게시 대기**
+2026-11-17 · **소스·실제 배포 EXE 검증·main 병합·v0.4.28 정식 배포·공개 다운로드 동일성 확인 완료**
 
 이 버전은 C1 검수 보호를 유지하면서 저장 작업 제한·실패 후 재시도·PDF 호환 대체·UI 책임 분리를 추가했다. v0.4.27의 승인이나 체크섬을 이번 시험 결과로 재사용하지 않았다.
 
@@ -28,7 +28,12 @@
 - EXE SHA-256: `a519b3389f10673920b69b2e57c2dbb788a494a39c0ff5804c198875d31b8b8a`
 - [새 승인 manifest](../../release/approved.json) · [기계 판독 결과](V028_QUALITY_EVIDENCE.json)
 
-이 후보를 재빌드 없이 승격한다. 게시와 공개 다운로드 동일성 확인은 완료 후 기록한다. v0.4.26·v0.4.27 자산 및 기존 검증 문서는 보존한다.
+검증한 이 후보를 **재빌드 없이 동일 파일로 게시**했다. 공개 URL의 ZIP과 SHA256SUMS.txt를 다시 내려받아 ZIP CRC·ZIP SHA-256·내부 EXE SHA-256 일치를 확인했다. v0.4.26·v0.4.27 자산의 ID·체크섬도 게시 전과 동일했다.
+
+- [v0.4.28 정식 Release·다운로드](https://github.com/munwonshin/ai-inspection-report/releases/tag/v0.4.28)
+- [PR #2](https://github.com/munwonshin/ai-inspection-report/pull/2), main 병합 커밋 `442095be7ecd6818eee5ddef7960cea82727700e`
+- [동일 파일 게시 실행](https://github.com/munwonshin/ai-inspection-report/actions/runs/44027903375): publish PASS, build SKIPPED
+- 과거 승인 원본은 [v0.4.27 manifest](../../release/history/v0.4.27-approved.json)·기존 Git 이력에 보존했다.
 
 ## 실패·무효 기록
 
