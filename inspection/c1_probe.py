@@ -77,6 +77,16 @@ def install_worker_guard():
         owned=bool(win32gui.IsWindow(hwnd) and pid not in before and pid in hwp_pids())
         with (root/'evidence/worker-ownership.jsonl').open('a',encoding='utf-8') as out:out.write(json.dumps({'pid':pid,'hwnd':hwnd,'before':before,'owned':owned})+'\n')
         if not owned:raise RuntimeError('COM ownership unproven: no mutation or Quit')
+        mode=os.environ.get('AIR_R028_FAULT','')
+        if mode:
+            class Fault:
+                def __getattr__(self,name):return getattr(obj,name)
+                def SetTextFile(self,text,fmt,opt):
+                    if fmt=='HWP':
+                        if mode=='stall':time.sleep(90)
+                        if mode=='failure':return False
+                    return obj.SetTextFile(text,fmt,opt)
+            return Fault()
         return obj
     win32com.client.DispatchEx=guarded
     socket.socket.connect=deny;socket.getaddrinfo=deny
@@ -115,7 +125,8 @@ def main():
         with (root/'evidence/events.jsonl').open('a',encoding='utf-8') as out:out.write(json.dumps({'event':kind,'time':time.time(),**values},ensure_ascii=False)+'\n')
     def save(report,folder,name,*,approved=False):
         if Path(folder).resolve()!=root/'outputs':raise ValueError('Test destination escaped root')
-        exports.append(name);return actual_save(report,folder,name,approved=approved)
+        exports.append(name);return actual_save(report,folder,name,approved=approved,
+            timeout=20 if os.environ.get('AIR_R028_FAULT')=='stall' else 120)
     stack.enter_context(patch.object(exporter,'save',side_effect=save))
     stack.enter_context(patch.object(vault,'read',side_effect=deny))
     stack.enter_context(patch.object(ui.api,'request',side_effect=deny))
@@ -163,6 +174,19 @@ def main():
     def long_saved():
         saved('C1_LONG')
         if any(hashes().get(n)!=v for n,v in memo['protected'].items()):raise AssertionError('Previously saved output changed')
+        memo['protected']=hashes();os.environ['AIR_R028_FAULT']='stall';approve('C1_TIMEOUT')
+    def timeout_done():
+        if app.saved_current or hashes()!=memo['protected'] or hwp_pids():raise AssertionError('Timeout cleanup failed')
+        if app.snapshot()!=expected['C1_TIMEOUT'] or not any('제한 시간' in n['message'] for n in notices):raise AssertionError('Timeout lost edits or reason')
+        if list((root/'outputs').glob('*.tmp')):raise AssertionError('Timeout left staged output')
+        cases['timeout_cleanup']='PASS';os.environ.pop('AIR_R028_FAULT',None);approve('C1_TIMEOUT')
+    def timeout_retried():
+        saved('C1_TIMEOUT');memo['protected']=hashes();os.environ['AIR_R028_FAULT']='failure';approve('C1_RECOVERY')
+    def failure_done():
+        if app.saved_current or hashes()!=memo['protected'] or app.snapshot()!=expected['C1_RECOVERY']:raise AssertionError('Failure protection failed')
+        cases['failure_protection']='PASS';os.environ.pop('AIR_R028_FAULT',None);approve('C1_RECOVERY')
+    def failure_retried():
+        saved('C1_RECOVERY')
         record('awaiting_native_open_user_approval',note='User must approve synthetic file access; no automatic approval or performance timing claim')
     def wait_workers():
         current=set(hwp_pids());rows=[json.loads(s) for s in (root/'evidence/worker-ownership.jsonl').read_text().splitlines()]
@@ -177,7 +201,7 @@ def main():
         pythoncom.CoInitialize();hwp=None
         try:
             hwp=owned_hwp(root/'evidence/open-ownership.jsonl');hwp.XHwpWindows.Item(0).Visible=True
-            for name in ('C1_A','C1_B','C1_RENAMED','C1_LONG'):
+            for name in ('C1_A','C1_B','C1_RENAMED','C1_LONG','C1_TIMEOUT','C1_RECOVERY'):
                 path=root/'outputs'/(name+'.hwp');before=digest(path);record('open_start',name=name)
                 if not hwp.Open(str(path),'HWP','readonly:true'):raise AssertionError('Real frozen Open returned false')
                 xml=hwp.GetTextFile('HWPML2X','');verify_xml(xml,expected[name])
@@ -203,7 +227,7 @@ def main():
         for timer in tk.tk.call('after','info'):tk.after_cancel(timer)
         tk.destroy()
     tk.report_callback_exception=lambda exc,value,tb:finish(False,str(value))
-    steps=[lambda:app.load_pdf(str(root/'inputs/plan_A.pdf')),a_ready,a_saved,b_changed,b_saved,duplicate,renamed,long_saved,wait_workers,open_outputs]
+    steps=[lambda:app.load_pdf(str(root/'inputs/plan_A.pdf')),a_ready,a_saved,b_changed,b_saved,duplicate,renamed,long_saved,timeout_done,timeout_retried,failure_done,failure_retried,wait_workers,open_outputs]
     index=0
     def drive():
         nonlocal index

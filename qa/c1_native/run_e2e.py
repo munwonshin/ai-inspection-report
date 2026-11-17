@@ -28,7 +28,7 @@ import tempfile
 tempfile.tempdir=str(root/'runtime-temp')
 def deny(*a,**kw):raise RuntimeError('Network disabled in synthetic native trial')
 socket.socket.connect=deny;socket.getaddrinfo=deny
-real_save=exporter.save;real_run=subprocess.run
+real_save=exporter.save;real_popen=subprocess.Popen
 events=[];before=production_manifest()
 def event(kind,**values):
     row={'event':kind,'time':time.time(),**values};events.append(row)
@@ -36,7 +36,7 @@ def event(kind,**values):
     print(json.dumps(row,ensure_ascii=True),flush=True)
 def instrument(command,**kw):
     assert command[1]==str(repo/'main.py') and command[2]=='--hwp-worker'
-    return real_run([command[0],str(repo/'qa/c1_native/worker.py'),*command[2:]],**kw)
+    return real_popen([command[0],str(repo/'qa/c1_native/worker.py'),*command[2:]],**kw)
 fixture=json.loads((repo/'qa/c1_baseline/fixtures.json').read_text(encoding='utf-8'))
 c=ControllerCase(fixture,{},scratch,'candidate',invoke_review_ui)
 c.app.folder.set(str(root/'outputs'))
@@ -61,7 +61,7 @@ def approve(name,expected=True):
     assert all(hashes().get(n)==v for n,v in prior.items())
     event('approval_result',name=name,expected_file=expected,hashes=hashes(),dialogs=c.dialogs)
 try:
-    with patch('inspection.ui.exporter.save',side_effect=real_save),patch('inspection.exporter.subprocess.run',side_effect=instrument):
+    with patch('inspection.ui.exporter.save',side_effect=real_save),patch('inspection.save_job.subprocess.Popen',side_effect=instrument):
         # Use kit PDFs/minutes with real attachment processing and manual report text.
         c.app.load_pdf(str(root/'inputs/plan_A.pdf'));c.settle();c.general('A')
         c.set_text(c.app.minutes,(root/'inputs/minutes_A.txt').read_text(encoding='utf-8'))

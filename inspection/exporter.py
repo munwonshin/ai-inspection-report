@@ -11,6 +11,7 @@ import sys
 import tempfile
 import time
 from .core import Report, destination, compose, verify_xml
+from . import save_job
 
 def resource_dir():
     return Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))/'assets'
@@ -23,28 +24,31 @@ def template_text():
         raise ValueError('양식 무결성 검사에 실패했습니다. 배포 파일을 다시 준비해 주세요.')
     return b.decode('utf-8-sig')
 
-def save(report, folder, name, *, approved=False):
+def save(report, folder, name, *, approved=False, timeout=save_job.SAVE_TIMEOUT_SECONDS):
     # Must precede ALL file access, including directory creation.
     if approved is not True:
         raise PermissionError('사용자 승인 전에는 저장할 수 없습니다.')
     if report.missing() or not report.title.strip() or not report.findings.strip():
         raise ValueError('제목·본문과 필수 일반현황을 확인해 주세요.')
     dest=destination(folder,name)
+    if dest.exists():raise FileExistsError('같은 이름의 파일이 있습니다. 파일명을 바꿔 주세요. 덮어쓰지 않았습니다.')
+    if timeout<=0:raise ValueError('저장 제한 시간은 양수여야 합니다.')
     payload={'approved':True,'report':report.as_dict(),'destination':str(dest)}
     command=[sys.executable,'--hwp-worker'] if getattr(sys,'frozen',False) else [sys.executable,str(Path(__file__).resolve().parent.parent/'main.py'),'--hwp-worker']
-    with tempfile.TemporaryDirectory(prefix='ai-inspection-approved-job-') as jobdir:
-        job=Path(jobdir)/'job.json'
-        response=Path(jobdir)/'response.json'
-        job.write_text(json.dumps(payload,ensure_ascii=False),encoding='utf-8')
-        p=subprocess.run(command+[str(job),str(response)],stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-        try:
-            result=json.loads(response.read_text(encoding='utf-8'))
-        except (ValueError,OSError):
-            raise RuntimeError('한글 저장 작업이 비정상 종료됐습니다. 한글 창의 오류를 확인해 주세요. 편집 내용은 유지됩니다.') from None
-    if not result.get('ok'):
-        raise RuntimeError(result.get('error','한글 저장에 실패했습니다.'))
-    return result
+    # Parent owns this exact hidden file and the only final publication step.
+    staged=stage_bytes(dest.parent,b'');owned=save_job.identity(staged)
+    try:
+        with tempfile.TemporaryDirectory(prefix='ai-inspection-approved-job-') as jobdir:
+            job=Path(jobdir)/'job.json';response=Path(jobdir)/'response.json'
+            payload.update(_supervised=True,_stage=str(staged),_stage_identity=owned,
+                _owner=str(Path(jobdir)/'owner.json'))
+            job.write_text(json.dumps(payload,ensure_ascii=False),encoding='utf-8')
+            result=save_job.run(command,job,response,timeout=timeout)
+        if save_job.identity(staged)!=owned or hashlib.sha256(staged.read_bytes()).hexdigest()!=result.get('sha256'):
+            raise RuntimeError('저장 검증 데이터가 일치하지 않습니다. 저장하지 않았습니다.')
+        prepare_publication(staged);publish_no_replace(staged,dest)
+        return {'ok':True,'path':str(dest),'pages':result['pages'],'reopened':True}
+    finally:save_job.cleanup_stage(staged,owned)
 
 def native_hwp_bytes(text):
     try:
@@ -116,8 +120,16 @@ def worker(payload):
     pythoncom.CoInitialize()
     hwp=None
     staged=None
+    supervised=payload.get('_supervised') is True
+    owned=not supervised
     try:
+        if supervised:
+            from . import hwp_process
+            before=hwp_process.hancom_pids();started=time.time()
         hwp=win32com.client.DispatchEx('HWPFrame.HwpObject')
+        if supervised:
+            info=hwp_process.identify(hwp,before,started);owned=True
+            Path(payload['_owner']).write_text(json.dumps(info),encoding='utf-8')
         hwp.XHwpWindows.Item(0).Visible=False
         # BSTR is UTF-16. An UTF-8 declaration makes older Hancom versions
         # import XML as visible text rather than a formatted document.
@@ -127,7 +139,14 @@ def worker(payload):
         verify_xml(hwp.GetTextFile('HWPML2X',''),report)
         binary=native_hwp_bytes(hwp.GetTextFile('HWP',''))
         # Same-directory file staging preserves same-volume no-replace semantics.
-        staged=stage_bytes(dest.parent,binary)
+        if supervised:
+            staged=Path(payload['_stage'])
+            with staged.open('r+b') as stream:
+                stat=os.fstat(stream.fileno())
+                if [stat.st_dev,stat.st_ino]!=payload['_stage_identity']:
+                    raise RuntimeError('임시 저장 파일의 소유권이 바뀌었습니다.')
+                stream.write(binary);stream.truncate();stream.flush();os.fsync(stream.fileno())
+        else:staged=stage_bytes(dest.parent,binary)
         # Re-read the bytes actually written, then reload in Hancom. The app
         # owns disk I/O; no Hancom Open/SaveAs, registry or security policy change.
         saved=staged.read_bytes()
@@ -138,16 +157,18 @@ def worker(payload):
         verify_xml(hwp.GetTextFile('HWPML2X',''),report)
         pages=int(hwp.PageCount)
         hwp.Clear(1);hwp.Quit();hwp=None
+        if supervised:
+            return {'ok':True,'pages':pages,'reopened':True,'sha256':hashlib.sha256(saved).hexdigest()}
         # Windows rename fails if the target appeared during COM processing.
         # Do not use replace(), which would overwrite that target.
         prepare_publication(staged)
         publish_no_replace(staged,dest)
         return {'ok':True,'path':str(dest),'pages':pages,'reopened':True}
     finally:
-        if hwp is not None:
+        if hwp is not None and owned:
             try:hwp.Clear(1); hwp.Quit()
             except Exception:pass
-        if staged is not None:
+        if staged is not None and not supervised:
             try:staged.unlink(missing_ok=True)
             except OSError:pass
         pythoncom.CoUninitialize()

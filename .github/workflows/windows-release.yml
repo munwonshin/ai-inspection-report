@@ -3,7 +3,7 @@ name: Windows executable release
 on:
   workflow_dispatch:
   push:
-    branches: [main, codex/c1-source-review]
+    branches: [main, codex/c1-source-review, codex/r028-save-hardening]
     paths:
       - '.github/workflows/windows-release.yml'
       - '.gitattributes'
@@ -85,7 +85,8 @@ jobs:
           set -euo pipefail
           test -f release/approved.json
           test -f release/NOTES.md
-          jq -e '.schema == "c1-tested-release-v1" and .frozen_e2e == "PASS" and .unit_tests == 151 and .acceptance_tests == 26 and .gui_qa == 4' release/approved.json >/dev/null
+          test "$(jq -r .version release/approved.json)" = "0.4.28"
+          jq -e '.schema == "c1-tested-release-v1" and .frozen_e2e == "PASS" and .unit_tests == 161 and .acceptance_tests == 27 and .gui_qa == 4' release/approved.json >/dev/null
           SOURCE=$(jq -r .source_commit release/approved.json)
           RUN=$(jq -r .workflow_run_id release/approved.json)
           VERSION=$(jq -r .version release/approved.json)
@@ -93,7 +94,7 @@ jobs:
           git cat-file -e "$SOURCE^{commit}"
           git diff --exit-code "$SOURCE" HEAD -- main.py inspection requirements.txt build.ps1 hooks assets qa/verify_frozen.py qa/package_release.py install-support.cs '바탕화면 아이콘 만들기.cmd'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN" > /tmp/candidate-run.json
-          jq -e --arg source "$SOURCE" '.head_sha == $source and .conclusion == "success" and .head_branch == "codex/c1-source-review"' /tmp/candidate-run.json >/dev/null
+          jq -e --arg source "$SOURCE" '.head_sha == $source and .conclusion == "success" and .head_branch == "codex/r028-save-hardening"' /tmp/candidate-run.json >/dev/null
           mkdir verified-release
           gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name windows-release --dir verified-release
           cd verified-release
@@ -104,4 +105,4 @@ jobs:
           EXPECTED_EXE=$(jq -r .exe_sha256 ../release/approved.json)
           ACTUAL_EXE=$(unzip -p "$ZIP" AIInspectionReport/AIInspectionReport.exe | sha256sum | cut -d' ' -f1)
           test "$EXPECTED_EXE" = "$ACTUAL_EXE"
-          gh release create "v$VERSION" "$ZIP" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "AI 현장점검 결과서 $VERSION · C1 재검수" --notes-file ../release/NOTES.md --latest
+          gh release create "v$VERSION" "$ZIP" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "AI 현장점검 결과서 $VERSION · 저장 작업 보호" --notes-file ../release/NOTES.md --latest

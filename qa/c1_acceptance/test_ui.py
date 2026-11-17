@@ -302,5 +302,18 @@ class C1UIAcceptanceTests(unittest.TestCase):
             self.assertEqual(c.app.snapshot(), before)
 
 
+    def test_timeout_unlocks_keeps_review_and_edits_then_retry(self):
+        with self.controller() as c:
+            self.reviewed(c);before=c.app.snapshot()
+            token=c.app.review_state.token
+            with patch('inspection.ui.exporter.save',side_effect=RuntimeError('한글 저장 제한 시간을 초과했습니다.')):
+                c.app.approve_button.invoke();c.settle()
+            self.assertFalse(c.app.busy);self.assertFalse(c.app.saved_current)
+            self.assertEqual(c.app.snapshot(),before)
+            self.assertEqual(c.app.review_state.token,token)
+            c.app.approve_button.invoke();c.settle()
+            self.assertTrue(c.app.saved_current);self.assertEqual(len(c.exports),1)
+            self.assertEqual(c.app.snapshot(),before)
+
 if __name__ == '__main__':
     unittest.main()

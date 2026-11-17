@@ -17,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--deps-dir', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--expected-tests',type=int,default=151)
     args = parser.parse_args()
     dll = configure_dependencies(args.deps_dir)
     root = args.output.resolve()
@@ -45,7 +46,7 @@ def main():
     (root / 'tests.log').write_text(stream.getvalue(), encoding='utf-8')
     (root / 'results.json').write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps({k: record[k] for k in ('run', 'failures', 'errors', 'skipped', 'source_unchanged')}))
-    return 0 if result.wasSuccessful() and result.testsRun == 151 and not result.skipped and record['source_unchanged'] else 1
+    return 0 if result.wasSuccessful() and result.testsRun == args.expected_tests and not result.skipped and record['source_unchanged'] else 1
 
 if __name__ == '__main__':
     raise SystemExit(main())

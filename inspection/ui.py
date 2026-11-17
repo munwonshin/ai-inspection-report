@@ -1,9 +1,7 @@
 import os
 import sys
 import queue
-import threading
 import time
-from .streaming import preview
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
@@ -23,7 +21,10 @@ LINE='#DFE6EA'
 FIELD='#FAFCFC'
 BLUE='#137C75'
 
-class App:
+from .async_tasks import AsyncTasks
+from .save_flow import SaveFlow
+
+class App(AsyncTasks,SaveFlow):
     def __init__(self,root,*,restore_api=True,preferences_path=None,restore_preferences=None):
         self.root=root
         self.review_state=ReviewState();self._review_attachment=None
@@ -575,65 +576,6 @@ class App:
             self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
         self.refresh_state()
 
-    def background(self,fn,done,status):
-        if self.busy:return
-        self._job_sequence+=1;job=self._job_sequence;self._active_job=job
-        self.lock(True);self.status.set(status)
-        def execute():
-            try:self.mailbox.put((job,done,True,fn()))
-            except Exception as e:self.mailbox.put((job,done,False,e))
-        threading.Thread(target=execute,daemon=False).start()
-
-    def set_status(self,text):
-        # Avoid firing Tk traces and rewriting labels on every idle animation tick.
-        if self.status.get()!=text:self.status.set(text)
-
-    def poll(self):
-        if self.metadata_started is not None:
-            self.set_status(f'일반현황 읽는 중 · {int(time.monotonic()-self.metadata_started)}초')
-        if self.ai_started is not None and self.pending_request is not None:
-            chunks=[]
-            try:
-                while True:chunks.append(self.stream_queue.get_nowait())
-            except queue.Empty:pass
-            if chunks:
-                self.stream_json+="".join(chunks)
-                self.stream_target=preview(self.stream_json)
-            target=self.stream_target
-            # Short paced batches follow actual network data; never invent text.
-            gap=len(target)-len(self.stream_visible)
-            self.stream_visible=target[:len(self.stream_visible)+max(1,min(500,gap//4))]
-            self.set_status('')
-            self.render_stream()
-        latest=None
-        try:
-            while True:latest=self.pdf_progress.get_nowait()
-        except queue.Empty:pass
-        if latest is not None and self.busy:
-            self.set_status(f'문서 읽는 중 · {latest[0]}/{latest[1]}')
-        try:
-            job,done,ok,result=self.mailbox.get_nowait()
-            if job!=self._active_job:pass
-            elif ok and self.ai_started is not None and self.stream_visible!=self.stream_target:
-                # Keep the approval gate closed while the last received characters
-                # drain, avoiding a final jump from a partial to the entire report.
-                self.mailbox.put((job,done,ok,result))
-            else:
-                self._active_job=None
-                self.ai_started=None
-                self.lock(False)
-                if ok:done(result)
-                else:
-                    if self.pending_request is not None:
-                        self.pending_request['status']='failed';self.pending_request=None;self.render_conversation(follow=True)
-                    self.set_status('처리에 실패했습니다. 입력·편집 내용은 유지됩니다.')
-                    messagebox.showerror('처리 실패',self.safe_error(result),parent=self.root)
-                # Editors/history own the report; release animation-only copies.
-                self.stream_json="";self.stream_target="";self.stream_visible=""
-                self._stream_rendered=None
-        except queue.Empty:pass
-        self.root.after(40 if self.ai_started is not None else 120,self.poll)
-
     def safe_error(self,e):
         if isinstance(e,(ValueError,RuntimeError,api.ApiFailure,PermissionError)):return str(e)
         return '작업을 완료하지 못했습니다. 파일·네트워크·접근 권한을 확인해 주세요. 입력 내용은 유지됩니다. (오류 종류: '+type(e).__name__+')'
@@ -964,45 +906,6 @@ class App:
         x=max(0,min(x,window.winfo_screenwidth()-width))
         y=max(0,min(y,window.winfo_screenheight()-height-50))
         window.geometry(f'+{x}+{y}')
-
-    def approve(self):
-        if self.busy:return
-        if not self.title.get().strip() or not self.get(self.findings).strip():
-            messagebox.showinfo('입력 확인','저장 파일명과 현장 점검 본문을 입력해 주세요.',parent=self.root);return
-        if not valid_document_context(self.report_context.get('program_year',''),self.report_context.get('division','')):
-            if not self.general_expanded:self.toggle_general()
-            key='program_year' if not valid_document_context(self.report_context.get('program_year',''),'일반분과') else 'division'
-            entry=self.document_context_entries[key];self.root.update_idletasks();self.reveal_general(entry);entry.focus_set()
-            messagebox.showinfo('문서 제목 확인','일반현황에서 사업연도와 분과를 확인해 주세요. 문서 제목은 이 값으로 생성하며 저장 파일명과 분리합니다.',parent=self.root);return
-        # Pick a destination only when needed; cancellation leaves all inputs intact.
-        if not self.folder.get().strip():
-            self.choose_folder()
-            if not self.folder.get().strip():return
-        try:destination(self.folder.get(),self.name.get())
-        except ValueError as e:messagebox.showerror('저장 설정',str(e),parent=self.root);return
-        missing=[k for k in GENERAL if not self.general[k].get().strip()]
-        if missing and not self.missing_dialog(missing):return
-        self.refresh_review()
-        if not self.review_state.allowed:
-            messagebox.showinfo('자료 재검수 필요',self.review_state.reason+' 현재 자료 대조·검토 완료를 선택한 뒤 승인해 주세요.',parent=self.root);return
-        self.sync_latest_report();self.render_conversation()
-        snapshot=self.snapshot();folder=self.folder.get();name=self.name.get()
-        approval_token=self.review_state.token
-        # A failed repeat save must not retain the previous attempt's success UI.
-        # Keep the report and last successful path; only done() may mark success.
-        self.saved_current=False
-        self.open_file.configure(state='disabled');self.open_folder.configure(state='disabled')
-        def done(result):
-            self.last_saved=result['path']
-            self.saved_current=True
-            self.open_file.configure(state='normal');self.open_folder.configure(state='normal')
-            self.status.set('저장했습니다.')
-        def task():
-            if approval_token!=self.review_state.token or not self.review_state.allowed:
-                raise ValueError('승인 대상이 변경되었습니다. 현재 자료를 다시 재검수해 주세요.')
-            return exporter.save(snapshot,folder,name,approved=True)
-        self.background(task,done,
-            '한글 파일을 저장하고 있습니다.')
 
     def open_saved(self):
         if self.last_saved:
