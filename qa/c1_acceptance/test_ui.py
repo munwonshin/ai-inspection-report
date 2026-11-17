@@ -302,6 +302,17 @@ class C1UIAcceptanceTests(unittest.TestCase):
             self.assertEqual(c.app.snapshot(), before)
 
 
+    def test_duplicate_has_actionable_reason_without_disclosing_path(self):
+        with self.controller() as c:
+            self.reviewed(c);before=c.app.snapshot()
+            with patch('inspection.ui.exporter.save',side_effect=FileExistsError('synthetic private path')):
+                c.app.approve_button.invoke();c.settle()
+            self.assertFalse(c.app.busy);self.assertFalse(c.app.saved_current)
+            self.assertEqual(c.app.snapshot(),before)
+            self.assertIn('같은 이름',c.dialogs[-1]['message'])
+            self.assertIn('파일명을 바꿔',c.dialogs[-1]['message'])
+            self.assertNotIn('synthetic private path',c.dialogs[-1]['message'])
+
     def test_timeout_unlocks_keeps_review_and_edits_then_retry(self):
         with self.controller() as c:
             self.reviewed(c);before=c.app.snapshot()

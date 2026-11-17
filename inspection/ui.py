@@ -577,6 +577,7 @@ class App(AsyncTasks,SaveFlow):
         self.refresh_state()
 
     def safe_error(self,e):
+        if isinstance(e,FileExistsError):return '같은 이름의 파일이 있습니다. 파일명을 바꿔 주세요. 덮어쓰지 않았습니다.'
         if isinstance(e,(ValueError,RuntimeError,api.ApiFailure,PermissionError)):return str(e)
         return '작업을 완료하지 못했습니다. 파일·네트워크·접근 권한을 확인해 주세요. 입력 내용은 유지됩니다. (오류 종류: '+type(e).__name__+')'
 
