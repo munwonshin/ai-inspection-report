@@ -86,7 +86,7 @@ jobs:
           test -f release/approved.json
           test -f release/NOTES.md
           test "$(jq -r .version release/approved.json)" = "0.4.28"
-          jq -e '.schema == "c1-tested-release-v1" and .frozen_e2e == "PASS" and .unit_tests == 161 and .acceptance_tests == 27 and .gui_qa == 4' release/approved.json >/dev/null
+          jq -e '.schema == "c1-tested-release-v1" and .frozen_e2e == "PASS" and .unit_tests == 163 and .acceptance_tests == 27 and .gui_qa == 4' release/approved.json >/dev/null
           SOURCE=$(jq -r .source_commit release/approved.json)
           RUN=$(jq -r .workflow_run_id release/approved.json)
           VERSION=$(jq -r .version release/approved.json)

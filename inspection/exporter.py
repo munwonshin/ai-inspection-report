@@ -44,6 +44,8 @@ def save(report, folder, name, *, approved=False, timeout=save_job.SAVE_TIMEOUT_
                 _owner=str(Path(jobdir)/'owner.json'))
             job.write_text(json.dumps(payload,ensure_ascii=False),encoding='utf-8')
             result=save_job.run(command,job,response,timeout=timeout)
+        if result.get('reopened') is not True or type(result.get('pages')) is not int or result['pages']<1:
+            raise RuntimeError('한글 저장 완료 응답이 올바르지 않습니다. 저장하지 않았습니다.')
         if save_job.identity(staged)!=owned or hashlib.sha256(staged.read_bytes()).hexdigest()!=result.get('sha256'):
             raise RuntimeError('저장 검증 데이터가 일치하지 않습니다. 저장하지 않았습니다.')
         prepare_publication(staged);publish_no_replace(staged,dest)

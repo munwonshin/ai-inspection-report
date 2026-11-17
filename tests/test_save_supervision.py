@@ -5,6 +5,25 @@ from inspection import save_job,hwp_process
 
 
 class SaveSupervisionTests(unittest.TestCase):
+    def test_invalid_completion_never_publishes_and_cleans_owned_stage(self):
+        from inspection import exporter
+        from inspection.core import Report,GENERAL
+        report=Report('합성 검사',tuple((k,'합성 값') for k in GENERAL),'합성 본문','합성 후속','')
+        with tempfile.TemporaryDirectory() as folder,patch('inspection.save_job.run',return_value={'ok':True,'sha256':'unused'}),patch('inspection.exporter.publish_no_replace') as publish:
+            with self.assertRaisesRegex(RuntimeError,'완료 응답'):exporter.save(report,folder,'synthetic',approved=True)
+            self.assertEqual(list(Path(folder).iterdir()),[])
+        publish.assert_not_called()
+
+    def test_duplicate_stops_before_stage_or_worker(self):
+        from inspection import exporter
+        from inspection.core import Report,GENERAL
+        report=Report('합성 검사',tuple((k,'합성 값') for k in GENERAL),'합성 본문','합성 후속','')
+        with tempfile.TemporaryDirectory() as folder:
+            dest=Path(folder)/'synthetic.hwp';dest.write_bytes(b'original')
+            with patch('inspection.exporter.stage_bytes') as stage,patch('inspection.save_job.run') as run:
+                with self.assertRaises(FileExistsError):exporter.save(report,folder,'synthetic',approved=True)
+            stage.assert_not_called();run.assert_not_called();self.assertEqual(dest.read_bytes(),b'original')
+
     def test_timeout_kills_only_worker_and_proven_owner(self):
         with tempfile.TemporaryDirectory() as folder:
             job=Path(folder)/'job.json';response=Path(folder)/'response.json'
